@@ -86,11 +86,8 @@ public class MainActivity extends Activity {
 
     private MediaPlayer player;
     private final Handler handler = new Handler();
-    private final SharedPreferences prefs by lazyPrefs();
+    private final SharedPreferences prefs;
 
-    private SharedPreferences lazyPrefs() {
-        return getSharedPreferences("chorus_cutter", MODE_PRIVATE);
-    }
 
     private int dp(int v) {
         return (int) (v * getResources().getDisplayMetrics().density + 0.5f);
@@ -157,6 +154,7 @@ public class MainActivity extends Activity {
         super.onCreate(state);
         getWindow().setStatusBarColor(Color.rgb(16, 19, 38));
         getWindow().setNavigationBarColor(Color.rgb(16, 19, 38));
+        prefs = getSharedPreferences("chorus_cutter", MODE_PRIVATE);
         buildUi();
         refreshRecent();
     }
@@ -660,71 +658,7 @@ public class MainActivity extends Activity {
     }
 
     private Analysis analyzeSong(Uri uri) throws Exception {
-        MediaExtractor extractor = new MediaExtractor();
-        extractor.setDataSource(this, uri, null);
-        int track = findAudioTrack(extractor);
-        if (track < 0) throw new IllegalStateException("No audio track");
-        extractor.selectTrack(track);
-        MediaFormat format = extractor.getTrackFormat(track);
-        int sampleRate = format.containsKey(MediaFormat.KEY_SAMPLE_RATE) ? format.getInteger(MediaFormat.KEY_SAMPLE_RATE) : 44100;
-        int channels = format.containsKey(MediaFormat.KEY_CHANNEL_COUNT) ? format.getInteger(MediaFormat.KEY_CHANNEL_COUNT) : 2;
-        long durationUs = format.containsKey(MediaFormat.KEY_DURATION) ? format.getLong(MediaFormat.KEY_DURATION) : songDurationMs * 1000L;
-        String mime = format.getString(MediaFormat.KEY_MIME);
-
-        MediaCodec decoder = MediaCodec.createDecoderByType(mime);
-        decoder.configure(format, null, null, 0);
-        decoder.start();
-
-        ArrayList<Float> features = new ArrayList<>();
-        long blockSamples = Math.max(1, (long)(sampleRate * 0.5f) * channels);
-        long count = 0;
-        double sum = 0;
-        boolean inputDone = false;
-        boolean outputDone = false;
-
-        try {
-            while (!outputDone) {
-                if (!inputDone) {
-                    int in = decoder.dequeueInputBuffer(10000);
-                    if (in >= 0) {
-                        ByteBuffer ib = decoder.getInputBuffer(in);
-                        ib.clear();
-                        int size = extractor.readSampleData(ib, 0);
-                        if (size < 0) {
-                            decoder.queueInputBuffer(in, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
-                            inputDone = true;
-                        } else {
-                            long pts = Math.max(0, extractor.getSampleTime());
-                            decoder.queueInputBuffer(in, 0, size, pts, 0);
-                            extractor.advance();
-                        }
-                    }
-                }
-
-                int out = decoder.dequeueOutputBuffer(new MediaCodec.BufferInfo(), 1000);
-                if (out == MediaCodec.INFO_TRY_AGAIN_LATER) continue;
-                if (out == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) continue;
-                if (out >= 0) {
-                    MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
-                    info.offset = 0;
-                    info.size = 0;
-                    ByteBuffer buf = decoder.getOutputBuffer(out);
-                    MediaCodec.BufferInfo realInfo = new MediaCodec.BufferInfo();
-                    try {
-                        // Re-dequeue is not needed; use output buffer with fresh info below.
-                        // The actual info is retrieved by the next dedicated call path.
-                    } catch (Exception ignored) {}
-                    decoder.releaseOutputBuffer(out, false);
-                }
-            }
-        } finally {
-            try { decoder.stop(); } catch (Exception ignored) {}
-            try { decoder.release(); } catch (Exception ignored) {}
-            extractor.release();
-        }
-
-        // The lightweight pass above is replaced by the robust PCM feature reader.
-        return readRmsFeatures(uri, sampleRate);
+        return readRmsFeatures(uri, 44100);
     }
 
     private Analysis readRmsFeatures(Uri uri, int ignoredSampleRate) throws Exception {
