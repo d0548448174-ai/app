@@ -12,6 +12,7 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
+import android.widget.Space;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -214,9 +215,8 @@ public class MainActivity extends Activity {
 
     private View space(int h) {
         Space s = new Space(this);
-        return new Space(this) {{
-            setLayoutParams(new LinearLayout.LayoutParams(1, dp(h)));
-        }};
+        s.setLayoutParams(new LinearLayout.LayoutParams(1, dp(h)));
+        return s;
     }
 
     private void pickAudio() {
