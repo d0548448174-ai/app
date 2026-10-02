@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>יוצר הפלייבקים</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:linear-gradient(160deg,#f7f3ff,#fff);color:#27222f}.wrap{max-width:560px;margin:auto;padding:20px 15px 35px}.hero{text-align:center}.logo{font-size:55px}.title{font-size:30px;font-weight:800}.sub{color:#736c7e;margin:7px 0 18px}.card{background:#fff;border-radius:24px;padding:18px;margin:12px 0;box-shadow:0 10px 28px rgba(80,55,145,.10);border:1px solid #eee8ff}.label{font-size:13px;color:#796f84}.card h2{margin:5px 0 10px;font-size:21px}.btn{width:100%;border:0;border-radius:17px;padding:15px;font-size:17px;font-weight:700;cursor:pointer;margin-top:8px}.primary{background:#6d50d9;color:#fff}.secondary{background:#efeaff;color:#5136a5}.file{font-weight:700;margin-top:10px;word-break:break-word;color:#4e3d76}.status{text-align:center;font-weight:700;margin-top:12px}.small{font-size:12px;color:#777;line-height:1.5;margin-top:12px}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.out{background:#faf8ff;border:1px solid #eee8ff;border-radius:15px;padding:12px;margin-top:9px;font-weight:700}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="hero"><div class="logo">🎤🎶</div><div class="title">יוצר הפלייבקים</div><div class="sub">גרסה קלה שעובדת מקומית במכשיר</div></div>
+<div class="card">
+<div class="label">שלב 1</div><h2>בחר שיר</h2>
+<input id="pick" type="file" accept="audio/*" style="display:none">
+<button class="btn primary" onclick="document.getElementById('pick').click()">📂 בחירת קובץ מוזיקה</button>
+<div id="fileName" class="file">עדיין לא נבחר שיר</div>
+</div>
+<div class="card">
+<div class="label">שלב 2</div><h2>צור תוצאה</h2>
+<div class="row"><button class="btn secondary" onclick="process('vocal')">🎤 ווקאלי</button><button class="btn secondary" onclick="process('playback')">🎧 פלייבק</button></div>
+<button class="btn primary" onclick="process('both')">✨ צור את שניהם</button>
+<div id="status" class="status">ממתין לשיר</div>
+<div class="small">עיבוד מקומי ללא אינטרנט וללא מודל AI. מתאים במיוחד למיקס סטריאו שבו הקול נמצא במרכז.</div>
+</div>
+<div class="card"><div class="label">שלב 3</div><h2>התוצאות</h2><div id="results"><div class="out">🎵 עדיין אין תוצאות</div></div></div>
+</div>
+<script>
+let selected=null;
+document.getElementById('pick').addEventListener('change',e=>{selected=e.target.files&&e.target.files[0]?e.target.files[0]:null;document.getElementById('fileName').textContent=selected?'✅ '+selected.name:'עדיין לא נבחר שיר';document.getElementById('status').textContent=selected?'מוכן לעיבוד':'ממתין לשיר';});
+function base64(ab){const a=new Uint8Array(ab);let b='',c=32768;for(let i=0;i<a.length;i+=c)b+=String.fromCharCode.apply(null,a.subarray(i,Math.min(i+c,a.length)));return btoa(b);}
+function makeWav(L,R,sr){const n=L.length,ab=new ArrayBuffer(44+n*4),v=new DataView(ab),t=(o,s)=>{for(let i=0;i<s.length;i++)v.setUint8(o+i,s.charCodeAt(i))},u16=(o,x)=>v.setUint16(o,x,true),u32=(o,x)=>v.setUint32(o,x,true);t(0,'RIFF');u32(4,36+n*4);t(8,'WAVE');t(12,'fmt ');u32(16,16);u16(20,1);u16(22,2);u32(24,sr);u32(28,sr*4);u16(32,4);u16(34,16);t(36,'data');u32(40,n*4);let p=44;for(let i=0;i<n;i++){let l=Math.max(-1,Math.min(1,L[i])),r=Math.max(-1,Math.min(1,R[i]));v.setInt16(p,l<0?l*32768:l*32767,true);v.setInt16(p+2,r<0?r*32768:r*32767,true);p+=4}return ab;}
+function stemName(s){return (selected.name||'שיר').replace(/.[^.]+$/,'').replace(/[\\/:*?"<>|]/g,'_')+s+'.wav';}
+async function process(mode){
+if(!selected){alert('בחר קודם שיר');return}
+const st=document.getElementById('status');st.textContent='⏳ מעבד...';
+try{
+const ac=new (window.AudioContext||window.webkitAudioContext)();
+const audio=await ac.decodeAudioData(await selected.arrayBuffer()),n=audio.length,sr=audio.sampleRate,L=audio.getChannelData(0),R=audio.numberOfChannels>1?audio.getChannelData(1):L;
+const vl=new Float32Array(n),vr=new Float32Array(n),pl=new Float32Array(n),pr=new Float32Array(n);
+for(let i=0;i<n;i++){const l=L[i],r=R[i],mid=(l+r)*.5,side=(l-r)*.5;vl[i]=vr[i]=mid;pl[i]=side;pr[i]=-side;}
+let out=[];
+if(mode==='vocal'||mode==='both'){Android.saveBase64(stemName('_ווקאלי'),base64(makeWav(vl,vr,sr)));out.push('✅ הווקאלי נשמר');}
+if(mode==='playback'||mode==='both'){Android.saveBase64(stemName('_פלייבק'),base64(makeWav(pl,pr,sr)));out.push('✅ הפלייבק נשמר');}
+document.getElementById('results').innerHTML=out.map(x=>'<div class="out">'+x+'</div>').join('');st.textContent='✅ הסתיים';await ac.close();
+}catch(e){console.error(e);st.textContent='❌ העיבוד נכשל';alert('נסה קובץ MP3 או WAV אחר.');}}
+</script>
+</body>
+</html>
