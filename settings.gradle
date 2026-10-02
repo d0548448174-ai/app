@@ -5,4 +5,5 @@ include(":app")
 include(":chorus")
 include(":chipmunk")
 include(":playlist")
-\ninclude(":digitai")\n
+
+include(":digitai")
