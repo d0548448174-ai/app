@@ -1,0 +1,63 @@
+name: Build Vocal Playback Maker
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout recipe
+        uses: actions/checkout@v4
+
+      - name: Install Android tooling
+        uses: android-actions/setup-android@v3
+
+      - name: Install SDK, NDK and CMake
+        run: |
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager "platforms;android-34" "build-tools;34.0.0" "cmake;3.22.1" "ndk;27.2.12479018"
+
+      - name: Get Demucs Android engine
+        run: |
+          git lfs install
+          git clone --depth 1 https://github.com/sevagh/demucs-android.git build-src
+          cd build-src
+          git lfs pull
+
+      - name: Apply custom app
+        run: |
+          cp vocal_playbacks/res/values/strings.xml build-src/app/src/main/res/values/strings.xml
+          cp vocal_playbacks/res/values/colors.xml build-src/app/src/main/res/values/colors.xml
+          cp vocal_playbacks/res/values/themes.xml build-src/app/src/main/res/values/themes.xml
+          cp vocal_playbacks/res/drawable/bg_card.xml build-src/app/src/main/res/drawable/bg_card.xml
+          cp vocal_playbacks/res/drawable/bg_primary.xml build-src/app/src/main/res/drawable/bg_primary.xml
+          cp vocal_playbacks/res/drawable/ic_vocal_playback.xml build-src/app/src/main/res/drawable/ic_vocal_playback.xml
+          cp vocal_playbacks/res/layout/demixer_fragment.xml build-src/app/src/main/res/layout/demixer_fragment.xml
+          python3 vocal_playbacks/patch_demucs.py
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("build-src/app/build.gradle.kts")
+          s = p.read_text()
+          s = s.replace('applicationId = "com.github.sevagh.demucs_android"', 'applicationId = "com.example.vocalplaybacks"')
+          s = s.replace("versionCode = 3", "versionCode = 1")
+          s = s.replace('versionName = "1.0.3-alpha"', 'versionName = "1.0"')
+          p.write_text(s)
+          m = Path("build-src/app/src/main/AndroidManifest.xml")
+          s = m.read_text()
+          s = s.replace('android:icon="@mipmap/ic"', 'android:icon="@drawable/ic_vocal_playback"')
+          s = s.replace('android:roundIcon="@mipmap/ic_round"', 'android:roundIcon="@drawable/ic_vocal_playback"')
+          m.write_text(s)
+          PY
+
+      - name: Build debug APK
+        working-directory: build-src
+        run: ./gradlew --no-daemon :app:assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: VocalPlaybackMaker-debug-apk
+          path: build-src/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
