@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorBackground">#FFF8FC</color>
+    <color name="colorPrimaryText">#35263B</color>
+    <color name="colorHeader">#8B5CF6</color>
+    <color name="colorLink">#7C3AED</color>
+    <color name="colorLinkHover">#6D28D9</color>
+    <color name="colorGoldPro">#F5B942</color>
+    <color name="colorBlack">#000000</color>
+    <color name="colorWhite">#FFFFFF</color>
+    <color name="colorCyan">#0EA5E9</color>
+    <color name="colorOrange">#FB923C</color>
+    <color name="colorRed">#EF4444</color>
+    <color name="colorPink">#EC4899</color>
+    <color name="colorLime">#22C55E</color>
+    <color name="cardBg">#FFFFFF</color>
+</resources>
