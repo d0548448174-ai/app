@@ -48,13 +48,13 @@ public class MainActivity extends Activity {
         newGame.setOnClickListener(v->newGame());
         root.addView(header);
 
-        LinearLayout levels=new LinearLayout(this);
-        String[] levels={"קל","בינוני","קשה","מומחה"};
-        for(String d:levels){
-            Button b=button(d);levels.addView(b,new LinearLayout.LayoutParams(0,dp(43),1));
+        LinearLayout levelButtons=new LinearLayout(this);
+        String[] difficultyLevels={"קל","בינוני","קשה","מומחה"};
+        for(String d:difficultyLevels){
+            Button b=button(d);levelButtons.addView(b,new LinearLayout.LayoutParams(0,dp(43),1));
             b.setOnClickListener(v->{difficulty=d;newGame();});
         }
-        root.addView(levels,new LinearLayout.LayoutParams(-1,dp(48)));
+        root.addView(levelButtons,new LinearLayout.LayoutParams(-1,dp(48)));
 
         board=new Board(this);root.addView(board,new LinearLayout.LayoutParams(-1,0,1));
 
