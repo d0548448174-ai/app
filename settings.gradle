@@ -1,3 +1,5 @@
 pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }
 dependencyResolutionManagement { repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS); repositories { google(); mavenCentral() } }
-rootProject.name="SudokuMagic"; include(":app")
+rootProject.name="MusicTools"
+include(":app")
+include(":chorus")
