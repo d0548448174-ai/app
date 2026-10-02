@@ -86,7 +86,7 @@ public class MainActivity extends Activity {
 
     private MediaPlayer player;
     private final Handler handler = new Handler();
-    private final SharedPreferences prefs;
+    private SharedPreferences prefs;
 
 
     private int dp(int v) {
