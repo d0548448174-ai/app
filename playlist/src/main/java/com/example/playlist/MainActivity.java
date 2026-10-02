@@ -121,7 +121,13 @@ public class MainActivity extends Activity {
         String url="https://playlist.local/audio/"+Uri.encode(f.getName()), name=f.getName();int p=name.indexOf('_');if(p>0)name=name.substring(p+1);
         return "{\"name\":\""+json(name)+"\",\"url\":\""+json(url)+"\",\"native\":true}";
     }
-    private void sendItems(ArrayList<String> items){String p="["+String.join(",",items)+"]";runOnUiThread(()->web.evaluateJavascript("window.onNativeFiles&&window.onNativeFiles("+p+")",null));}
+    private void sendItems(ArrayList<String> items){
+        StringBuilder b=new StringBuilder("[");
+        for(int i=0;i<items.size();i++){if(i>0)b.append(",");b.append(items.get(i));}
+        b.append("]");
+        String p=b.toString();
+        runOnUiThread(()->web.evaluateJavascript("window.onNativeFiles&&window.onNativeFiles("+p+")",null));
+    }
 
     private WebResourceResponse serveImported(String url){
         try{
