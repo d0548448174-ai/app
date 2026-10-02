@@ -1,4 +1,4 @@
-name: Build Digit AI
+name: Build Digit AI - trigger
 
 on:
   push:
