@@ -25,24 +25,33 @@ jobs:
           distribution: temurin
           java-version: "17"
 
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android 35 platform
+        run: |
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+
       - name: Set up Gradle 8.7
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.7"
 
-      - name: Build debug APK
+      - name: Build APK
         working-directory: chipmunk
-        run: gradle --no-daemon --stacktrace :app:assembleDebug
+        run: gradle --no-daemon --stacktrace clean :app:assembleDebug
 
       - name: Verify APK
         run: |
           test -f chipmunk/app/build/outputs/apk/debug/app-debug.apk
-          ls -lh chipmunk/app/build/outputs/apk/debug/app-debug.apk
+          cp chipmunk/app/build/outputs/apk/debug/app-debug.apk chipmunk-voice-debug.apk
+          ls -lh chipmunk-voice-debug.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: ChipmunkVoice-debug-apk
-          path: chipmunk/app/build/outputs/apk/debug/app-debug.apk
+          path: chipmunk-voice-debug.apk
           if-no-files-found: error
           retention-days: 7
