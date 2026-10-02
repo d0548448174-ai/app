@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">יוצר הפלייבקים 🎤</string>
+    <string name="action_settings">הגדרות</string>
+    <string name="next">הבא</string>
+    <string name="previous">הקודם</string>
+    <string name="warning">אזהרה</string>
+</resources>
