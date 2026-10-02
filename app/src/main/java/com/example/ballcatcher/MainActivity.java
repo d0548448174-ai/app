@@ -172,7 +172,7 @@ public class MainActivity extends Activity {
         PrintManager pm=(PrintManager)getSystemService(PRINT_SERVICE);
         pm.print("חוברת סודוקו קסום - 30 חידות",new PrintDocumentAdapter(){
             PrintedPdfDocument pdf;
-            public void onLayout(PrintAttributes attrs,PrintAttributes old,LayoutResultCallback cb,Bundle extras){
+            public void onLayout(PrintAttributes attrs,PrintAttributes old,android.os.CancellationSignal cancel,LayoutResultCallback cb,Bundle extras){
                 pdf=new PrintedPdfDocument(MainActivity.this,attrs);
                 cb.onLayoutFinished(new PrintDocumentInfo.Builder("sudoku-30.pdf").setContentType(PrintDocumentInfo.CONTENT_TYPE_DOCUMENT).setPageCount(30).build(),true);
             }
@@ -186,7 +186,7 @@ public class MainActivity extends Activity {
                         Canvas c=page.getCanvas();drawPdfPage(c,puzzle,k+1,(k%4==0?"קל":k%4==1?"בינוני":k%4==2?"קשה":"מומחה"));
                         pdf.finishPage(page);
                     }
-                    pdf.writeTo(dest);cb.onWriteFinished(new PageRange[]{PageRange.ALL_PAGES});
+                    java.io.OutputStream out=new ParcelFileDescriptor.AutoCloseOutputStream(dest);pdf.writeTo(out);out.flush();cb.onWriteFinished(new PageRange[]{PageRange.ALL_PAGES});
                 }catch(Exception ex){cb.onWriteFailed(ex.toString());}finally{pdf.close();}
             }
         },null);
