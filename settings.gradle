@@ -4,3 +4,4 @@ rootProject.name="MusicTools"
 include(":app")
 include(":chorus")
 include(":chipmunk")
+include(":playlist")
