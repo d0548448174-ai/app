@@ -24,3 +24,5 @@ jobs:
           name: OfflineShorts-debug-apk
           path: offline_shorts/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
+
+# Rebuild after permission callback fix
