@@ -30,7 +30,9 @@ jobs:
       - name: Install Android SDK packages
         run: |
           export ANDROID_HOME=/usr/local/lib/android/sdk
-          SDKMANAGER="/usr/local/lib/android/sdk/cmdline-tools/16.0/bin/sdkmanager"
+          SDKMANAGER="$(find /usr/local/lib/android/sdk/cmdline-tools -name sdkmanager -type f | head -1)"
+          test -n "$SDKMANAGER"
+          echo "Using $SDKMANAGER"
           yes | "$SDKMANAGER" --licenses >/dev/null || true
           "$SDKMANAGER" "platform-tools" "platforms;android-35" "build-tools;35.0.1"
 
