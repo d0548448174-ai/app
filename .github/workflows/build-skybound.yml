@@ -51,11 +51,20 @@ jobs:
           cp -r templates/. ~/.local/share/godot/export_templates/4.5.1.stable/
           printf "4.5.1.stable\n" > ~/.local/share/godot/export_templates/4.5.1.stable/version.txt
 
+      - name: Create debug keystore
+        working-directory: skybound_dash
+        run: |
+          mkdir -p ../build/skybound
+          keytool -genkeypair -v -keystore ../build/skybound/debug.keystore -alias androiddebugkey -storepass android -keypass android -dname "CN=Android Debug,O=Android,C=US" -keyalg RSA -keysize 2048 -validity 10000
+
       - name: Export debug APK
         working-directory: skybound_dash
         env:
           ANDROID_HOME: ${{ env.ANDROID_SDK_ROOT }}
           JAVA_HOME: ${{ env.JAVA_HOME }}
+          GODOT_ANDROID_KEYSTORE_DEBUG_PATH: ${{ github.workspace }}/build/skybound/debug.keystore
+          GODOT_ANDROID_KEYSTORE_DEBUG_USER: androiddebugkey
+          GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD: android
         run: |
           mkdir -p ../build/skybound
           godot --headless --verbose --export-debug "Android" ../build/skybound/SkyboundDash.apk
