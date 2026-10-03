@@ -38,7 +38,7 @@ jobs:
 
       - name: Download Godot 4.5.1
         run: |
-          wget -q https://downloads.tuxfamily.org/godotengine/4.5.1/Godot_v4.5.1-stable_linux.x86_64.zip
+          wget -q https://github.com/godotengine/godot/releases/download/4.5.1-stable/Godot_v4.5.1-stable_linux.x86_64.zip
           unzip -q Godot_v4.5.1-stable_linux.x86_64.zip
           chmod +x Godot_v4.5.1-stable_linux.x86_64
           sudo mv Godot_v4.5.1-stable_linux.x86_64 /usr/local/bin/godot
@@ -46,7 +46,7 @@ jobs:
       - name: Install Godot export templates
         run: |
           mkdir -p ~/.local/share/godot/export_templates/4.5.1.stable
-          wget -q https://downloads.tuxfamily.org/godotengine/4.5.1/Godot_v4.5.1-stable_export_templates.tpz
+          wget -q https://github.com/godotengine/godot/releases/download/4.5.1-stable/Godot_v4.5.1-stable_export_templates.tpz
           unzip -q Godot_v4.5.1-stable_export_templates.tpz
           cp -r templates/. ~/.local/share/godot/export_templates/4.5.1.stable/
           printf "4.5.1.stable\n" > ~/.local/share/godot/export_templates/4.5.1.stable/version.txt
