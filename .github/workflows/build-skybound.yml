@@ -1,0 +1,34 @@
+name: Build Skybound Dash APK
+
+on:
+  push:
+    paths:
+      - "skybound_dash/**"
+      - ".github/workflows/build-skybound.yml"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    container:
+      image: barichello/godot-ci:4.5.1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Prepare Godot
+        run: |
+          mkdir -p ~/.config ~/.local/share/godot/export_templates
+          if [ -d /root/.config/godot ]; then cp -r /root/.config/godot ~/.config/godot; fi
+          if [ -d /root/.local/share/godot/export_templates/4.5.1.stable ]; then cp -r /root/.local/share/godot/export_templates/4.5.1.stable ~/.local/share/godot/export_templates/4.5.1.stable; fi
+      - name: Export APK
+        working-directory: skybound_dash
+        run: |
+          mkdir -p ../build/skybound
+          godot --headless --verbose --export-release "Android" ../build/skybound/SkyboundDash.apk
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Skybound-Dash-APK
+          path: build/skybound/SkyboundDash.apk
+          if-no-files-found: error
+          retention-days: 14
