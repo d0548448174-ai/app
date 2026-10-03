@@ -18,7 +18,7 @@ jobs:
         with:
           gradle-version: '8.7'
       - name: Build APK
-        run: gradle --no-daemon -p offline_shorts assembleDebug
+        run: gradle --no-daemon -p offline_shorts assembleDebug --stacktrace
       - uses: actions/upload-artifact@v4
         with:
           name: OfflineShorts-debug-apk
