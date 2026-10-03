@@ -34,7 +34,7 @@ jobs:
           test -n "$SDKMANAGER"
           echo "Using $SDKMANAGER"
           yes | "$SDKMANAGER" --licenses >/dev/null || true
-          "$SDKMANAGER" "platform-tools" "platforms;android-35" "build-tools;35.0.1"
+          "$SDKMANAGER" "platform-tools" "platforms;android-35" "build-tools;35.0.1" "cmake;3.10.2.4988404" "ndk;28.1.13356709"
 
       - name: Download Godot 4.5.1
         run: |
