@@ -30,8 +30,9 @@ jobs:
       - name: Install Android SDK packages
         run: |
           export ANDROID_HOME=/usr/local/lib/android/sdk
-          yes | sdkmanager --licenses >/dev/null || true
-          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.1"
+          SDKMANAGER="/usr/local/lib/android/sdk/cmdline-tools/16.0/bin/sdkmanager"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" "platform-tools" "platforms;android-35" "build-tools;35.0.1"
 
       - name: Download Godot 4.5.1
         run: |
