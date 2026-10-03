@@ -10,7 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.activity.ComponentActivity
-import androidx.core.app.ActivityCompat
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
@@ -25,6 +25,9 @@ class MainActivity : ComponentActivity() {
     private var player: ExoPlayer? = null
     private val videos = mutableListOf<LocalVideo>()
     private var currentHolder: VideoHolder? = null
+    private val permissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) showFeed() else showEmpty("צריך לאשר גישה לסרטונים כדי שהפיד האופליין יעבוד.")
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,13 +42,7 @@ class MainActivity : ComponentActivity() {
 
     private fun requestPermission() {
         val p = if (android.os.Build.VERSION.SDK_INT >= 33) Manifest.permission.READ_MEDIA_VIDEO else Manifest.permission.READ_EXTERNAL_STORAGE
-        ActivityCompat.requestPermissions(this, arrayOf(p), 40)
-    }
-
-    override fun onRequestPermissionsResult(r:Int,p:Array<out String>,g:IntArray) {
-        super.onRequestPermissionsResult(r,p,g)
-        if (r==40 && g.isNotEmpty() && g[0]==PackageManager.PERMISSION_GRANTED) showFeed()
-        else showEmpty("צריך לאשר גישה לסרטונים כדי שהפיד האופליין יעבוד.")
+        permissionLauncher.launch(p)
     }
 
     private fun loadVideos() {
