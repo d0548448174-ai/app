@@ -10,21 +10,48 @@ on:
 jobs:
   build:
     runs-on: ubuntu-24.04
-    container:
-      image: barichello/godot-ci:4.5.1
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Prepare Godot
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK packages
         run: |
-          mkdir -p ~/.config ~/.local/share/godot/export_templates
-          if [ -d /root/.config/godot ]; then cp -r /root/.config/godot ~/.config/godot; fi
-          if [ -d /root/.local/share/godot/export_templates/4.5.1.stable ]; then cp -r /root/.local/share/godot/export_templates/4.5.1.stable ~/.local/share/godot/export_templates/4.5.1.stable; fi
-      - name: Export APK
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.1"
+
+      - name: Download Godot 4.5.1
+        run: |
+          wget -q https://downloads.tuxfamily.org/godotengine/4.5.1/Godot_v4.5.1-stable_linux.x86_64.zip
+          unzip -q Godot_v4.5.1-stable_linux.x86_64.zip
+          chmod +x Godot_v4.5.1-stable_linux.x86_64
+          sudo mv Godot_v4.5.1-stable_linux.x86_64 /usr/local/bin/godot
+
+      - name: Install Godot export templates
+        run: |
+          mkdir -p ~/.local/share/godot/export_templates/4.5.1.stable
+          wget -q https://downloads.tuxfamily.org/godotengine/4.5.1/Godot_v4.5.1-stable_export_templates.tpz
+          unzip -q Godot_v4.5.1-stable_export_templates.tpz
+          cp -r templates/. ~/.local/share/godot/export_templates/4.5.1.stable/
+          printf "4.5.1.stable\n" > ~/.local/share/godot/export_templates/4.5.1.stable/version.txt
+
+      - name: Export debug APK
         working-directory: skybound_dash
+        env:
+          ANDROID_HOME: ${{ env.ANDROID_SDK_ROOT }}
+          JAVA_HOME: ${{ env.JAVA_HOME }}
         run: |
           mkdir -p ../build/skybound
-          godot --headless --verbose --export-release "Android" ../build/skybound/SkyboundDash.apk
+          godot --headless --verbose --export-debug "Android" ../build/skybound/SkyboundDash.apk
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
