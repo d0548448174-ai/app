@@ -269,14 +269,15 @@ public class MainActivity extends AppCompatActivity {
                 if (output.exists()) output.delete();
                 mp3.save(output.getAbsolutePath());
 
-                pendingOutput = output;
+                final File readyOutput = output;
+                pendingOutput = readyOutput;
                 runOnUiThread(() -> {
                     setBusy(false, "ה‑MP3 מוכן לשמירה.");
                     successView.setText("✅ נוספה עטיפה לשיר. עכשיו בחר איפה לשמור את הקובץ.");
                     Intent save = new Intent(Intent.ACTION_CREATE_DOCUMENT);
                     save.setType("audio/mpeg");
                     save.addCategory(Intent.CATEGORY_OPENABLE);
-                    save.putExtra(Intent.EXTRA_TITLE, output.getName());
+                    save.putExtra(Intent.EXTRA_TITLE, readyOutput.getName());
                     startActivityForResult(save, CREATE_OUTPUT);
                 });
             } catch (Exception e) {
