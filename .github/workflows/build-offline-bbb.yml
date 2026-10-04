@@ -15,20 +15,16 @@ jobs:
     steps:
       - name: Download the actual MP4 from GitHub
         run: |
-          curl -L --fail --retry 3 \
-            -o big_buck_bunny.mp4 \
-            "https://raw.githubusercontent.com/andreasbotsikas/DemoVideos/master/big_buck_bunny.mp4"
+          curl -L --fail --retry 3 -o big_buck_bunny.mp4 "https://raw.githubusercontent.com/andreasbotsikas/DemoVideos/master/big_buck_bunny.mp4"
+          test -s big_buck_bunny.mp4
           ls -lh big_buck_bunny.mp4
 
-      - name: Create one self-contained HTML
+      - name: Create self-contained HTML
         run: |
           python3 - <<'PY'
           import base64
           from pathlib import Path
-
-          mp4 = Path("big_buck_bunny.mp4").read_bytes()
-          data = base64.b64encode(mp4).decode("ascii")
-
+          data = base64.b64encode(Path("big_buck_bunny.mp4").read_bytes()).decode("ascii")
           html = '''<!doctype html>
 <html lang="he" dir="rtl">
 <head>
@@ -39,9 +35,9 @@ jobs:
 html,body{margin:0;background:#0b0f14;color:#fff;font-family:Arial,sans-serif}
 body{min-height:100vh;display:grid;place-items:center;padding:20px;box-sizing:border-box}
 .card{width:min(1100px,100%);background:#151b24;border-radius:20px;padding:18px;box-sizing:border-box}
-h1{margin:0 0 12px;text-align:center;font-size:clamp(20px,4vw,34px)}
-video{display:block;width:100%;height:auto;border-radius:14px;background:#000}
-.note{margin:12px 0 0;text-align:center;color:#b8c2cf;font-size:14px}
+h1{text-align:center;font-size:clamp(20px,4vw,34px)}
+video{display:block;width:100%;border-radius:14px;background:#000}
+.note{text-align:center;color:#b8c2cf;font-size:14px}
 </style>
 </head>
 <body>
@@ -51,21 +47,18 @@ video{display:block;width:100%;height:auto;border-radius:14px;background:#000}
 <source src="data:video/mp4;base64,''' + data + '''" type="video/mp4">
 הדפדפן שלך לא תומך בניגון וידאו.
 </video>
-<div class="note">הווידאו משולב בתוך קובץ ה‑HTML עצמו ואינו תלוי בחיבור לאינטרנט.</div>
+<div class="note">הווידאו משולב בתוך קובץ ה‑HTML עצמו.</div>
 </main>
 </body>
 </html>
 '''
           Path("Big_Buck_Bunny_OFFLINE.html").write_text(html, encoding="utf-8")
-          print("Created", Path("Big_Buck_Bunny_OFFLINE.html").stat().st_size, "bytes")
+          print(Path("Big_Buck_Bunny_OFFLINE.html").stat().st_size)
           PY
           ls -lh Big_Buck_Bunny_OFFLINE.html
 
-      - name: Publish direct HTML download as a GitHub release asset
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: offline-bbb-${{ github.run_number }}
-          name: Big Buck Bunny — HTML אופליין
-          body: Standalone HTML with the MP4 embedded directly inside the HTML.
-          files: Big_Buck_Bunny_OFFLINE.html
-          make_latest: true
+      - name: Publish the HTML as a release asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "offline-bbb-${{ github.run_number }}" Big_Buck_Bunny_OFFLINE.html --title "Big Buck Bunny — HTML אופליין" --notes "Standalone HTML with the MP4 embedded directly inside the HTML." --latest
