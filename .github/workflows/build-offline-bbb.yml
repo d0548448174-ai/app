@@ -64,7 +64,7 @@ video{display:block;width:100%;height:auto;border-radius:14px;background:#000}
       - name: Publish direct HTML download as a GitHub release asset
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: offline-bbb-\${{ github.run_number }}
+          tag_name: offline-bbb-${{ github.run_number }}
           name: Big Buck Bunny — HTML אופליין
           body: Standalone HTML with the MP4 embedded directly inside the HTML.
           files: Big_Buck_Bunny_OFFLINE.html
