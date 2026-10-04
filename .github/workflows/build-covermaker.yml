@@ -1,0 +1,39 @@
+name: Build MP3 Cover Maker APK
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "covermaker/**"
+      - "settings.gradle"
+      - "build.gradle"
+      - ".github/workflows/build-covermaker.yml"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.7"
+
+      - name: Build APK
+        run: gradle --no-daemon :covermaker:assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: MP3-Cover-Maker-debug-apk
+          path: covermaker/build/outputs/apk/debug/covermaker-debug.apk
+          if-no-files-found: error
