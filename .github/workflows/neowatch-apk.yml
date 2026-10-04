@@ -3,6 +3,8 @@ name: Build NEOWATCH APK
 on:
   push:
     branches: ["neowatch-android"]
+  pull_request:
+    branches: ["main"]
   workflow_dispatch:
 
 jobs:
