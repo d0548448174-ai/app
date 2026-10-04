@@ -92,3 +92,25 @@ jobs:
           name: big-buck-bunny-offline-html
           path: Big_Buck_Bunny_OFFLINE.html
           compression-level: 0
+
+  full_movie_zip:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download full movie
+        run: |
+          curl -L --fail --retry 3 -o Big_Buck_Bunny_full.mp4 "https://raw.githubusercontent.com/andreasbotsikas/DemoVideos/master/big_buck_bunny.mp4"
+          test -s Big_Buck_Bunny_full.mp4
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg zip
+          ffprobe -v error -show_entries format=duration,size -of default=noprint_wrappers=1 Big_Buck_Bunny_full.mp4
+          ls -lh Big_Buck_Bunny_full.mp4
+      - name: Create ZIP
+        run: |
+          zip -9 Big_Buck_Bunny_full.zip Big_Buck_Bunny_full.mp4
+          ls -lh Big_Buck_Bunny_full.zip
+      - name: Upload full movie ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: big-buck-bunny-full-movie-zip
+          path: Big_Buck_Bunny_full.zip
+          compression-level: 0
