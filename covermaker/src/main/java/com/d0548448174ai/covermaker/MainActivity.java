@@ -325,22 +325,45 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private byte[] buildCoverJpeg(Uri uri) throws Exception {
-        InputStream in = getContentResolver().openInputStream(uri);
-        if (in == null) throw new Exception("image");
-        Bitmap bitmap = BitmapFactory.decodeStream(in);
-        in.close();
+        int max = 1200;
+
+        BitmapFactory.Options bounds = new BitmapFactory.Options();
+        bounds.inJustDecodeBounds = true;
+        try (InputStream in = getContentResolver().openInputStream(uri)) {
+            if (in == null) throw new Exception("image");
+            BitmapFactory.decodeStream(in, null, bounds);
+        }
+
+        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) throw new Exception("image");
+
+        int sample = 1;
+        while ((bounds.outWidth / sample) > max * 2 || (bounds.outHeight / sample) > max * 2) {
+            sample *= 2;
+        }
+
+        BitmapFactory.Options opts = new BitmapFactory.Options();
+        opts.inSampleSize = sample;
+        Bitmap bitmap;
+        try (InputStream in = getContentResolver().openInputStream(uri)) {
+            if (in == null) throw new Exception("image");
+            bitmap = BitmapFactory.decodeStream(in, null, opts);
+        }
         if (bitmap == null) throw new Exception("image");
 
-        int max = 1200;
         int w = bitmap.getWidth();
         int h = bitmap.getHeight();
         if (w > max || h > max) {
             float scale = Math.min((float) max / w, (float) max / h);
-            bitmap = Bitmap.createScaledBitmap(bitmap, Math.round(w * scale), Math.round(h * scale), true);
+            Bitmap scaled = Bitmap.createScaledBitmap(bitmap, Math.round(w * scale), Math.round(h * scale), true);
+            if (scaled != bitmap) bitmap.recycle();
+            bitmap = scaled;
         }
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 88, out);
+        if (!bitmap.compress(Bitmap.CompressFormat.JPEG, 88, out)) {
+            bitmap.recycle();
+            throw new Exception("image");
+        }
         bitmap.recycle();
         return out.toByteArray();
     }
@@ -372,7 +395,7 @@ public class MainActivity extends AppCompatActivity {
         String n = name;
         int dot = n.toLowerCase().lastIndexOf(".mp3");
         if (dot > 0) n = n.substring(0, dot);
-        return n.replaceAll("[\\/:*?"<>|]", "_").trim();
+        return n.replaceAll("[\\/:*?<>|]", "_").trim();
     }
 
     private void setBusy(boolean busy, String status) {
