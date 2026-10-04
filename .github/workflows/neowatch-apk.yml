@@ -2,10 +2,13 @@ name: Build NEOWATCH APK
 
 on:
   push:
-    branches: ["neowatch-android"]
+    branches: ["main", "neowatch-android"]
   pull_request:
     branches: ["main"]
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -31,8 +34,18 @@ jobs:
       - name: Build debug APK
         run: gradle :app:assembleDebug --no-daemon
 
-      - name: Upload APK
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: neowatch-apk
           path: neowatch-android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Publish APK to GitHub Release
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: neowatch-latest
+          name: NEOWATCH APK
+          body: Android APK built automatically from the NEOWATCH wrapper.
+          prerelease: true
+          files: neowatch-android/app/build/outputs/apk/debug/app-debug.apk
