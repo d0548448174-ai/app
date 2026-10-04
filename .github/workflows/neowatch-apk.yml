@@ -50,11 +50,17 @@ jobs:
           prerelease: true
           files: neowatch-android/app/build/outputs/apk/debug/app-debug.apk
 
-      - name: Download and embed Big Buck Bunny (5.37 MB)
+  offline_bunny:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download video
         run: |
-          cd "$GITHUB_WORKSPACE"
           curl -L --fail --retry 3 -o BigBuckBunny480p30s.mp4 "https://raw.githubusercontent.com/chintan9/Big-Buck-Bunny/master/BigBuckBunny480p30s.mp4"
           test -s BigBuckBunny480p30s.mp4
+          ls -lh BigBuckBunny480p30s.mp4
+
+      - name: Create single self-contained HTML
+        run: |
           python3 - <<'PY'
           import base64
           from pathlib import Path
@@ -85,6 +91,7 @@ p{text-align:center;color:#b8c2cf}
 </body>
 </html>'''
           Path("Big_Buck_Bunny_OFFLINE.html").write_text(html, encoding="utf-8")
+          print("HTML bytes:", Path("Big_Buck_Bunny_OFFLINE.html").stat().st_size)
           PY
 
       - name: Upload offline HTML artifact
