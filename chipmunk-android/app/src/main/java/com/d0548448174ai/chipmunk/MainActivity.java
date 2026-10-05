@@ -243,17 +243,17 @@ public class MainActivity extends Activity {
                 long stamp = System.currentTimeMillis();
                 leftRaw = new File(getCacheDir(), "left_" + stamp + ".pcm");
                 rightRaw = new File(getCacheDir(), "right_" + stamp + ".pcm");
-                decodeToStereoPcm(inputUri, leftRaw, rightRaw);
+                int sampleRate = decodeToStereoPcm(inputUri, leftRaw, rightRaw);
 
                 leftOut = new File(getCacheDir(), "left_fx_" + stamp + ".pcm");
                 rightOut = new File(getCacheDir(), "right_fx_" + stamp + ".pcm");
 
-                runPitchRecipe(leftRaw, leftOut, factor);
-                runPitchRecipe(rightRaw, rightOut, factor);
+                runPitchRecipe(leftRaw, leftOut, factor, sampleRate);
+                runPitchRecipe(rightRaw, rightOut, factor, sampleRate);
 
                 resultWav = new File(getCacheDir(), "chipmunk_" + stamp + ".wav");
                 resultMp3 = new File(getCacheDir(), "chipmunk_" + stamp + ".mp3");
-                combineStereoAndEncode(leftOut, rightOut, resultWav, resultMp3);
+                combineStereoAndEncode(leftOut, rightOut, resultWav, resultMp3, sampleRate);
 
                 deleteQuiet(leftRaw);
                 deleteQuiet(rightRaw);
@@ -279,7 +279,7 @@ public class MainActivity extends Activity {
         });
     }
 
-    private void decodeToStereoPcm(Uri uri, File leftFile, File rightFile) throws Exception {
+    private int decodeToStereoPcm(Uri uri, File leftFile, File rightFile) throws Exception {
         MediaExtractor extractor = new MediaExtractor();
         extractor.setDataSource(this, uri, null);
 
@@ -370,11 +370,12 @@ public class MainActivity extends Activity {
             codec.release();
             extractor.release();
         }
+
+        return sampleRate;
     }
 
-    private void runPitchRecipe(File inputRaw, File outputRaw, double factor) throws Exception {
+    private void runPitchRecipe(File inputRaw, File outputRaw, double factor, int sampleRate) throws Exception {
         long bytes = inputRaw.length();
-        int sampleRate = 44100;
         int frameSize = 2;
         long frames = bytes / frameSize;
 
@@ -456,7 +457,7 @@ public class MainActivity extends Activity {
         @Override public void processingFinished() {}
     }
 
-    private void combineStereoAndEncode(File left, File right, File wav, File mp3) throws Exception {
+    private void combineStereoAndEncode(File left, File right, File wav, File mp3, int sampleRate) throws Exception {
         long frames = Math.min(left.length(), right.length()) / 2;
         if (frames <= 0) throw new IOException("Empty result");
 
@@ -465,13 +466,13 @@ public class MainActivity extends Activity {
              BufferedOutputStream w = new BufferedOutputStream(new FileOutputStream(wav));
              BufferedOutputStream m = new BufferedOutputStream(new FileOutputStream(mp3))) {
 
-            writeWavHeader(w, 44100, 2, frames * 4);
+            writeWavHeader(w, sampleRate, 2, frames * 4);
 
             LameBuilder builder = new LameBuilder()
-                    .setInSampleRate(44100)
+                    .setInSampleRate(sampleRate)
                     .setOutChannels(2)
                     .setOutBitrate(192)
-                    .setOutSampleRate(44100)
+                    .setOutSampleRate(sampleRate)
                     .setQuality(5);
 
             AndroidLame lame = builder.build();
