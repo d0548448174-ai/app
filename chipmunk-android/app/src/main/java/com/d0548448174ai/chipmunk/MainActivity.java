@@ -478,13 +478,13 @@ public class MainActivity extends Activity {
             AndroidLame lame = builder.build();
             byte[] mp3Buf = new byte[65536];
 
-            short[] pcm = new short[16384];
-            int position = 0;
+            short[] leftPcm = new short[8192];
+            short[] rightPcm = new short[8192];
 
-            while (position < pcm.length && frames > 0) {
+            while (frames > 0) {
                 int sampleFrames = 0;
 
-                while (sampleFrames * 2 < pcm.length && sampleFrames < frames) {
+                while (sampleFrames < leftPcm.length && sampleFrames < frames) {
                     int ll = readLittleEndianShort(l);
                     int rr = readLittleEndianShort(r);
                     if (ll < 0 || rr < 0) break;
@@ -497,23 +497,23 @@ public class MainActivity extends Activity {
                     w.write(rs & 255);
                     w.write((rs >>> 8) & 255);
 
-                    pcm[sampleFrames * 2] = ls;
-                    pcm[sampleFrames * 2 + 1] = rs;
+                    leftPcm[sampleFrames] = ls;
+                    rightPcm[sampleFrames] = rs;
 
                     sampleFrames++;
                 }
 
                 if (sampleFrames == 0) break;
 
-                int encoded = lame.encodeBufferInterleaved(pcm, sampleFrames, mp3Buf);
+                int encoded = lame.encode(leftPcm, rightPcm, sampleFrames, mp3Buf);
                 if (encoded > 0) m.write(mp3Buf, 0, encoded);
 
                 frames -= sampleFrames;
-                position = 0;
             }
 
-            int flushed = lame.lameFlush(mp3Buf);
+            int flushed = lame.flush(mp3Buf);
             if (flushed > 0) m.write(mp3Buf, 0, flushed);
+            lame.close();
         }
 
         patchWavSize(wav);
