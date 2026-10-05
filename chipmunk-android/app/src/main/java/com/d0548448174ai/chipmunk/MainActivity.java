@@ -2,21 +2,21 @@ package com.d0548448174ai.chipmunk;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.graphics.Canvas;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.Path;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Base64;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.ScrollView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.graphics.drawable.GradientDrawable;
@@ -24,6 +24,7 @@ import android.graphics.drawable.GradientDrawable;
 import com.arthenica.ffmpegkit.FFmpegKit;
 import com.arthenica.ffmpegkit.ReturnCode;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -60,40 +61,32 @@ public class MainActivity extends Activity {
         getWindow().setStatusBarColor(Color.rgb(255, 248, 240));
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
 
+        ScrollView scroll = new ScrollView(this);
+        scroll.setFillViewport(true);
+
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setPadding(dp(16), dp(14), dp(16), dp(24));
+        root.setPadding(dp(12), dp(12), dp(12), dp(24));
         root.setBackgroundColor(Color.rgb(255, 248, 240));
         root.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
+        scroll.addView(root);
 
-        LinearLayout hero = card(Color.rgb(255, 247, 228), 28);
-        hero.setPadding(dp(16), dp(14), dp(16), dp(16));
+        LinearLayout hero = card(Color.rgb(255, 247, 228), 26);
+        hero.setPadding(dp(10), dp(10), dp(10), dp(14));
 
         TextView badge = text("🐿️  CHIPMUNK VOICE", 12, Color.rgb(122, 72, 35), true);
         badge.setGravity(Gravity.CENTER);
-        badge.setPadding(dp(12), dp(7), dp(12), dp(7));
+        badge.setPadding(dp(10), dp(6), dp(10), dp(6));
         badge.setBackground(bg(Color.rgb(255, 229, 177), 40));
         hero.addView(badge, wrap());
 
-        FrameLayout art = new FrameLayout(this);
-        art.setPadding(0, dp(8), 0, dp(4));
+        ImageView scene1 = image(loadSceneImage("chipmunk_scene_1a.b64", "chipmunk_scene_1b.b64"));
+        hero.addView(scene1, imageParams(dp(175), dp(4)));
 
-        ChipmunkArtView left = new ChipmunkArtView(this, false);
-        ChipmunkArtView right = new ChipmunkArtView(this, true);
+        ImageView scene2 = image(loadSceneImage("chipmunk_scene_2a.b64", "chipmunk_scene_2b.b64"));
+        hero.addView(scene2, imageParams(dp(150), 0));
 
-        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(dp(142), dp(142), Gravity.CENTER_HORIZONTAL);
-        lp.leftMargin = dp(-54);
-        lp.rightMargin = dp(54);
-        art.addView(left, lp);
-
-        FrameLayout.LayoutParams rp = new FrameLayout.LayoutParams(dp(142), dp(142), Gravity.CENTER_HORIZONTAL);
-        rp.leftMargin = dp(54);
-        rp.rightMargin = dp(-54);
-        art.addView(right, rp);
-
-        hero.addView(art, match(0, 2, 0, 0));
-
-        TextView title = text("קול צ'יפמאנק", 30, Color.rgb(88, 49, 25), true);
+        TextView title = text("קול צ'יפמאנק", 29, Color.rgb(88, 49, 25), true);
         title.setGravity(Gravity.CENTER);
         title.setPadding(0, dp(4), 0, 0);
         hero.addView(title, match(0, 0, 0, 0));
@@ -102,8 +95,7 @@ public class MainActivity extends Activity {
                 "מאט → מעלה גובה → מחזיר למהירות המקורית",
                 14, Color.rgb(116, 83, 62), false);
         subtitle.setGravity(Gravity.CENTER);
-        subtitle.setPadding(0, dp(3), 0, 0);
-        hero.addView(subtitle, match(0, 0, 0, 0));
+        hero.addView(subtitle, match(0, dp(2), 0, 0));
 
         root.addView(hero, match(0, 0, 0, 12));
 
@@ -154,9 +146,7 @@ public class MainActivity extends Activity {
         updateEffectLabel();
 
         LinearLayout recipe = card(Color.rgb(255, 241, 220), 22);
-        recipe.addView(text(
-                "האפקט עובד כך:",
-                15, Color.rgb(105, 66, 36), true));
+        recipe.addView(text("האפקט עובד כך:", 15, Color.rgb(105, 66, 36), true));
         recipe.addView(text(
                 "① מאטים את השיר ל־½ מהירות בלי להוריד את הגובה\n" +
                 "② מחזירים למהירות רגילה דרך קצב הדגימה\n" +
@@ -190,7 +180,46 @@ public class MainActivity extends Activity {
         saveButton.setOnClickListener(v -> saveMp3());
         root.addView(saveButton, match(0, dp(8), 0, 0));
 
-        setContentView(root);
+        setContentView(scroll);
+    }
+
+    private ImageView image(Bitmap bitmap) {
+        ImageView v = new ImageView(this);
+        v.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        v.setAdjustViewBounds(true);
+        if (bitmap != null) {
+            v.setImageBitmap(bitmap);
+        } else {
+            v.setImageResource(android.R.drawable.ic_menu_gallery);
+        }
+        return v;
+    }
+
+    private LinearLayout.LayoutParams imageParams(int heightDp, int topDp) {
+        LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, dp(heightDp));
+        p.setMargins(0, dp(topDp), 0, 0);
+        return p;
+    }
+
+    private Bitmap loadSceneImage(String part1, String part2) {
+        try {
+            String base64 = readAsset(part1) + readAsset(part2);
+            byte[] bytes = Base64.decode(base64, Base64.DEFAULT);
+            return BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    private String readAsset(String name) throws Exception {
+        try (InputStream in = getAssets().open(name);
+             ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            byte[] b = new byte[8192];
+            int n;
+            while ((n = in.read(b)) != -1) out.write(b, 0, n);
+            return new String(out.toByteArray(), "UTF-8");
+        }
     }
 
     private void pickAudio() {
@@ -257,11 +286,6 @@ public class MainActivity extends Activity {
                 File output = new File(getCacheDir(), "chipmunk_" + stamp + ".mp3");
                 double slow = selectedSlowdown();
 
-                // User's requested recipe:
-                // 1) slow down while preserving pitch
-                // 2) reinterpret at a higher sample rate
-                // 3) resample back to the normal rate
-                // The 0.50 preset produces approximately +12 semitones.
                 String filter = String.format(
                         Locale.US,
                         "aresample=44100,atempo=%.6f,asetrate=%.2f,aresample=44100",
@@ -293,8 +317,7 @@ public class MainActivity extends Activity {
             } catch (Exception e) {
                 e.printStackTrace();
                 deleteQuiet(input);
-                runOnUiThread(() ->
-                        busy(false, "❌ ההמרה נכשלה. בחר שיר אחר ונסה שוב."));
+                runOnUiThread(() -> busy(false, "❌ ההמרה נכשלה. בחר שיר אחר ונסה שוב."));
             }
         });
     }
@@ -314,13 +337,11 @@ public class MainActivity extends Activity {
         executor.execute(() -> {
             try (InputStream in = new FileInputStream(source);
                  OutputStream out = getContentResolver().openOutputStream(dest)) {
-
                 if (out == null) throw new IllegalStateException("No output");
                 byte[] b = new byte[65536];
                 int n;
                 while ((n = in.read(b)) != -1) out.write(b, 0, n);
                 out.flush();
-
                 runOnUiThread(() -> status.setText("✅ קובץ ה‑MP3 נשמר בהצלחה."));
             } catch (Exception e) {
                 runOnUiThread(() -> status.setText("❌ השמירה נכשלה."));
@@ -331,7 +352,6 @@ public class MainActivity extends Activity {
     private void copyUriToFile(Uri source, File dest) throws Exception {
         try (InputStream in = getContentResolver().openInputStream(source);
              OutputStream out = new FileOutputStream(dest)) {
-
             if (in == null) throw new IllegalStateException("No input");
             byte[] b = new byte[65536];
             int n;
@@ -352,10 +372,8 @@ public class MainActivity extends Activity {
     private void busy(boolean working, String message) {
         progress.setVisibility(working ? View.VISIBLE : View.GONE);
         status.setText(message);
-
         makeButton.setEnabled(!working && inputUri != null);
         makeButton.setAlpha(!working && inputUri != null ? 1f : .45f);
-
         if (working) saveButton.setVisibility(View.GONE);
     }
 
@@ -425,56 +443,5 @@ public class MainActivity extends Activity {
     protected void onDestroy() {
         super.onDestroy();
         executor.shutdownNow();
-    }
-
-    private static class ChipmunkArtView extends View {
-        private final Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
-        private final boolean second;
-
-        ChipmunkArtView(Activity c, boolean second) {
-            super(c);
-            this.second = second;
-            p.setStrokeCap(Paint.Cap.ROUND);
-            setLayerType(View.LAYER_TYPE_SOFTWARE, null);
-        }
-
-        @Override protected void onDraw(Canvas c) {
-            super.onDraw(c);
-            float w = getWidth(), h = getHeight();
-            float cx = w / 2f, cy = h / 2f + dpLocal(3), r = Math.min(w,h) * .30f;
-
-            p.setStyle(Paint.Style.FILL);
-            p.setColor(Color.rgb(111, 67, 39));
-            c.drawCircle(cx, cy, r * 1.18f, p);
-
-            p.setColor(Color.rgb(145, 94, 55));
-            c.drawCircle(cx - r * .9f, cy - r * .62f, r * .52f, p);
-            c.drawCircle(cx + r * .9f, cy - r * .62f, r * .52f, p);
-
-            p.setColor(Color.rgb(232, 183, 127));
-            c.drawCircle(cx, cy + r * .28f, r * .72f, p);
-
-            p.setColor(Color.WHITE);
-            c.drawCircle(cx - r * .43f, cy - r * .06f, r * .20f, p);
-            c.drawCircle(cx + r * .43f, cy - r * .06f, r * .20f, p);
-
-            p.setColor(Color.rgb(38, 29, 23));
-            c.drawCircle(cx - r * .43f, cy - r * .06f, r * .095f, p);
-            c.drawCircle(cx + r * .43f, cy - r * .06f, r * .095f, p);
-
-            p.setColor(Color.rgb(73, 38, 29));
-            Path nose = new Path();
-            nose.moveTo(cx, cy + r * .16f);
-            nose.quadTo(cx - r*.18f, cy + r*.02f, cx - r*.02f, cy - r*.02f);
-            nose.quadTo(cx + r*.18f, cy + r*.02f, cx, cy + r*.16f);
-            c.drawPath(nose, p);
-
-            p.setColor(second ? Color.rgb(68, 130, 196) : Color.rgb(211, 66, 52));
-            c.drawRoundRect(cx - r*.75f, cy + r*.76f, cx + r*.75f, cy + r*.98f, r*.18f, r*.18f, p);
-        }
-
-        private float dpLocal(float n) {
-            return n * getResources().getDisplayMetrics().density;
-        }
     }
 }
