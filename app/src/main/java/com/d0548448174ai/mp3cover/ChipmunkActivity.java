@@ -31,16 +31,20 @@ import java.util.concurrent.Executors;
 import be.tarsos.dsp.AudioEvent;
 import be.tarsos.dsp.PitchShifter;
 import be.tarsos.dsp.io.TarsosDSPAudioFormat;
+import com.naman14.androidlame.AndroidLame;
+import com.naman14.androidlame.LameBuilder;
 
 public class ChipmunkActivity extends Activity {
     private static final int PICK_AUDIO = 100;
     private static final int SAVE_WAV = 101;
+    private static final int SAVE_MP3 = 102;
 
     private Uri inputUri;
     private File preparedFile;
+    private File preparedMp3File;
     private TextView selectedLabel, status, pitchLabel;
     private ProgressBar progress;
-    private Button makeButton, saveButton;
+    private Button makeButton, saveWavButton, saveMp3Button;
     private SeekBar pitchBar;
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
@@ -125,10 +129,26 @@ public class ChipmunkActivity extends Activity {
         status.setGravity(Gravity.CENTER);
         root.addView(status, wrap());
 
-        saveButton = button("💾  שמור את התוצאה");
-        saveButton.setVisibility(View.GONE);
-        saveButton.setOnClickListener(v -> saveResult());
-        root.addView(saveButton, match(0,dp(10),0,0));
+        LinearLayout exportBox = new LinearLayout(this);
+        exportBox.setOrientation(LinearLayout.HORIZONTAL);
+        exportBox.setGravity(Gravity.CENTER);
+        exportBox.setWeightSum(2f);
+
+        saveWavButton = button("💾  שמור WAV");
+        saveWavButton.setVisibility(View.GONE);
+        saveWavButton.setOnClickListener(v -> saveWav());
+        LinearLayout.LayoutParams ep1 = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        ep1.setMargins(0, dp(10), dp(5), 0);
+        exportBox.addView(saveWavButton, ep1);
+
+        saveMp3Button = button("🎵  שמור MP3");
+        saveMp3Button.setVisibility(View.GONE);
+        saveMp3Button.setOnClickListener(v -> saveMp3());
+        LinearLayout.LayoutParams ep2 = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        ep2.setMargins(dp(5), dp(10), 0, 0);
+        exportBox.addView(saveMp3Button, ep2);
+
+        root.addView(exportBox, match(0,0,0,0));
 
         setContentView(root);
     }
@@ -149,11 +169,15 @@ public class ChipmunkActivity extends Activity {
             selectedLabel.setText(fileName(inputUri));
             makeButton.setEnabled(true);
             makeButton.setAlpha(1f);
-            saveButton.setVisibility(View.GONE);
+            saveWavButton.setVisibility(View.GONE);
+            saveMp3Button.setVisibility(View.GONE);
             preparedFile = null;
+            preparedMp3File = null;
             status.setText("");
         } else if(req == SAVE_WAV) {
-            saveResultTo(data.getData());
+            saveFileTo(data.getData(), preparedFile, true);
+        } else if(req == SAVE_MP3) {
+            saveFileTo(data.getData(), preparedMp3File, false);
         }
     }
 
@@ -172,9 +196,12 @@ public class ChipmunkActivity extends Activity {
 
         executor.execute(() -> {
             try {
-                File out = new File(getCacheDir(), "chipmunk_" + System.currentTimeMillis() + ".wav");
-                processAudio(inputUri, out, semitones);
+                long stamp = System.currentTimeMillis();
+                File out = new File(getCacheDir(), "chipmunk_" + stamp + ".wav");
+                File mp3 = new File(getCacheDir(), "chipmunk_" + stamp + ".mp3");
+                processAudio(inputUri, out, mp3, semitones);
                 preparedFile = out;
+                preparedMp3File = mp3;
                 runOnUiThread(() -> busy(false, "✅ מוכן! הקול גבוה יותר והקצב נשמר."));
             } catch (Exception e) {
                 e.printStackTrace();
@@ -183,7 +210,7 @@ public class ChipmunkActivity extends Activity {
         });
     }
 
-    private void saveResult() {
+    private void saveWav() {
         if(preparedFile == null) return;
         Intent i = new Intent(Intent.ACTION_CREATE_DOCUMENT);
         i.setType("audio/wav");
@@ -192,9 +219,17 @@ public class ChipmunkActivity extends Activity {
         startActivityForResult(i, SAVE_WAV);
     }
 
-    private void saveResultTo(Uri dest) {
-        if(preparedFile == null || dest == null) return;
-        File src = preparedFile;
+    private void saveMp3() {
+        if(preparedMp3File == null) return;
+        Intent i = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        i.setType("audio/mpeg");
+        i.addCategory(Intent.CATEGORY_OPENABLE);
+        i.putExtra(Intent.EXTRA_TITLE, "chipmunk_song.mp3");
+        startActivityForResult(i, SAVE_MP3);
+    }
+
+    private void saveFileTo(Uri dest, File src, boolean isWav) {
+        if(src == null || dest == null) return;
         executor.execute(() -> {
             try (java.io.InputStream in = new java.io.FileInputStream(src);
                  java.io.OutputStream out = getContentResolver().openOutputStream(dest)) {
@@ -203,19 +238,14 @@ public class ChipmunkActivity extends Activity {
                 int n;
                 while((n = in.read(b)) != -1) out.write(b, 0, n);
                 out.flush();
-                src.delete();
-                preparedFile = null;
-                runOnUiThread(() -> {
-                    status.setText("✅ נשמר בהצלחה.");
-                    saveButton.setVisibility(View.GONE);
-                });
+                runOnUiThread(() -> status.setText("✅ " + (isWav ? "WAV" : "MP3") + " נשמר בהצלחה."));
             } catch(Exception e) {
                 runOnUiThread(() -> status.setText("❌ השמירה נכשלה."));
             }
         });
     }
 
-    private void processAudio(Uri uri, File out, int semitones) throws Exception {
+    private void processAudio(Uri uri, File out, File mp3Out, int semitones) throws Exception {
         MediaExtractor extractor = new MediaExtractor();
         extractor.setDataSource(this, uri, null);
 
@@ -242,8 +272,9 @@ public class ChipmunkActivity extends Activity {
         codec.start();
 
         FileOutputStream wav = new FileOutputStream(out);
+        FileOutputStream mp3 = new FileOutputStream(mp3Out);
         writeWavHeader(wav, sampleRate, channels, 0);
-        PitchStream stream = new PitchStream(sampleRate, channels, semitones, wav);
+        PitchStream stream = new PitchStream(sampleRate, channels, semitones, wav, mp3);
 
         MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
         boolean inputDone = false;
@@ -302,6 +333,7 @@ public class ChipmunkActivity extends Activity {
         codec.release();
         extractor.release();
         wav.close();
+        mp3.close();
         patchWavSize(out);
     }
 
@@ -362,6 +394,9 @@ public class ChipmunkActivity extends Activity {
                 pendingCount++;
             }
             processWindow(remaining);
+
+            int flushed = lame.lameFlush(mp3Buffer);
+            if(flushed > 0) mp3.write(mp3Buffer, 0, flushed);
         }
 
         private void processWindow(int frames) throws Exception {
@@ -442,7 +477,9 @@ public class ChipmunkActivity extends Activity {
         status.setText(s);
         makeButton.setEnabled(!b && inputUri != null);
         makeButton.setAlpha(!b && inputUri != null ? 1f : .45f);
-        saveButton.setVisibility(!b && preparedFile != null ? View.VISIBLE : View.GONE);
+        int v = !b && preparedFile != null ? View.VISIBLE : View.GONE;
+        saveWavButton.setVisibility(v);
+        saveMp3Button.setVisibility(v);
     }
 
     private String fileName(Uri u) {
