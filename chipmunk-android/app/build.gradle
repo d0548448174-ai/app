@@ -1,0 +1,26 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.d0548448174ai.chipmunk'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'com.d0548448174ai.chipmunk'
+        minSdk 23
+        targetSdk 28
+        versionCode 1
+        versionName '1.0'
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+    implementation 'com.github.st-h:TarsosDSP:2.4.1'
+    implementation 'com.github.naman14:TAndroidLame:1.1'
+}
