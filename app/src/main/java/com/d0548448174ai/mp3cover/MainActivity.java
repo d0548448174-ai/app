@@ -68,6 +68,7 @@ public class MainActivity extends Activity {
 
         TextView sub=text("בחר תמונה ושיר — וקבל MP3 חדש עם עטיפת אלבום.",15,Color.rgb(105,105,117),false);
         sub.setPadding(0,dp(7),0,dp(16)); root.addView(sub);
+        Button cb=button("🐿️  קול צ'יפמאנק לשיר"); cb.setOnClickListener(v->startActivity(new Intent(this, ChipmunkActivity.class))); root.addView(cb,match(0,0,0,12));
 
         LinearLayout preview=card();
         cover=new ImageView(this); cover.setScaleType(ImageView.ScaleType.CENTER_CROP);
