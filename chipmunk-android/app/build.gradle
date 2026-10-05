@@ -22,5 +22,5 @@ android {
 
 dependencies {
     implementation 'com.github.st-h:TarsosDSP:2.4.1'
-    implementation 'com.github.naman14:TAndroidLame:1.1'
+    implementation('com.github.naman14:TAndroidLame:1.1') { transitive = false }
 }
