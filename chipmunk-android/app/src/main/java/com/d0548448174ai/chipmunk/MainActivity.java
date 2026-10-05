@@ -83,7 +83,7 @@ public class MainActivity extends Activity {
         ImageView scene1 = image(loadSceneImage("chipmunk_scene_1a.b64", "chipmunk_scene_1b.b64"));
         hero.addView(scene1, imageParams(dp(175), dp(4)));
 
-        ImageView scene2 = image(loadSceneImage("chipmunk_scene_2x.b64", "chipmunk_scene_2y.b64"));
+        ImageView scene2 = image(loadSingleImage("chipmunk_scene_2small.b64"));
         hero.addView(scene2, imageParams(dp(150), 0));
 
         TextView title = text("קול צ'יפמאנק", 29, Color.rgb(88, 49, 25), true);
@@ -206,6 +206,15 @@ public class MainActivity extends Activity {
         try {
             String base64 = readAsset(part1) + readAsset(part2);
             byte[] bytes = Base64.decode(base64, Base64.DEFAULT);
+            return BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    private Bitmap loadSingleImage(String name) {
+        try {
+            byte[] bytes = Base64.decode(readAsset(name), Base64.DEFAULT);
             return BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
         } catch (Exception ignored) {
             return null;
