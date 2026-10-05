@@ -83,7 +83,7 @@ public class MainActivity extends Activity {
         ImageView scene1 = image(loadSceneImage("chipmunk_scene_1a.b64", "chipmunk_scene_1b.b64"));
         hero.addView(scene1, imageParams(dp(175), dp(4)));
 
-        ImageView scene2 = image(loadSceneImage("chipmunk_scene_2a.b64", "chipmunk_scene_2b.b64"));
+        ImageView scene2 = image(loadSceneImage("chipmunk_scene_2x.b64", "chipmunk_scene_2y.b64"));
         hero.addView(scene2, imageParams(dp(150), 0));
 
         TextView title = text("קול צ'יפמאנק", 29, Color.rgb(88, 49, 25), true);
