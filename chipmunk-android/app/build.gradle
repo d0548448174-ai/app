@@ -10,8 +10,8 @@ android {
         applicationId 'com.d0548448174ai.chipmunk'
         minSdk 23
         targetSdk 28
-        versionCode 1
-        versionName '1.0'
+        versionCode 3
+        versionName '3.0'
     }
 
     compileOptions {
@@ -21,6 +21,5 @@ android {
 }
 
 dependencies {
-    implementation 'com.github.st-h:TarsosDSP:2.4.1'
-    implementation('com.github.naman14:TAndroidLame:1.1') { transitive = false }
+    implementation 'dev.ffmpegkit-maintained:ffmpeg-kit-audio:8.1.7'
 }
