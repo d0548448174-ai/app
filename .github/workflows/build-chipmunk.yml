@@ -8,10 +8,6 @@ on:
       - ".github/workflows/build-chipmunk.yml"
   workflow_dispatch:
 
-concurrency:
-  group: chipmunk-apk-build
-  cancel-in-progress: true
-
 permissions:
   contents: read
 
