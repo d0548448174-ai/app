@@ -28,7 +28,8 @@ jobs:
       - name: Accept Android SDK licenses
         shell: bash
         run: |
-          yes | sdkmanager --licenses >/dev/null 2>&1 || true
+          SDKMANAGER=$(find "$ANDROID_SDK_ROOT/cmdline-tools" -type f -name sdkmanager | head -n 1)
+yes | "$SDKMANAGER" --licenses >/dev/null 2>&1 || true
 
       - name: Install Android SDK, NDK and CMake
         shell: bash
@@ -39,6 +40,7 @@ jobs:
         shell: bash
         run: |
           git clone --depth 1 https://github.com/ggml-org/llama.cpp.git "$LLAMA_SRC"
+          git -C "$LLAMA_SRC" checkout c479922ac520a08969b4c1dc154d7bbb3c386d85
 
       - name: Download Qwen 0.5B GGUF model
         shell: bash
@@ -50,7 +52,7 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: '8.10.2'
+          gradle-version: '8.14.3'
 
       - name: Build APK
         working-directory: qwen-hebrew-ai-android
