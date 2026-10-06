@@ -50,26 +50,31 @@ public final class DepthEstimator {
         final float[] mean = {0.485f, 0.456f, 0.406f};
         final float[] std = {0.229f, 0.224f, 0.225f};
 
-        for (int c = 0; c < 3; c++) {
-            for (int y = 0; y < IN_H; y++) {
-                for (int x = 0; x < IN_W; x++) {
-                    int p = resized.getPixel(x, y);
-                    int channel = c == 0 ? Color.red(p) : (c == 1 ? Color.green(p) : Color.blue(p));
-                    float value = (channel / 255.0f - mean[c]) / std[c];
+        // TFLite image models use NHWC: RGB values for each pixel consecutively.
+        for (int y = 0; y < IN_H; y++) {
+            for (int x = 0; x < IN_W; x++) {
+                int p = resized.getPixel(x, y);
+                int[] rgb = {Color.red(p), Color.green(p), Color.blue(p)};
+                for (int c = 0; c < 3; c++) {
+                    float value = (rgb[c] / 255.0f - mean[c]) / std[c];
                     input.putFloat(value);
                 }
             }
         }
         input.rewind();
 
+        int[] outputShape = interpreter.getOutputTensor(0).shape();
+        int outputValues = 1;
+        for (int dim : outputShape) outputValues *= dim;
+
         ByteBuffer output = ByteBuffer
-                .allocateDirect(pixelCount * 4)
+                .allocateDirect(outputValues * 4)
                 .order(ByteOrder.nativeOrder());
 
         interpreter.run(input, output);
         output.rewind();
 
-        float[] raw = new float[pixelCount];
+        float[] raw = new float[outputValues];
         FloatBuffer fb = output.asFloatBuffer();
         fb.get(raw);
 
