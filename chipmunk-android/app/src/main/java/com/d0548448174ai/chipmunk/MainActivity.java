@@ -326,10 +326,17 @@ public class MainActivity extends Activity {
                         "-ar 44100 " +
                         quote(output.getAbsolutePath());
 
-                com.arthenica.ffmpegkit.FFmpegSession session = FFmpegKit.execute(command);
+                // Run the native encoder on the worker thread with a single audio thread.
+                // This avoids blocking the UI and is more stable on lower-RAM devices.
+                String safeCommand = command + " -threads 1 -loglevel error -nostdin";
+                com.arthenica.ffmpegkit.FFmpegSession session = FFmpegKit.execute(safeCommand);
 
                 if (!ReturnCode.isSuccess(session.getReturnCode()) || !output.exists() || output.length() < 5000) {
-                    throw new IllegalStateException("FFmpeg failed: " + session.getReturnCode());
+                    String details = session.getFailStackTrace();
+                    if (details == null || details.length() == 0) {
+                        details = String.valueOf(session.getReturnCode());
+                    }
+                    throw new IllegalStateException("FFmpeg failed: " + details);
                 }
 
                 resultMp3 = output;
@@ -339,10 +346,13 @@ public class MainActivity extends Activity {
                     busy(false, "✅ מוכן! נוצר MP3 עם קול צ'יפמאנק.");
                     saveButton.setVisibility(View.VISIBLE);
                 });
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 e.printStackTrace();
                 deleteQuiet(input);
-                runOnUiThread(() -> busy(false, "❌ ההמרה נכשלה. בחר שיר אחר ונסה שוב."));
+                String message = e.getMessage();
+                if (message == null || message.length() == 0) message = "לא ניתן להמיר את הקובץ";
+                final String finalMessage = "❌ " + message;
+                runOnUiThread(() -> busy(false, finalMessage));
             }
         });
     }
