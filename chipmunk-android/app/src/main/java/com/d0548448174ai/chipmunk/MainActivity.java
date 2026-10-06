@@ -140,6 +140,13 @@ public class MainActivity extends Activity {
         marks.addView(low, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         marks.addView(chip, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         marks.addView(high, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        TextView hint = text(
+                "הקובץ נשאר באותה מהירות נגינה — רק הגובה עולה",
+                12, Color.rgb(145, 112, 82), false);
+        hint.setGravity(Gravity.CENTER);
+        hint.setPadding(0, dp(6), 0, 0);
+        effect.addView(hint, match(0, 2, 0, 0));
+
         effect.addView(marks, match(0, 2, 0, 0));
 
         root.addView(effect, match(0, 0, 0, 10));
@@ -295,10 +302,19 @@ public class MainActivity extends Activity {
                 File output = new File(getCacheDir(), "chipmunk_" + stamp + ".mp3");
                 double slow = selectedSlowdown();
 
+                String tempoFilter;
+                if (slow < 0.5) {
+                    // FFmpeg's atempo filter should stay within its supported range.
+                    // Two stages give us 0.40x without leaving the final song speed changed.
+                    tempoFilter = "atempo=0.5,atempo=0.8";
+                } else {
+                    tempoFilter = String.format(Locale.US, "atempo=%.6f", slow);
+                }
+
                 String filter = String.format(
                         Locale.US,
-                        "aresample=44100,atempo=%.6f,asetrate=%.2f,aresample=44100",
-                        slow, 44100.0 / slow);
+                        "aresample=44100,%s,asetrate=%.2f,aresample=44100",
+                        tempoFilter, 44100.0 / slow);
 
                 String command =
                         "-y " +
