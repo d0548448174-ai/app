@@ -10,8 +10,8 @@ android {
         applicationId 'com.d0548448174ai.chipmunk'
         minSdk 24
         targetSdk 28
-        versionCode 5
-        versionName '4.1'
+        versionCode 6
+        versionName '4.2'
     }
 
     compileOptions {
