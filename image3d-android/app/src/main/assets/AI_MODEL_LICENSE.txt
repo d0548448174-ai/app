@@ -1,0 +1,3 @@
+Depth Anything V2 Small — Apache License 2.0
+Model source: litert-community/depth-anything-v2-small
+The model estimates relative depth from a single RGB image.
