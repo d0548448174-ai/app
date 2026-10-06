@@ -324,11 +324,12 @@ public class MainActivity extends Activity {
                         "-c:a libmp3lame " +
                         "-b:a 192k " +
                         "-ar 44100 " +
+                        "-threads 1 " +
+                        "-loglevel error " +
+                        "-nostdin " +
                         quote(output.getAbsolutePath());
 
-                // Run the native encoder on the worker thread with a single audio thread.
-                // This avoids blocking the UI and is more stable on lower-RAM devices.
-                String safeCommand = command + " -threads 1 -loglevel error -nostdin";
+                String safeCommand = command;
                 com.arthenica.ffmpegkit.FFmpegSession session = FFmpegKit.execute(safeCommand);
 
                 if (!ReturnCode.isSuccess(session.getReturnCode()) || !output.exists() || output.length() < 5000) {
