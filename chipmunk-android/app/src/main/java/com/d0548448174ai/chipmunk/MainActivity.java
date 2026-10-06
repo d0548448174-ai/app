@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.MediaPlayer;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.net.Uri;
@@ -46,8 +47,10 @@ public class MainActivity extends Activity {
     private TextView status;
     private ProgressBar progress;
     private Button makeButton;
+    private Button previewButton;
     private Button saveButton;
     private SeekBar effectBar;
+    private MediaPlayer mediaPlayer;
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
@@ -92,7 +95,7 @@ public class MainActivity extends Activity {
         hero.addView(title, match(0, 0, 0, 0));
 
         TextView subtitle = text(
-                "מאט → מעלה גובה → מחזיר למהירות המקורית",
+                "מעלה גובה 🐿️  •  משמיע קצת יותר מהר  •  אפשר לשמור או רק לשמוע",
                 14, Color.rgb(116, 83, 62), false);
         subtitle.setGravity(Gravity.CENTER);
         hero.addView(subtitle, match(0, dp(2), 0, 0));
@@ -180,6 +183,21 @@ public class MainActivity extends Activity {
         status.setGravity(Gravity.CENTER);
         root.addView(status, wrap());
 
+        LinearLayout playerCard = card(Color.rgb(255, 248, 236), 22);
+        playerCard.addView(text("3  •  השמע בתוך האפליקציה", 18, Color.rgb(73, 48, 31), true));
+        playerCard.addView(text(
+                "אין צורך להוריד קובץ כדי לשמוע את התוצאה",
+                12, Color.rgb(145, 112, 82), false));
+
+        previewButton = button("▶️  השמע את התוצאה");
+        previewButton.setVisibility(View.GONE);
+        previewButton.setTextSize(16);
+        previewButton.setTextColor(Color.WHITE);
+        previewButton.setBackground(bg(Color.rgb(122, 72, 35), 18));
+        previewButton.setOnClickListener(v -> togglePreview());
+        playerCard.addView(previewButton, match(0, dp(8), 0, 0));
+        root.addView(playerCard, match(0, dp(4), 0, 10));
+
         saveButton = button("💾  שמור את קובץ ה‑MP3");
         saveButton.setVisibility(View.GONE);
         saveButton.setTextColor(Color.WHITE);
@@ -253,7 +271,9 @@ public class MainActivity extends Activity {
         if (requestCode == PICK_AUDIO) {
             inputUri = data.getData();
             fileLabel.setText(fileName(inputUri));
+            stopPreview();
             resultMp3 = null;
+            previewButton.setVisibility(View.GONE);
             saveButton.setVisibility(View.GONE);
             status.setText("");
             makeButton.setEnabled(true);
@@ -313,7 +333,7 @@ public class MainActivity extends Activity {
 
                 String filter = String.format(
                         Locale.US,
-                        "aresample=44100,%s,asetrate=%.2f,aresample=44100",
+                        "aresample=44100,%s,asetrate=%.2f,aresample=44100,atempo=1.03",
                         tempoFilter, 44100.0 / slow);
 
                 String command =
@@ -344,7 +364,9 @@ public class MainActivity extends Activity {
                 deleteQuiet(input);
 
                 runOnUiThread(() -> {
-                    busy(false, "✅ מוכן! נוצר MP3 עם קול צ'יפמאנק.");
+                    busy(false, "✅ מוכן! אפשר להשמיע כאן או לשמור ל‑MP3.");
+                    previewButton.setVisibility(View.VISIBLE);
+                    previewButton.setText("▶️  השמע את התוצאה");
                     saveButton.setVisibility(View.VISIBLE);
                 });
             } catch (Throwable e) {
@@ -356,6 +378,61 @@ public class MainActivity extends Activity {
                 runOnUiThread(() -> busy(false, finalMessage));
             }
         });
+    }
+
+    private void togglePreview() {
+        if (resultMp3 == null) return;
+
+        try {
+            if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+                mediaPlayer.pause();
+                previewButton.setText("▶️  המשך השמעה");
+                return;
+            }
+
+            if (mediaPlayer == null) {
+                mediaPlayer = new MediaPlayer();
+                mediaPlayer.setOnPreparedListener(mp -> {
+                    mp.start();
+                    previewButton.setText("⏸️  עצור השמעה");
+                    status.setText("🔊 משמיע את תוצאת הצ'יפמאנק…");
+                });
+                mediaPlayer.setOnCompletionListener(mp -> {
+                    previewButton.setText("▶️  השמע שוב");
+                    status.setText("✅ ההשמעה הסתיימה.");
+                });
+                mediaPlayer.setOnErrorListener((mp, what, extra) -> {
+                    status.setText("❌ לא ניתן להשמיע את התוצאה.");
+                    previewButton.setText("▶️  השמע את התוצאה");
+                    stopPreview();
+                    return true;
+                });
+                mediaPlayer.setDataSource(resultMp3.getAbsolutePath());
+                mediaPlayer.prepareAsync();
+            } else {
+                mediaPlayer.start();
+                previewButton.setText("⏸️  עצור השמעה");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            status.setText("❌ לא ניתן להשמיע את התוצאה.");
+            stopPreview();
+        }
+    }
+
+    private void stopPreview() {
+        if (mediaPlayer != null) {
+            try {
+                mediaPlayer.stop();
+            } catch (Exception ignored) {}
+            try {
+                mediaPlayer.release();
+            } catch (Exception ignored) {}
+            mediaPlayer = null;
+        }
+        if (previewButton != null) {
+            previewButton.setText("▶️  השמע את התוצאה");
+        }
     }
 
     private void saveMp3() {
@@ -477,6 +554,7 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        stopPreview();
         super.onDestroy();
         executor.shutdownNow();
     }
