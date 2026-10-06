@@ -1,0 +1,27 @@
+name: Build Music AI Offline APK
+
+on:
+  push:
+    paths:
+      - 'music-ai-android/**'
+      - '.github/workflows/build-music-ai-apk.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+      - name: Build APK
+        run: gradle :music-ai-android:assembleDebug
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: music-ai-offline-apk
+          path: music-ai-android/build/outputs/apk/debug/music-ai-android-debug.apk
