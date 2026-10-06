@@ -1,0 +1,55 @@
+name: Build AI Anime APK
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "anime-ai-android/**"
+      - ".github/workflows/build-anime-ai.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: anime-ai-android
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download AnimeGANv2 TFLite model
+        run: |
+          mkdir -p app/src/main/assets/model
+          curl -L --fail --retry 3             "https://raw.githubusercontent.com/terryky/android_tflite/master/tflite_animegan2/app/src/main/assets/model/animeganv2_hayao_256x256.tflite"             -o app/src/main/assets/model/animeganv2_hayao_256x256.tflite
+          ls -lh app/src/main/assets/model/animeganv2_hayao_256x256.tflite
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.10.2"
+
+      - name: Build standalone Anime AI APK
+        run: gradle :app:assembleDebug --no-daemon --stacktrace
+
+      - name: Verify APK exists
+        run: |
+          test -f app/build/outputs/apk/debug/app-debug.apk
+          ls -lh app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Upload Anime AI APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-anime-apk
+          path: anime-ai-android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          compression-level: 0
