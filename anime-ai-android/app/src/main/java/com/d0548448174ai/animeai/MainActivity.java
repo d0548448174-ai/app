@@ -237,7 +237,7 @@ public class MainActivity extends Activity {
             afterBitmapReset();
             makeButton.setEnabled(true);
             makeButton.setAlpha(1f);
-            status.setText("התמונה מוכנה. לחץ על "הפוך לאנימה".");
+            status.setText("התמונה מוכנה. לחץ על הפוך לאנימה.");
         } else if (requestCode == SAVE_IMAGE) {
             writeResult(data.getData());
         }
