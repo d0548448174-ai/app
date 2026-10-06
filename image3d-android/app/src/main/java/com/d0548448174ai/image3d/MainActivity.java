@@ -138,10 +138,11 @@ public class MainActivity extends Activity {
         root.addView(status, wrap());
 
         meshView = new DepthMeshView(this);
-        meshView.setLayoutParams(new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, dp(330)));
         meshView.setVisibility(View.GONE);
-        root.addView(meshView, match(0, dp(8), 0, 8));
+        LinearLayout.LayoutParams meshParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, dp(360));
+        meshParams.setMargins(0, dp(8), 0, dp(8));
+        root.addView(meshView, meshParams);
 
         TextView help = text(
                 "גרור עם האצבע כדי לסובב את המודל. הקובץ נשמר כ‑PLY וניתן לפתוח אותו בתוכנות 3D.",
