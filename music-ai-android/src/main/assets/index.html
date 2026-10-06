@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Music AI Offline</title>
+<script type="module">
+import { pipeline } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.7.2/+esm';
+window.makePipeline = pipeline;
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@breezystack/lamejs@1.2.7/lamejs.iife.js"></script>
+<style>
+body{margin:0;background:#101018;color:#fff;font-family:sans-serif}
+.wrap{max-width:720px;margin:auto;padding:22px}
+h1{font-size:30px;margin:8px 0}.sub{opacity:.7;margin-bottom:18px}
+.card{background:#1b1b27;border-radius:18px;padding:18px;margin:12px 0}
+textarea,select,input{width:100%;box-sizing:border-box;background:#282838;color:white;border:1px solid #45455b;border-radius:12px;padding:13px;font-size:16px;margin-top:7px}
+button{width:100%;border:0;border-radius:14px;padding:15px;font-size:17px;font-weight:bold;margin-top:12px;background:#7c4dff;color:#fff}
+button:disabled{opacity:.45}
+#status{white-space:pre-wrap;line-height:1.5}.small{font-size:13px;opacity:.65}
+audio{width:100%;margin-top:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>🎵 Music AI Offline</h1>
+<div class="sub">יצירת מוזיקה חדשה באמצעות MusicGen</div>
+<div class="card">
+<label>מה ליצור?</label>
+<textarea id="prompt" rows="3" placeholder="לדוגמה: מנגינת פופ מרגשת עם פסנתר, גיטרה ותופים"></textarea>
+<label>ז'אנר</label>
+<select id="genre"><option>Pop</option><option>Rock</option><option>Jazz</option><option>Classical</option><option>Electronic</option><option>Hip-Hop</option><option>Ambient</option><option>Cinematic</option><option>Reggae</option><option>Latin</option></select>
+<label>אורך (שניות)</label>
+<input id="duration" type="number" min="4" max="20" value="8">
+<button id="go">🎼 צור שיר</button>
+</div>
+<div class="card">
+<div id="status">בהפעלה הראשונה יש להוריד את מודל ה-AI. לאחר שהמודל נשמר במכשיר, ניתן לעבוד ללא אינטרנט.</div>
+<audio id="audio" controls></audio>
+<a id="download" style="display:none;color:#bba6ff;font-size:17px" download="music-ai.mp3">⬇️ שמור MP3</a>
+</div>
+<div class="small">המודל הוא MusicGen Small. הוא כבד יחסית ולכן היצירה בטלפון עלולה להיות איטית.</div>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+let generator=null;
+
+function mp3FromFloat(audio, rate){
+  const mono=audio.length?audio[0]:audio;
+  const samples=new Int16Array(mono.length);
+  for(let i=0;i<mono.length;i++) samples[i]=Math.max(-1,Math.min(1,mono[i]))*32767;
+  const enc=new lamejs.Mp3Encoder(1,rate,128), chunks=[], block=1152;
+  for(let i=0;i<samples.length;i+=block){const c=enc.encodeBuffer(samples.subarray(i,i+block));if(c.length)chunks.push(new Int8Array(c));}
+  const end=enc.flush();if(end.length)chunks.push(new Int8Array(end));
+  return new Blob(chunks,{type:'audio/mpeg'});
+}
+
+$('go').onclick=async()=>{
+  $('go').disabled=true;$('download').style.display='none';
+  try{
+    const genre=$('genre').value;
+    const p=($('prompt').value||'original instrumental music').trim();
+    const prompt=genre+', '+p+', original composition with evolving melody and harmony, not a simple loop';
+    $('status').textContent='טוען מודל AI... בפעם הראשונה זה יכול לקחת הרבה זמן ולהשתמש במאות MB.';
+    if(!generator){
+      generator=await window.makePipeline('text-to-audio','Xenova/musicgen-small',{dtype:'q4',device:'wasm',progress_callback:x=>{
+        if(x&&x.progress!=null)$('status').textContent='מוריד/טוען מודל: '+Math.round(x.progress)+'%';
+      }});
+    }
+    $('status').textContent='יוצר מוזיקה... זה עשוי לקחת זמן בטלפון.';
+    const out=await generator(prompt,{max_new_tokens:Math.min(1000,Math.max(200,Number($('duration').value)*50))});
+    const blob=mp3FromFloat(out.audio, out.sampling_rate||32000);
+    const url=URL.createObjectURL(blob);
+    $('audio').src=url;
+    $('download').href=url;
+    $('download').style.display='block';
+    $('status').textContent='✅ השיר נוצר. אפשר להאזין ולשמור כ-MP3.';
+  }catch(e){
+    console.error(e);$('status').textContent='❌ שגיאה: '+(e.message||e);
+  }finally{$('go').disabled=false}
+};
+</script>
+</body></html>
