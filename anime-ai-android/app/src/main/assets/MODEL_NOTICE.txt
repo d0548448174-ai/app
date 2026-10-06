@@ -1,0 +1,6 @@
+AnimeGANv2 TFLite model (Hayao 256x256).
+Android TFLite implementation reference:
+https://github.com/terryky/android_tflite
+Upstream model:
+https://github.com/TachibanaYoshino/AnimeGANv2
+This app embeds the model for local/offline image stylization.
