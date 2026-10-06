@@ -44,8 +44,10 @@ print("MusicGen ready on", device)
 
 
 def wav_to_mp3(wav_path, mp3_path):
+    import imageio_ffmpeg
+    ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
     subprocess.run([
-        "ffmpeg", "-y", "-loglevel", "error",
+        ffmpeg, "-y", "-loglevel", "error",
         "-i", str(wav_path),
         "-codec:a", "libmp3lame", "-b:a", "192k",
         str(mp3_path)
