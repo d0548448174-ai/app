@@ -1,0 +1,71 @@
+name: Build Qwen Hebrew AI Offline APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'qwen-hebrew-ai-android/**'
+      - '.github/workflows/build-qwen-hebrew-ai-apk.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    env:
+      ANDROID_HOME: /usr/local/lib/android/sdk
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+      LLAMA_SRC: ${{ github.workspace }}/llama.cpp
+
+    steps:
+      - name: Checkout app
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Accept Android SDK licenses
+        shell: bash
+        run: |
+          yes | sdkmanager --licenses >/dev/null 2>&1 || true
+
+      - name: Install Android SDK, NDK and CMake
+        shell: bash
+        run: |
+          sdkmanager             "platforms;android-36"             "build-tools;35.0.0"             "ndk;29.0.13113456"             "cmake;3.31.6"
+
+      - name: Fetch llama.cpp engine source
+        shell: bash
+        run: |
+          git clone --depth 1 https://github.com/ggml-org/llama.cpp.git "$LLAMA_SRC"
+
+      - name: Download Qwen 0.5B GGUF model
+        shell: bash
+        run: |
+          mkdir -p qwen-hebrew-ai-android/app/src/main/assets
+          curl -L --fail --retry 5 --retry-delay 2             "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_0.gguf"             -o qwen-hebrew-ai-android/app/src/main/assets/qwen2.5-0.5b-instruct-q4_0.gguf
+          test -s qwen-hebrew-ai-android/app/src/main/assets/qwen2.5-0.5b-instruct-q4_0.gguf
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+
+      - name: Build APK
+        working-directory: qwen-hebrew-ai-android
+        run: gradle assembleDebug --no-daemon
+
+      - name: Verify APK
+        shell: bash
+        run: |
+          APK="qwen-hebrew-ai-android/app/build/outputs/apk/debug/app-debug.apk"
+          test -s "$APK"
+          ls -lh "$APK"
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: qwen-hebrew-ai-offline-apk
+          path: qwen-hebrew-ai-android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
