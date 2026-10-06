@@ -72,7 +72,7 @@ public final class DepthMeshView extends GLSurfaceView {
         if (old != null && old != source) old.recycle();
 
         depth = normalizedDepth;
-        queueEvent(() -> renderer.rebuild());
+        queueEvent(() -> { renderer.rebuild(); renderer.markTextureDirty(); });
         requestRender();
     }
 
@@ -191,6 +191,7 @@ public final class DepthMeshView extends GLSurfaceView {
     private class Renderer3D implements GLSurfaceView.Renderer {
         private int program;
         private int textureId;
+        private boolean textureDirty = true;
         private int positionHandle;
         private int texCoordHandle;
         private int mvpHandle;
@@ -200,6 +201,8 @@ public final class DepthMeshView extends GLSurfaceView {
 
         @Override
         public void onSurfaceCreated(GL10 gl, EGLConfig config) {
+            textureId = 0;
+            textureDirty = true;
             GLES20.glClearColor(0.96f, 0.94f, 0.99f, 1f);
             GLES20.glEnable(GLES20.GL_DEPTH_TEST);
             program = createProgram(VERTEX_SHADER, FRAGMENT_SHADER);
@@ -209,6 +212,8 @@ public final class DepthMeshView extends GLSurfaceView {
             textureHandle = GLES20.glGetUniformLocation(program, "uTexture");
             rebuild();
         }
+
+        void markTextureDirty() { textureDirty = true; }
 
         void rebuild() {
             if (depth == null) return;
@@ -277,8 +282,13 @@ public final class DepthMeshView extends GLSurfaceView {
             GLES20.glUseProgram(program);
             GLES20.glUniformMatrix4fv(mvpHandle, 1, false, mvp, 0);
 
-            if (textureId == 0) textureId = createTexture(textureBitmap);
-            else uploadTexture(textureId, textureBitmap);
+            if (textureId == 0) {
+                textureId = createTexture(textureBitmap);
+                textureDirty = false;
+            } else if (textureDirty) {
+                uploadTexture(textureId, textureBitmap);
+                textureDirty = false;
+            }
 
             GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
             GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureId);
