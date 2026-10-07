@@ -1,4 +1,4 @@
-name: Build M36 Music Tools APK
+name: Build Android Apps
 
 on:
   push:
@@ -25,11 +25,21 @@ jobs:
         with:
           gradle-version: "8.10.2"
 
-      - name: Build debug APK
+      - name: Build existing app
         run: gradle :app:assembleDebug --no-daemon
 
-      - name: Upload APK
+      - name: Upload existing APK
         uses: actions/upload-artifact@v4
         with:
-          name: m36-music-tools-apk
+          name: existing-app-debug
           path: app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Build GameStation Hub
+        working-directory: playstation-game-hub
+        run: gradle assembleDebug --no-daemon
+
+      - name: Upload GameStation APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: GameStation-Hub-debug
+          path: playstation-game-hub/app/build/outputs/apk/debug/app-debug.apk
