@@ -1,4 +1,4 @@
-name: Build Android Apps
+name: Build GameStation Hub
 
 on:
   push:
@@ -13,33 +13,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Java
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.10.2"
-
-      - name: Build existing app
-        run: gradle :app:assembleDebug --no-daemon
-
-      - name: Upload existing APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: existing-app-debug
-          path: app/build/outputs/apk/debug/app-debug.apk
-
       - name: Build GameStation Hub
         working-directory: playstation-game-hub
         run: gradle assembleDebug --no-daemon
-
-      - name: Upload GameStation APK
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: GameStation-Hub-debug
           path: playstation-game-hub/app/build/outputs/apk/debug/app-debug.apk
