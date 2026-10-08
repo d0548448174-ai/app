@@ -236,7 +236,7 @@ public class MainActivity extends Activity {
                 File input=copyInput(); double dur=Math.max(8,Math.min(duration(input),900));
                 double level=.55+energy.getProgress()/250.0;
                 Analysis a=analyzeAudio(input,dur);
-                double finalBpm=selectedBpm==0?a.bpm:selectedBpm; double beat=60.0/finalBpm;
+                double finalBpm=bpm<=0?a.bpm:bpm; double beat=60.0/finalBpm;
                 Analysis analysis=new Analysis(finalBpm,a.offset,beat,makeBeats(a.offset,beat,dur),makeBars(a.offset,beat,dur),a.barEnergy);
                 runOnUiThread(()->status.setText(String.format(Locale.US,"✓ BPM %.1f | %d ביטים | %d תיבות",finalBpm,analysis.beats.length,analysis.bars.length-1)));
                 a=analysis;
