@@ -139,8 +139,8 @@ public class MainActivity extends Activity {
                 String hats="anoisesrc=color=white:amplitude="+fmt(level*0.045)+":sample_rate=44100:d="+fmt(dur)+",highpass=f=6500,volume='0.35+0.65*lt(mod(t,"+fmt(beat/2)+"),0.08)'";
                 String filter="[0:a]aresample=44100,highpass=f=32,bass=g=6:f=92,treble=g=4:f=9000,acompressor=threshold=-18dB:ratio=3:attack=8:release=90,stereotools=mlev=1.18[m];"
                     +"["+kick+"] [k];["+sub+"] [s];["+hats+"] [h];"
-                    +"[m][k][s][h]amix=inputs=4:duration=first:dropout_transition=0,alimiter=limit=0.96";
-                String cmd="-y -i "+in+" -filter_complex "+q(filter)+" -map 0:a? -c:a libmp3lame -b:a 256k -ar 44100 -ac 2 "+o;
+                    +"[m][k][s][h]amix=inputs=4:duration=first:dropout_transition=0,alimiter=limit=0.96[out]";
+                String cmd="-y -i "+in+" -filter_complex "+q(filter)+" -map [out] -c:a libmp3lame -b:a 256k -ar 44100 -ac 2 "+o;
                 FFmpegKit.executeAsync(cmd,session->{
                     boolean ok=ReturnCode.isSuccess(session.getReturnCode());
                     runOnUiThread(()->{
