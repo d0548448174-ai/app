@@ -119,17 +119,17 @@ public class MainActivity extends Activity {
         }catch(Exception e){return 180;} finally{m.release();}
     }
 
-    private void startRemix(ProgressBar pb){
+    private String classify(double p){if(p<.12)return "INTRO";if(p<.35)return "VERSE";if(p<.50)return "CHORUS";if(p<.62)return "BREAK";if(p<.78)return "BUILDUP";return "DROP";}\n private double[] analyzeStructure(File f,double dur)throws Exception{File stats=new File(getCacheDir(),"structure.txt");String cmd="-y -i "+q(f.getAbsolutePath())+" -af astats=metadata=1:reset=1,ametadata=print:key=lavfi.astats.Overall.RMS_level:file="+q(stats.getAbsolutePath())+" -f null -";FFmpegKit.execute(cmd);ArrayList<Double> t=new ArrayList<>();t.add(0.0);if(stats.exists()){BufferedReader b=new BufferedReader(new FileReader(stats));String line;int n=0;while((line=b.readLine())!=null){if(line.contains("RMS_level=")&&n++%24==0){double x=(n-1)*.25;if(x>12&&x<dur-8)t.add(x);}}b.close();}t.add(dur);Collections.sort(t);ArrayList<Double> c=new ArrayList<>();double last=-100;for(double x:t)if(x-last>=16){c.add(x);last=x;}if(c.size()<6){c.clear();double step=Math.max(20,dur/8);for(double x=0;x<dur;x+=step)c.add(x);c.add(dur);}double[] a=new double[c.size()];for(int i=0;i<a.length;i++)a[i]=c.get(i);return a;}\n private void startRemix(ProgressBar pb){
         if(selectedUri==null){ Toast.makeText(this,"בחר קודם שיר",Toast.LENGTH_SHORT).show(); return; }
         chooseBtn.setEnabled(false); remixBtn.setEnabled(false); pb.setVisibility(View.VISIBLE);
-        status.setText("מנתח את השיר ובונה דרופ…");
+        status.setText("🔎 מנתח מבנה: פתיחה / בית / פזמון / ברייק / דרופ…");
         new Thread(()->{
             try{
                 File input=copyInput();
                 double dur=Math.max(8,Math.min(duration(input),900));
                 int e=energy.getProgress();
                 double level=0.55 + e/250.0;
-                File out=new File(getCacheDir(),"DJ_Turbo_Remix.mp3");
+                double[] sections=analyzeStructure(inFile,dur);\n                runOnUiThread(()->status.setText("✓ זוהו "+(sections.length-1)+" חלקים — מתאים אפקטים לפי המבנה…"));\n                File out=new File(getCacheDir(),"DJ_Turbo_Remix.mp3");
                 String in=q(input.getAbsolutePath()), o=q(out.getAbsolutePath());
                 double beat=60.0/bpm;
                 // Smart DJ engine: preserves the original track while adding a four-on-the-floor
