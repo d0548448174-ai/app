@@ -1,0 +1,9 @@
+plugins { id 'com.android.application' }
+
+android { namespace 'com.d0548448174.djremixer'; compileSdk 35
+    defaultConfig { applicationId 'com.d0548448174.djremixer'; minSdk 23; targetSdk 35; versionCode 1; versionName '1.0' }
+}
+
+dependencies {
+    implementation 'dev.ffmpegkit-maintained:ffmpeg-kit-audio:8.1.7'
+}
