@@ -237,11 +237,12 @@ public class MainActivity extends Activity {
                 double level=.55+energy.getProgress()/250.0;
                 Analysis a=analyzeAudio(input,dur);
                 double finalBpm=selectedBpm==0?a.bpm:selectedBpm; double beat=60.0/finalBpm;
-                a=new Analysis(finalBpm,a.offset,beat,makeBeats(a.offset,beat,dur),makeBars(a.offset,beat,dur),a.barEnergy);
-                runOnUiThread(()->status.setText(String.format(Locale.US,"✓ BPM %.1f | %d ביטים | %d תיבות",finalBpm,a.beats.length,a.bars.length-1)));
+                Analysis analysis=new Analysis(finalBpm,a.offset,beat,makeBeats(a.offset,beat,dur),makeBars(a.offset,beat,dur),a.barEnergy);
+                runOnUiThread(()->status.setText(String.format(Locale.US,"✓ BPM %.1f | %d ביטים | %d תיבות",finalBpm,analysis.beats.length,analysis.bars.length-1)));
+                a=analysis;
                 File out=new File(getCacheDir(),"DJ_Turbo_Remix.mp3");
                 String in=q(input.getAbsolutePath()),o=q(out.getAbsolutePath()),gate=effectGate(a,dur,level),rise=riserGate(a,level);
-                String phase="mod(t-"+fmt(a.offset)+","+fmt(beat);
+                String phase="mod(t-"+fmt(a.offset)+","+fmt(beat)+")";
                 String kick="aevalsrc="+fmt(level*.72)+"*sin(2*PI*58*t)*exp(-32*"+phase+"):s=44100:d="+fmt(dur);
                 String sub="aevalsrc="+fmt(level*.20)+"*sin(2*PI*92*t)*exp(-11*"+phase+"):s=44100:d="+fmt(dur);
                 String hats="anoisesrc=color=white:amplitude="+fmt(level*.045)+":sample_rate=44100:d="+fmt(dur)+",highpass=f=6500,volume='0.35+0.65*lt(mod(t-"+fmt(a.offset)+","+fmt(beat/2)+"),0.08)'";
