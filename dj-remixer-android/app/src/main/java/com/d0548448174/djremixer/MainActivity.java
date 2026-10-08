@@ -115,10 +115,15 @@ public class MainActivity extends Activity {
 
     private double duration(File f){
         MediaMetadataRetriever m=new MediaMetadataRetriever();
-        try{m.setDataSource(f.getAbsolutePath());
+        try{
+            m.setDataSource(f.getAbsolutePath());
             String x=m.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
             return x==null?180:Double.parseDouble(x)/1000.0;
-        }catch(Exception e){return 180;} finally{m.release();}
+        }catch(Exception e){
+            return 180;
+        } finally {
+            try{ m.release(); }catch(Exception ignored){}
+        }
     }
 
     private static class Analysis {
