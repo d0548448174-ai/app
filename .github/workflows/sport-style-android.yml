@@ -7,6 +7,12 @@ on:
     paths:
       - 'sport-style/**'
       - '.github/workflows/sport-style-android.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'sport-style/**'
+      - '.github/workflows/sport-style-android.yml'
   workflow_dispatch:
 
 permissions:
