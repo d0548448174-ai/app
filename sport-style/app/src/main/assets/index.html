@@ -186,6 +186,7 @@ h1{font-size:29px;line-height:1.15;letter-spacing:-.7px;margin:7px 0 8px;font-we
 const $ = function(id){return document.getElementById(id)};
 let db = null, tracks = [], currentPage = 'home', selectedMode = 'run';
 let currentTrack = null, isPlaying = false, stopShortTimer = null, shortPlayingId = null;
+let smartQueue = [], smartQueueActive = false;
 let workoutActive = false, workoutStartedAt = 0, workoutElapsedBeforePause = 0, workoutTimer = null;
 let gpsWatch = null, lastPosition = null, distanceMeters = 0, currentPace = '--:--', stepTotal = 0, stepsAtStart = 0, workoutSteps = 0;
 let pendingStartWorkout = false, audioObjectUrl = null, toastTimer = null;
@@ -207,7 +208,7 @@ async function dbAll(){const d=await openDb();return new Promise(function(resolv
 async function dbDelete(id){const d=await openDb();return new Promise(function(resolve,reject){const tx=d.transaction('tracks','readwrite');tx.objectStore('tracks').delete(id);tx.oncomplete=function(){resolve()};tx.onerror=function(){reject(tx.error)}})}
 function enrichTrack(t){t.title=t.title||t.name||'שיר ללא שם';t.url=URL.createObjectURL(t.blob);return t}
 async function loadLibrary(){try{tracks=(await dbAll()).map(enrichTrack);tracks.sort(function(a,b){return (b.addedAt||0)-(a.addedAt||0)})}catch(e){tracks=[];showToast('לא ניתן לקרוא את ספריית המוזיקה במכשיר הזה')}renderCurrent();updateMiniPlayer()}
-function getModeTracks(mode){const m=modes[mode];return tracks.slice().sort(function(a,b){const as=a.bpm?Math.abs(a.bpm-m.target):999;const bs=b.bpm?Math.abs(b.bpm-m.target):999;const aIn=a.bpm&&a.bpm>=({run:150,walk:110,relax:60}[mode])&&a.bpm<=({run:185,walk:145,relax:100}[mode]);const bIn=b.bpm&&b.bpm>=({run:150,walk:110,relax:60}[mode])&&b.bpm<=({run:185,walk:145,relax:100}[mode]);return (bIn?500:0)- (aIn?500:0) + as-bs})}
+function getModeTracks(mode){const m=modes[mode];const low={run:150,walk:110,relax:60}[mode],high={run:185,walk:145,relax:100}[mode];function score(t){if(!t.bpm)return 5000;let s=Math.abs(t.bpm-m.target);if(t.bpm<low||t.bpm>high)s+=55;const energy=Number(t.energy)||50;if(mode==='run')s+=Math.max(0,58-energy)*0.22;else if(mode==='walk')s+=Math.abs(energy-58)*0.08;else s+=Math.max(0,energy-48)*0.2;return s}return tracks.slice().sort(function(a,b){return score(a)-score(b)})}
 function trackMood(t){if(!t.bpm)return 'קצב לא זוהה';if(t.bpm>=150)return 'ריצה';if(t.bpm>=110)return 'הליכה מהירה';if(t.bpm>=60)return 'הרפייה';return 'קצב איטי'}
 function albumClass(t){return colors[Math.abs((t.title||'').length+(t.bpm||0))%colors.length]}
 function trackRow(t,full){return '<div class="track-row"><div class="album '+albumClass(t)+'"><span>♫</span></div><div class="track-main"><div class="track-name">'+esc(t.title)+'</div><div class="track-meta">'+(t.bpm?'<span class="pill good">'+Math.round(t.bpm)+' BPM</span>':'<span class="pill">BPM לא זוהה</span>')+'<span>'+esc(trackMood(t))+'</span>'+(t.duration?'<span>'+fmtDuration(t.duration)+'</span>':'')+'</div></div><button class="play-small" onclick="playTrackById(\''+t.id+'\',0,0)" aria-label="נגן '+esc(t.title)+'">▶</button></div>'}
@@ -268,9 +269,10 @@ function playerCard(){return '<div class="player-card"><div class="player-top"><
 function renderCurrent(){if(currentPage==='home')renderHome();else if(currentPage==='music')renderMusic();else if(currentPage==='shorts')renderShorts();else if(currentPage==='workout')renderWorkout();else renderTips()}
 function showPage(page){currentPage=page;document.querySelectorAll('.nav button').forEach(function(b){b.classList.remove('active')});const n=$('nav-'+page);if(n)n.classList.add('active');renderCurrent();window.scrollTo({top:0,behavior:'smooth'});if(window.SportStyle&&window.SportStyle.vibrate)window.SportStyle.vibrate()}
 function setMode(mode){if(!modes[mode])return;selectedMode=mode;renderCurrent();if(currentPage==='home')return}
-function playSmartMix(){const list=getModeTracks(selectedMode).filter(function(t){return !!t.bpm});const track=list[0]||getModeTracks(selectedMode)[0];if(!track){showToast('הוסף שירים כדי לבנות מיקס חכם');showPage('music');return}playTrackById(track.id,0,0);showToast('נבחר שיר בקצב המתאים ל'+modes[selectedMode].label)}
+function playSmartMix(){const ranked=getModeTracks(selectedMode);const low={run:150,walk:110,relax:60}[selectedMode],high={run:185,walk:145,relax:100}[selectedMode];const inRange=ranked.filter(function(t){return t.bpm&&t.bpm>=low&&t.bpm<=high});const withBpm=ranked.filter(function(t){return !!t.bpm});const chosen=inRange.length?inRange:(withBpm.length?withBpm:ranked);if(!chosen.length){showToast('הוסף שירים כדי לבנות מיקס חכם');showPage('music');return}smartQueue=chosen.map(function(t){return String(t.id)});smartQueueActive=true;playTrack(chosen[0],0,0);showToast('נבנה מיקס של '+chosen.length+' שירים ל'+modes[selectedMode].label)}
 function findTrack(id){return tracks.find(function(t){return String(t.id)===String(id)})}
-function playTrackById(id,start,limit){const t=findTrack(id);if(!t)return;playTrack(t,start,limit)}
+function clearSmartQueue(){smartQueueActive=false;smartQueue=[]}
+function playTrackById(id,start,limit){const t=findTrack(id);if(!t)return;clearSmartQueue();playTrack(t,start,limit)}
 async function playTrack(t,start,limit){
  if(!t)return;
  clearTimeout(stopShortTimer);stopShortTimer=null;shortPlayingId=null;
@@ -285,12 +287,12 @@ async function playTrack(t,start,limit){
  if(limit>0){shortPlayingId=t.id;const disc=$('disc-'+t.id);if(disc)disc.classList.add('playing');stopShortTimer=setTimeout(function(){audio.pause();isPlaying=false;const d=$('disc-'+t.id);if(d)d.classList.remove('playing');shortPlayingId=null;updateMiniPlayer()},limit*1000)}
 }
 function togglePlay(){if(!currentTrack){if(tracks.length)playTrack(tracks[0],0,0);else{showToast('ייבא שירים כדי להאזין');showPage('music')}return}if(audio.paused){audio.play().then(function(){isPlaying=true;updateMiniPlayer()}).catch(function(){showToast('לא ניתן לנגן את השיר')})}else{audio.pause();isPlaying=false;clearTimeout(stopShortTimer);updateMiniPlayer()}}
-function playPrevious(){if(!tracks.length)return;let i=currentTrack?tracks.findIndex(function(t){return String(t.id)===String(currentTrack.id)}):0;i=(i-1+tracks.length)%tracks.length;playTrack(tracks[i],0,0)}
-function playNext(){if(!tracks.length)return;let i=currentTrack?tracks.findIndex(function(t){return String(t.id)===String(currentTrack.id)}):-1;i=(i+1)%tracks.length;playTrack(tracks[i],0,0)}
+function playPrevious(){if(!tracks.length)return;clearSmartQueue();let i=currentTrack?tracks.findIndex(function(t){return String(t.id)===String(currentTrack.id)}):0;i=(i-1+tracks.length)%tracks.length;playTrack(tracks[i],0,0)}
+function playNext(){if(!tracks.length)return;clearSmartQueue();let i=currentTrack?tracks.findIndex(function(t){return String(t.id)===String(currentTrack.id)}):-1;i=(i+1)%tracks.length;playTrack(tracks[i],0,0)}
 function updateMiniPlayer(){if(currentTrack){$('miniTitle').textContent=currentTrack.title;$('miniMeta').textContent=(currentTrack.bpm?Math.round(currentTrack.bpm)+' BPM · ':'')+fmtDuration(currentTrack.duration)}$('miniPlay').textContent=(!audio.paused&&isPlaying)?'Ⅱ':'▶';const b=$('bigPlay');if(b)b.textContent=(!audio.paused&&isPlaying)?'Ⅱ':'▶';const pt=$('playerTitle');if(pt&&currentTrack)pt.textContent=currentTrack.title;const pm=$('playerMeta');if(pm&&currentTrack)pm.textContent=(currentTrack.bpm?Math.round(currentTrack.bpm)+' BPM · ':'')+fmtDuration(currentTrack.duration)}
 audio.addEventListener('play',function(){isPlaying=true;updateMiniPlayer()});
 audio.addEventListener('pause',function(){isPlaying=false;updateMiniPlayer()});
-audio.addEventListener('ended',function(){isPlaying=false;clearTimeout(stopShortTimer);if(currentTrack){const d=$('disc-'+currentTrack.id);if(d)d.classList.remove('playing')}updateMiniPlayer()});
+audio.addEventListener('ended',function(){isPlaying=false;clearTimeout(stopShortTimer);if(currentTrack){const d=$('disc-'+currentTrack.id);if(d)d.classList.remove('playing')}if(smartQueueActive&&currentTrack){const i=smartQueue.indexOf(String(currentTrack.id));const nextId=i>=0?smartQueue[i+1]:null;const next=nextId?findTrack(nextId):null;if(next){playTrack(next,0,0);return}smartQueueActive=false;smartQueue=[]}updateMiniPlayer()});
 audio.addEventListener('timeupdate',function(){const pct=audio.duration?audio.currentTime/audio.duration*100:0;const f=$('progressFill');if(f)f.style.width=pct+'%';const c=$('currentTime');if(c)c.textContent=fmtTime(audio.currentTime);const t=$('totalTime');if(t)t.textContent=fmtTime(audio.duration);const d=$('miniMeta');if(d&&currentTrack&&audio.duration)d.textContent=(currentTrack.bpm?Math.round(currentTrack.bpm)+' BPM · ':'')+fmtTime(audio.currentTime)+' / '+fmtTime(audio.duration)});
 async function analyzeFile(file){
  let result={bpm:null,energy:50,duration:0};
