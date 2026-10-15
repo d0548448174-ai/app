@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0a101a">
+<title>Sport Style</title>
+<style>
+:root{--bg:#0a101a;--panel:#121d2b;--panel2:#182638;--line:#26374a;--lime:#b9f45b;--mint:#60edc0;--blue:#6ab8ff;--muted:#9aadc0;--text:#f4f8fc;--orange:#ffad72;--pink:#ed8bda}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth;background:var(--bg)}
+body{margin:0;background:radial-gradient(ellipse at 90% -10%,#1b3544 0,transparent 34%),var(--bg);color:var(--text);font-family:Arial,"Noto Sans Hebrew",sans-serif;min-height:100vh;padding-bottom:158px}
+button,input{font:inherit}
+button{cursor:pointer;border:0}
+.app{max-width:760px;margin:0 auto;padding:0 17px}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:21px 0 14px;gap:12px}
+.brand{display:flex;align-items:center;gap:11px}
+.brandmark{width:43px;height:43px;border-radius:15px;background:var(--lime);display:grid;place-items:center;color:#101722;box-shadow:0 5px 20px #b9f45b25}
+.brandmark svg{width:26px;height:26px}
+.brandname{font-size:16px;letter-spacing:1.2px;font-weight:900}
+.brandtag{font-size:10px;color:var(--muted);margin-top:4px;letter-spacing:.7px}
+.round-btn{width:42px;height:42px;border:1px solid var(--line);background:#152131;color:var(--text);border-radius:15px;display:grid;place-items:center;font-size:18px}
+.hello{margin:13px 0 18px}
+.eyebrow{font-size:11px;letter-spacing:1.1px;color:var(--lime);font-weight:800}
+h1{font-size:29px;line-height:1.15;letter-spacing:-.7px;margin:7px 0 8px;font-weight:900}
+.subtext{color:var(--muted);font-size:13px;line-height:1.65}
+.hero{position:relative;overflow:hidden;border-radius:27px;padding:23px 21px 19px;background:linear-gradient(125deg,#b9f45b 0%,#93dc7b 43%,#56dcb4 100%);color:#101821;min-height:206px;box-shadow:0 14px 38px #59d6a51c}
+.hero:before{content:"";position:absolute;width:235px;height:235px;border:1px solid #ffffff70;border-radius:50%;left:-56px;top:-73px;box-shadow:0 0 0 21px #ffffff17,0 0 0 44px #ffffff12}
+.hero:after{content:"";position:absolute;width:135px;height:135px;border:1px solid #fff8;border-radius:50%;left:10px;top:15px}
+.hero-content{position:relative;z-index:1;max-width:73%}
+.hero-kicker{font-size:11px;letter-spacing:.7px;font-weight:900;opacity:.8}
+.hero h2{font-size:27px;line-height:1.14;margin:11px 0 8px;max-width:270px}
+.hero p{font-size:12px;line-height:1.55;margin:0 0 17px;max-width:260px;color:#203226}
+.primary-btn{background:#0e1721;color:#f8fbff;border-radius:14px;padding:12px 16px;display:inline-flex;align-items:center;gap:9px;font-weight:800;font-size:13px;box-shadow:0 5px 16px #0a101a22}
+.hero-art{position:absolute;left:14px;bottom:8px;z-index:0;opacity:.92;width:110px;height:140px}
+.section-head{display:flex;align-items:end;justify-content:space-between;margin:27px 1px 13px}
+.section-head h2{font-size:18px;margin:0;font-weight:900}
+.section-head p{margin:5px 0 0;font-size:11px;color:var(--muted)}
+.text-btn{background:none;color:var(--lime);font-size:12px;font-weight:800;padding:7px 0}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:13px}
+.stat{background:linear-gradient(145deg,#142131,#101925);border:1px solid #233345;border-radius:18px;padding:14px 12px;min-width:0}
+.stat-icon{font-size:17px;margin-bottom:10px}
+.stat-num{font-size:22px;font-weight:900;letter-spacing:-.5px}
+.stat-unit{font-size:10px;color:var(--muted);margin-right:3px}
+.stat-label{font-size:11px;color:var(--muted);margin-top:7px}
+.mode-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.mode-card{padding:14px 10px 12px;border:1px solid var(--line);border-radius:18px;text-align:right;background:var(--panel);color:var(--text);min-height:116px;position:relative;transition:.18s}
+.mode-card.active{border-color:var(--lime);background:linear-gradient(145deg,#1d2d38,#182638);box-shadow:inset 0 0 0 1px #b9f45b18}
+.mode-icon{font-size:22px;margin-bottom:12px;display:block}
+.mode-title{display:block;font-weight:900;font-size:12px}
+.mode-range{display:block;font-size:10px;color:var(--muted);margin-top:5px;direction:ltr;text-align:right}
+.mode-dot{position:absolute;left:11px;top:14px;width:7px;height:7px;border-radius:50%;background:#35495a}
+.mode-card.active .mode-dot{background:var(--lime);box-shadow:0 0 10px #b9f45b88}
+.track-list{display:flex;flex-direction:column;gap:9px}
+.track-row{display:flex;align-items:center;gap:11px;padding:10px;background:#111c29;border:1px solid #223143;border-radius:17px;min-width:0}
+.album{flex:0 0 49px;width:49px;height:49px;border-radius:14px;display:grid;place-items:center;position:relative;overflow:hidden;color:#fff}
+.album:before{content:"";position:absolute;inset:-50%;background:repeating-linear-gradient(135deg,#ffffff18 0 2px,transparent 2px 11px);transform:rotate(10deg)}
+.album span{z-index:1;font-size:20px}
+.album.a{background:linear-gradient(140deg,#3be4bc,#185a65)}
+.album.b{background:linear-gradient(140deg,#ea8fdd,#6840a1)}
+.album.c{background:linear-gradient(140deg,#f7b46d,#bd4e57)}
+.album.d{background:linear-gradient(140deg,#68b8ff,#3043a1)}
+.track-main{min-width:0;flex:1}
+.track-name{font-size:13px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.track-meta{font-size:10px;color:var(--muted);margin-top:6px;display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.pill{padding:4px 7px;border-radius:7px;background:#223344;color:#cfe0ed;font-size:9px;white-space:nowrap}
+.pill.good{background:#253a2a;color:var(--lime)}
+.play-small{width:37px;height:37px;border-radius:13px;flex:0 0 37px;background:var(--lime);color:#0b121b;font-size:17px;display:grid;place-items:center}
+.empty{padding:23px 18px;border:1px dashed #3a5064;border-radius:20px;text-align:center;color:var(--muted);background:#101a26}
+.empty .big{font-size:28px;margin-bottom:8px}
+.empty strong{display:block;color:var(--text);font-size:14px;margin-bottom:7px}
+.empty p{font-size:12px;line-height:1.6;margin:0 0 14px}
+.soft-btn{background:#243446;color:#f2f7fb;border:1px solid #354a5f;padding:11px 14px;border-radius:13px;font-size:12px;font-weight:800}
+.page-title{font-size:27px;margin:18px 0 6px;font-weight:900}
+.page-intro{font-size:12px;color:var(--muted);line-height:1.7;margin:0 0 20px}
+.toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:16px 0}
+.mode-tabs{display:flex;gap:6px;padding:5px;background:#101a26;border:1px solid #223143;border-radius:14px}
+.mode-tab{padding:9px 10px;border-radius:10px;color:var(--muted);background:transparent;font-size:11px;font-weight:800}
+.mode-tab.active{background:var(--lime);color:#101821}
+.import-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:9px;padding:15px;border-radius:16px;background:var(--lime);color:#111921;font-size:13px;font-weight:900;margin:15px 0 9px}
+.tiny-note{font-size:10px;color:var(--muted);line-height:1.6;margin:9px 2px 14px}
+.analyzing{padding:12px;border:1px solid #455b37;background:#17241d;color:#d6ffae;border-radius:13px;font-size:12px;display:none;margin:10px 0}
+.player-card{border-radius:20px;background:linear-gradient(130deg,#172738,#111d2a);border:1px solid #2c4155;padding:15px;margin-top:15px}
+.player-top{display:flex;align-items:center;gap:12px}
+.player-info{flex:1;min-width:0}
+.player-info strong{display:block;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.player-info span{font-size:10px;color:var(--muted);display:block;margin-top:5px}
+.progress{height:4px;border-radius:4px;background:#314355;margin:15px 0 8px;overflow:hidden}
+.progress-fill{height:100%;background:var(--lime);width:0%}
+.time-line{display:flex;justify-content:space-between;color:var(--muted);font-size:10px;direction:ltr}
+.player-controls{display:flex;justify-content:center;align-items:center;gap:22px;margin-top:13px}
+.ctrl{background:transparent;color:var(--text);font-size:18px;padding:4px}
+.ctrl.main{width:46px;height:46px;border-radius:17px;background:var(--lime);color:#0a101a;font-size:20px}
+.short-feed{display:flex;flex-direction:column;gap:15px;margin-top:15px}
+.short-card{border:1px solid #2b3d51;border-radius:25px;min-height:400px;overflow:hidden;position:relative;background:#152333;display:flex;flex-direction:column;justify-content:space-between;scroll-snap-align:start}
+.short-bg{position:absolute;inset:0;background:radial-gradient(circle at 70% 28%,#6b60bc 0,transparent 27%),radial-gradient(circle at 20% 65%,#1d927f 0,transparent 32%),linear-gradient(150deg,#222d54,#0f1b2b 65%);opacity:.97}
+.short-card:nth-child(3n+2) .short-bg{background:radial-gradient(circle at 65% 35%,#d3797c 0,transparent 27%),radial-gradient(circle at 24% 75%,#345db5 0,transparent 36%),linear-gradient(150deg,#4e304a,#0e1928 75%)}
+.short-card:nth-child(3n) .short-bg{background:radial-gradient(circle at 62% 30%,#dca754 0,transparent 28%),radial-gradient(circle at 28% 78%,#2b9888 0,transparent 33%),linear-gradient(150deg,#274c58,#101b29 74%)}
+.short-top,.short-bottom{position:relative;z-index:1;padding:19px}
+.short-top{display:flex;align-items:center;justify-content:space-between}
+.short-badge{font-size:10px;font-weight:900;padding:7px 9px;border-radius:10px;background:#ffffff1a;border:1px solid #ffffff25;backdrop-filter:blur(12px)}
+.disc-wrap{flex:1;display:grid;place-items:center;position:relative;z-index:1;min-height:170px}
+.disc{width:170px;height:170px;border-radius:50%;border:1px solid #ffffff42;background:repeating-radial-gradient(circle,#151a25 0 4px,#2a3544 5px 7px);box-shadow:0 16px 50px #0007;display:grid;place-items:center;position:relative;animation:spin 10s linear infinite;animation-play-state:paused}
+.disc.playing{animation-play-state:running}
+.disc:before{content:"";position:absolute;inset:21%;border-radius:50%;background:linear-gradient(145deg,#b9f45b,#5ad5b5);box-shadow:0 0 0 5px #ffffff12}
+.disc:after{content:"";position:absolute;width:17px;height:17px;border-radius:50%;background:#121a25;border:3px solid #dfffc0}
+.disc-logo{position:relative;z-index:2;color:#10202a;font-weight:1000;font-size:16px;letter-spacing:-1px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.short-bottom h3{font-size:20px;margin:0 0 7px;line-height:1.25}
+.short-bottom p{font-size:11px;color:#cfdae4;margin:0 0 15px}
+.short-actions{display:flex;gap:8px}
+.short-actions button{flex:1;border-radius:14px;padding:12px 10px;font-size:11px;font-weight:900}
+.short-play{background:var(--lime);color:#101821}
+.short-full{background:#ffffff14;color:white;border:1px solid #ffffff4d}
+.workout-panel{background:linear-gradient(145deg,#1b2a39,#111b27);border:1px solid #2a3f53;border-radius:24px;padding:20px;margin:15px 0}
+.workout-status{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--mint);font-weight:800}
+.status-dot{width:7px;height:7px;background:var(--mint);border-radius:50%;box-shadow:0 0 9px #60edc0}
+.timer{font-size:45px;font-variant-numeric:tabular-nums;letter-spacing:1px;font-weight:900;text-align:center;margin:18px 0 20px;direction:ltr}
+.live-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.live-stat{padding:11px 5px;border-radius:14px;background:#0d1722;text-align:center}
+.live-stat strong{font-size:18px;display:block}
+.live-stat span{font-size:10px;color:var(--muted);display:block;margin-top:6px}
+.workout-button{width:100%;padding:15px;border-radius:15px;background:var(--lime);color:#101821;font-weight:900;margin-top:18px;font-size:13px}
+.workout-button.stop{background:#ff8e8e;color:#311417}
+.notice{background:#172537;border:1px solid #2c435b;color:#b9cada;font-size:11px;line-height:1.7;padding:13px 15px;border-radius:14px;margin:12px 0}
+.exercise-list{display:flex;flex-direction:column;gap:10px}
+.exercise{border:1px solid #293b4e;background:#121d2b;border-radius:19px;padding:14px;display:flex;gap:13px;align-items:flex-start}
+.exercise-icon{width:44px;height:44px;flex:0 0 44px;border-radius:14px;display:grid;place-items:center;background:#27394a;font-size:21px}
+.exercise h3{margin:2px 0 6px;font-size:14px}
+.exercise p{margin:0;color:var(--muted);font-size:11px;line-height:1.65}
+.exercise-meta{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}
+.bottom-space{height:8px}
+.mini-player{position:fixed;z-index:30;bottom:69px;left:10px;right:10px;max-width:740px;margin:0 auto;border:1px solid #344b60;border-radius:17px;background:#172637ee;backdrop-filter:blur(18px);padding:10px 12px;display:flex;gap:10px;align-items:center;box-shadow:0 8px 28px #0005}
+.mini-art{width:39px;height:39px;border-radius:12px;background:linear-gradient(140deg,#b9f45b,#54d5bd);display:grid;place-items:center;color:#10202a;font-size:17px;flex:0 0 39px}
+.mini-info{flex:1;min-width:0}
+.mini-info strong{font-size:11px;display:block;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+.mini-info span{font-size:9px;color:var(--muted);display:block;margin-top:4px}
+.mini-controls{display:flex;align-items:center;gap:7px}
+.mini-controls button{width:34px;height:34px;border-radius:11px;background:transparent;color:var(--text);font-size:17px}
+.mini-controls .mini-main{background:var(--lime);color:#101821}
+.nav{position:fixed;bottom:0;left:0;right:0;z-index:40;background:#0b121deF;border-top:1px solid #263648;padding:8px 8px calc(8px + env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(5,minmax(0,1fr));backdrop-filter:blur(20px)}
+.nav button{background:transparent;color:#8598ab;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;min-height:48px;font-size:9px;font-weight:800}
+.nav button .nav-icon{font-size:19px;line-height:1.1}
+.nav button.active{color:var(--lime)}
+.nav button.active .nav-icon{filter:drop-shadow(0 0 6px #b9f45b66)}
+.toast{position:fixed;bottom:145px;left:20px;right:20px;margin:auto;max-width:400px;z-index:70;background:#effadf;color:#18251b;border-radius:14px;padding:12px 15px;font-size:12px;font-weight:700;box-shadow:0 10px 35px #0006;display:none}
+.footer-note{color:#667b8f;text-align:center;font-size:9px;line-height:1.7;margin:26px 8px 10px}
+@media(min-width:600px){.app{padding:0 23px}.hero{min-height:220px;padding:26px}.hero-content{max-width:62%}.hero-art{left:45px;width:135px;height:155px}.stats{gap:12px}.stat{padding:17px}.short-feed{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.short-card{min-height:430px}.workout-panel{padding:25px}}
+@media(max-width:360px){.app{padding:0 12px}.hero-content{max-width:78%}.hero h2{font-size:24px}.mode-grid{gap:6px}.mode-card{padding:11px 8px}.stat{padding:11px 8px}.stat-num{font-size:19px}.short-actions button{padding:11px 6px;font-size:10px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="brandmark" aria-hidden="true">
+        <svg viewBox="0 0 32 32" fill="none"><path d="M4 18h6l3-9 5 16 3-8h7" stroke="#101821" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="23" cy="6" r="3" fill="#101821"/></svg>
+      </div>
+      <div><div class="brandname">SPORT STYLE</div><div class="brandtag">MOVE WITH YOUR BEAT</div></div>
+    </div>
+    <button class="round-btn" onclick="showPage('tips')" aria-label="טיפים">✦</button>
+  </header>
+  <main id="page"></main>
+</div>
+<div class="mini-player" id="miniPlayer">
+  <div class="mini-art">♫</div>
+  <div class="mini-info"><strong id="miniTitle">המוזיקה שלך מחכה</strong><span id="miniMeta">ייבא שירים כדי להתחיל</span></div>
+  <div class="mini-controls">
+    <button onclick="playPrevious()" aria-label="השיר הקודם">⏮</button>
+    <button class="mini-main" id="miniPlay" onclick="togglePlay()" aria-label="נגן או עצור">▶</button>
+  </div>
+</div>
+<nav class="nav">
+  <button id="nav-home" class="active" onclick="showPage('home')"><span class="nav-icon">⌂</span><span>בית</span></button>
+  <button id="nav-music" onclick="showPage('music')"><span class="nav-icon">♫</span><span>מוזיקה</span></button>
+  <button id="nav-shorts" onclick="showPage('shorts')"><span class="nav-icon">▣</span><span>שורטס</span></button>
+  <button id="nav-workout" onclick="showPage('workout')"><span class="nav-icon">◉</span><span>אימון</span></button>
+  <button id="nav-tips" onclick="showPage('tips')"><span class="nav-icon">✦</span><span>טיפים</span></button>
+</nav>
+<input type="file" id="musicInput" accept="audio/*,.mp3,.m4a,.aac,.wav,.ogg,.flac" multiple hidden>
+<audio id="audio" preload="metadata"></audio>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+'use strict';
+const $ = function(id){return document.getElementById(id)};
+let db = null, tracks = [], currentPage = 'home', selectedMode = 'run';
+let currentTrack = null, isPlaying = false, stopShortTimer = null, shortPlayingId = null;
+let workoutActive = false, workoutStartedAt = 0, workoutElapsedBeforePause = 0, workoutTimer = null;
+let gpsWatch = null, lastPosition = null, distanceMeters = 0, currentPace = '--:--', stepTotal = 0, stepsAtStart = 0, workoutSteps = 0;
+let pendingStartWorkout = false, audioObjectUrl = null, toastTimer = null;
+const audio = $('audio');
+const modes = {
+ run:{label:'ריצה',emoji:'🏃',target:162,range:'150–185 BPM',desc:'קצב אנרגטי לצעדים מהירים'},
+ walk:{label:'הליכה מהירה',emoji:'🚶',target:128,range:'110–145 BPM',desc:'קצב קבוע להליכה נמרצת'},
+ relax:{label:'הרפייה',emoji:'🧘',target:78,range:'60–100 BPM',desc:'מנגינות רגועות לשחרור'}
+};
+const colors = ['a','b','c','d'];
+function esc(s){return String(s||'').replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function fmtTime(seconds){seconds=Math.max(0,Math.floor(seconds||0));return String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0')}
+function fmtDuration(seconds){if(!seconds||!isFinite(seconds))return 'אורך לא ידוע';return Math.floor(seconds/60)+':'+String(Math.floor(seconds%60)).padStart(2,'0')}
+function fmtDistance(m){return (m/1000).toFixed(2)}
+function showToast(message){$('toast').textContent=message;$('toast').style.display='block';clearTimeout(toastTimer);toastTimer=setTimeout(function(){$('toast').style.display='none'},3000)}
+function openDb(){return new Promise(function(resolve,reject){if(db){resolve(db);return}if(!('indexedDB'in window)){reject(new Error('אין תמיכה באחסון מקומי'));return}const req=indexedDB.open('sport-style-library',1);req.onupgradeneeded=function(){const d=req.result;if(!d.objectStoreNames.contains('tracks'))d.createObjectStore('tracks',{keyPath:'id'})};req.onsuccess=function(){db=req.result;resolve(db)};req.onerror=function(){reject(req.error)}})}
+async function dbPut(track){const d=await openDb();return new Promise(function(resolve,reject){const tx=d.transaction('tracks','readwrite');tx.objectStore('tracks').put(track);tx.oncomplete=function(){resolve()};tx.onerror=function(){reject(tx.error)}})}
+async function dbAll(){const d=await openDb();return new Promise(function(resolve,reject){const tx=d.transaction('tracks','readonly');const req=tx.objectStore('tracks').getAll();req.onsuccess=function(){resolve(req.result||[])};req.onerror=function(){reject(req.error)}})}
+async function dbDelete(id){const d=await openDb();return new Promise(function(resolve,reject){const tx=d.transaction('tracks','readwrite');tx.objectStore('tracks').delete(id);tx.oncomplete=function(){resolve()};tx.onerror=function(){reject(tx.error)}})}
+function enrichTrack(t){t.title=t.title||t.name||'שיר ללא שם';t.url=URL.createObjectURL(t.blob);return t}
+async function loadLibrary(){try{tracks=(await dbAll()).map(enrichTrack);tracks.sort(function(a,b){return (b.addedAt||0)-(a.addedAt||0)})}catch(e){tracks=[];showToast('לא ניתן לקרוא את ספריית המוזיקה במכשיר הזה')}renderCurrent();updateMiniPlayer()}
+function getModeTracks(mode){const m=modes[mode];return tracks.slice().sort(function(a,b){const as=a.bpm?Math.abs(a.bpm-m.target):999;const bs=b.bpm?Math.abs(b.bpm-m.target):999;const aIn=a.bpm&&a.bpm>=({run:150,walk:110,relax:60}[mode])&&a.bpm<=({run:185,walk:145,relax:100}[mode]);const bIn=b.bpm&&b.bpm>=({run:150,walk:110,relax:60}[mode])&&b.bpm<=({run:185,walk:145,relax:100}[mode]);return (bIn?500:0)- (aIn?500:0) + as-bs})}
+function trackMood(t){if(!t.bpm)return 'קצב לא זוהה';if(t.bpm>=150)return 'ריצה';if(t.bpm>=110)return 'הליכה מהירה';if(t.bpm>=60)return 'הרפייה';return 'קצב איטי'}
+function albumClass(t){return colors[Math.abs((t.title||'').length+(t.bpm||0))%colors.length]}
+function trackRow(t,full){return '<div class="track-row"><div class="album '+albumClass(t)+'"><span>♫</span></div><div class="track-main"><div class="track-name">'+esc(t.title)+'</div><div class="track-meta">'+(t.bpm?'<span class="pill good">'+Math.round(t.bpm)+' BPM</span>':'<span class="pill">BPM לא זוהה</span>')+'<span>'+esc(trackMood(t))+'</span>'+(t.duration?'<span>'+fmtDuration(t.duration)+'</span>':'')+'</div></div><button class="play-small" onclick="playTrackById(\''+t.id+'\',0,0)" aria-label="נגן '+esc(t.title)+'">▶</button></div>'}
+function modeButtons(){return '<div class="mode-grid">'+Object.keys(modes).map(function(k){const m=modes[k];return '<button class="mode-card '+(selectedMode===k?'active':'')+'" onclick="setMode(\''+k+'\')"><span class="mode-dot"></span><span class="mode-icon">'+m.emoji+'</span><span class="mode-title">'+m.label+'</span><span class="mode-range">'+m.range+'</span></button>'}).join('')+'</div>'}
+function emptyLibrary(){return '<div class="empty"><div class="big">♫</div><strong>הפלייליסט שלך עוד ריק</strong><p>ייבא שירים מהמכשיר. Sport Style ינסה למדוד את קצב השיר ולהציע התאמה לריצה, להליכה מהירה או להרפייה.</p><button class="soft-btn" onclick="showPage(\'music\')">הוסף שירים למוזיקה ＋</button></div>'}
+function readSessions(){try{return JSON.parse(localStorage.getItem('ss-sessions')||'[]')}catch(e){return []}}
+function todaySessions(){const key=new Date().toDateString();return readSessions().filter(function(s){return new Date(s.finishedAt).toDateString()===key})}
+function todaySummary(){const s=todaySessions();return {km:s.reduce(function(a,x){return a+(x.distanceKm||0)},0),min:s.reduce(function(a,x){return a+(x.durationSec||0)},0)/60,kcal:s.reduce(function(a,x){return a+(x.calories||0)},0)}}
+function renderHome(){
+ const sum=todaySummary(), rec=getModeTracks(selectedMode).slice(0,3);
+ $('page').innerHTML='<div class="hello"><div class="eyebrow">היום שלך מתחיל בתנועה</div><h1>זזים בקצב שלך<span style="color:var(--lime)">.</span></h1><div class="subtext">אימון חכם, מוזיקה נכונה והתקדמות קטנה בכל יום.</div></div>'+
+ '<section class="hero"><div class="hero-content"><div class="hero-kicker">YOUR NEXT LEVEL STARTS NOW</div><h2>כל צעד מקרב אותך קדימה</h2><p>בחר אימון, תן לקצב להוביל אותך ותיהנה מהדרך.</p><button class="primary-btn" onclick="showPage(\'workout\')">התחלת אימון <span>←</span></button></div><svg class="hero-art" viewBox="0 0 120 150" fill="none" aria-hidden="true"><circle cx="80" cy="18" r="10" fill="#10241E"/><path d="M77 33L61 57L83 73L96 96M61 57L38 65L26 89M63 57L48 91L29 124M83 73L65 102L79 132" stroke="#10241E" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/><path d="M67 39L92 52L104 39" stroke="#10241E" stroke-width="9" stroke-linecap="round"/><path d="M47 91L65 102" stroke="#10241E" stroke-width="8" stroke-linecap="round"/></svg></section>'+
+ '<div class="stats"><div class="stat"><div class="stat-icon">↗</div><div class="stat-num">'+sum.km.toFixed(1)+'<span class="stat-unit">ק״מ</span></div><div class="stat-label">מרחק היום</div></div><div class="stat"><div class="stat-icon">◷</div><div class="stat-num">'+Math.round(sum.min)+'<span class="stat-unit">דק׳</span></div><div class="stat-label">זמן פעילות</div></div><div class="stat"><div class="stat-icon">ϟ</div><div class="stat-num">'+Math.round(sum.kcal)+'<span class="stat-unit">קק״ל</span></div><div class="stat-label">קלוריות משוערות</div></div></div>'+
+ '<div class="section-head"><div><h2>מה הקצב שלך היום?</h2><p>הפלייליסט ישתנה בהתאם לבחירה</p></div></div>'+modeButtons()+
+ '<div class="section-head"><div><h2>הבחירות שלך לקצב</h2><p>'+modes[selectedMode].desc+'</p></div><button class="text-btn" onclick="showPage(\'music\')">כל המוזיקה ←</button></div>'+
+ (tracks.length?'<div class="track-list">'+(rec.length?rec.map(function(t){return trackRow(t,true)}).join(''):'<div class="empty"><strong>עוד אין התאמות</strong><p>ייבא כמה שירים כדי שאוכל לנתח את הקצב שלהם.</p><button class="soft-btn" onclick="showPage(\'music\')">ייבוא שירים</button></div>')+'</div><button class="import-btn" onclick="playSmartMix()">▶ נגן מיקס חכם ל'+modes[selectedMode].label+'</button>':emptyLibrary())+
+ '<div class="section-head"><div><h2>זזים נכון</h2><p>טיפים קטנים לאימון טוב יותר</p></div><button class="text-btn" onclick="showPage(\'tips\')">לכל הטיפים ←</button></div>'+tipPreview()+'<div class="bottom-space"></div>';
+}
+function renderMusic(){
+ const ranked=getModeTracks(selectedMode);
+ $('page').innerHTML='<h1 class="page-title">המוזיקה שלך<span style="color:var(--lime)">.</span></h1><p class="page-intro">נגן אישי לאימונים שלך. השירים נשארים במכשיר, וההתאמה נעשית לפי קצב BPM שהאפליקציה מנתחת.</p>'+
+ modeButtons()+
+ '<button class="import-btn" onclick="$(\'musicInput\').click()">＋ הוסף שירים מהמכשיר</button>'+
+ '<div class="tiny-note">נתמכים קובצי אודיו רגילים כמו MP3, M4A ו־WAV. לא נדרש חשבון, והשירים נשמרים בספרייה המקומית במכשיר.</div><div class="analyzing" id="analyzing">מנתח את השיר… משך הניתוח תלוי באורך הקובץ.</div>'+
+ '<div class="toolbar"><div><strong style="font-size:16px">הספרייה שלי</strong><div class="subtext" style="font-size:10px;margin-top:4px">'+tracks.length+' שירים · התאמה ל'+modes[selectedMode].label+'</div></div>'+(tracks.length?'<button class="soft-btn" onclick="playSmartMix()">▶ נגן מיקס</button>':'')+'</div>'+
+ (ranked.length?'<div class="track-list">'+ranked.map(function(t){return trackRow(t,true)}).join('')+'</div>':emptyLibrary())+
+ '<div class="notice">איך הבחירה החכמה עובדת? האפליקציה מנתחת את גל הקול, מעריכה את ה־BPM ומשווה אותו לטווחי קצב מומלצים. הקצב הוא אומדן ועלול לטעות בשירים עם שינויי קצב, פתיחה ארוכה או תופים לא ברורים.</div>'+
+ '<div class="section-head"><div><h2>הנגן שלך</h2><p>שליטה מלאה בהשמעה</p></div></div>'+playerCard()+
+ '<div class="footer-note">Sport Style · המוזיקה נמצאת במכשיר שלך. לא מועלים שירים לשרת.</div>';
+}
+function renderShorts(){
+ if(!tracks.length){$('page').innerHTML='<h1 class="page-title">Sport Shorts<span style="color:var(--lime)">.</span></h1><p class="page-intro">גלילה בין קטעים קצרים מהשירים שלך, עם אפשרות לעבור מיד לשיר המלא.</p>'+emptyLibrary();return}
+ $('page').innerHTML='<h1 class="page-title">Sport Shorts<span style="color:var(--lime)">.</span></h1><p class="page-intro">טעימות מוזיקה באורך 15 שניות. אהבת את הקטע? המשך לשיר המלא. גלול כדי לעבור לשיר הבא.</p><div class="short-feed">'+tracks.map(function(t,i){return '<article class="short-card"><div class="short-bg"></div><div class="short-top"><span class="short-badge">SPORT SHORTS · '+String(i+1).padStart(2,'0')+'</span><span class="short-badge">'+(t.bpm?Math.round(t.bpm)+' BPM':'קצב לא זוהה')+'</span></div><div class="disc-wrap"><div class="disc" id="disc-'+t.id+'"><span class="disc-logo">SPORT<br>STYLE</span></div></div><div class="short-bottom"><h3>'+esc(t.title)+'</h3><p>'+esc(trackMood(t))+' · '+fmtDuration(t.duration)+'</p><div class="short-actions"><button class="short-play" onclick="playTrackById(\''+t.id+'\',-1,15)">▶ קטע של 15 שנ׳</button><button class="short-full" onclick="playTrackById(\''+t.id+'\',0,0)">♫ השיר המלא</button></div></div></article>'}).join('')+'</div>';
+}
+function renderWorkout(){
+ const elapsed=workoutActive?Math.floor((Date.now()-workoutStartedAt)/1000+workoutElapsedBeforePause):workoutElapsedBeforePause;
+ $('page').innerHTML='<h1 class="page-title">האימון שלי<span style="color:var(--lime)">.</span></h1><p class="page-intro">מעקב אחרי זמן, מרחק, קצב צעדים ומוזיקה מתאימה. אפשר להתחיל אימון גם בלי GPS, אך המרחק לא יימדד.</p>'+
+ modeButtons()+
+ '<div class="workout-panel"><div class="workout-status"><span class="status-dot" style="background:'+(workoutActive?'var(--lime)':'var(--muted)')+'"></span>'+(workoutActive?'האימון פעיל':'מוכנים לצאת לדרך')+'</div><div class="timer" id="workoutTimer">'+fmtTime(elapsed)+'</div><div class="live-stats"><div class="live-stat"><strong id="liveDistance">'+fmtDistance(distanceMeters)+'</strong><span>ק״מ</span></div><div class="live-stat"><strong id="livePace">'+currentPace+'</strong><span>דק׳ / ק״מ</span></div><div class="live-stat"><strong id="liveSteps">'+Math.max(0,stepTotal-stepsAtStart)+'</strong><span>צעדים</span></div></div><button id="workoutButton" class="workout-button '+(workoutActive?'stop':'')+'" onclick="'+(workoutActive?'stopWorkout()':'requestStartWorkout()')+'">'+(workoutActive?'■ סיום ושמירת האימון':'▶ התחל אימון')+'</button><div class="tiny-note" id="gpsNote">'+(workoutActive?'האימון נמדד בזמן אמת. השאר את האפליקציה פתוחה למדידה רציפה.':'עם תחילת האימון האפליקציה תבקש הרשאת מיקום כדי למדוד מרחק.')+'</div></div>'+
+ '<div class="section-head"><div><h2>מוזיקה למצב שלך</h2><p>'+modes[selectedMode].desc+'</p></div></div>'+
+ (tracks.length?'<div class="track-list">'+getModeTracks(selectedMode).slice(0,3).map(function(t){return trackRow(t,true)}).join('')+'</div><button class="import-btn" onclick="playSmartMix()">▶ הפעל מיקס אימון</button>':emptyLibrary())+
+ '<div class="notice">טיפ: השתמש במוזיקת ריצה רק במקום שבו אפשר לשמוע את הסביבה. נתוני קלוריות הם הערכה בלבד, ומדידת GPS עשויה להיות לא מדויקת בתוך מבנים או בין בניינים גבוהים.</div>';
+}
+const tips=[
+ {icon:'⚡',title:'חימום קצר לפני שמתחילים',time:'5–8 דקות',text:'התחל בהליכה קלה, הנע בעדינות את הקרסוליים והירכיים והעלה בהדרגה את הקצב. אל תפתח בריצה מהירה מיד.'},
+ {icon:'💧',title:'שתייה בקצב הנכון',time:'לפני ובמהלך',text:'הגע לאימון כשאתה רווי בנוזלים. באימון ארוך או בחום שתה במנות קטנות לפי הצמא ותנאי מזג האוויר.'},
+ {icon:'👟',title:'צעדים קלים ויציבים',time:'טכניקה',text:'נסה להימנע מצעדים גדולים מדי. שמור על כתפיים רפויות, מבט קדימה וקצב שנוח לך להחזיק.'},
+ {icon:'🎧',title:'התאם את הקצב למוזיקה',time:'BPM',text:'בחר שירים שקצבם מתאים לרמת המאמץ. BPM הוא רק כלי עזר — תחושת המאמץ והנשימה חשובות לא פחות.'},
+ {icon:'🧘',title:'שחרור בסיום',time:'4–6 דקות',text:'האט בהדרגה להליכה רגועה. לאחר מכן בצע מתיחות עדינות, ללא כאב וללא קפיצות חדות.'},
+ {icon:'📈',title:'בנה שגרה בהדרגה',time:'עקביות',text:'עדיף אימון נוח שאפשר להתמיד בו מאשר להעלות עומס בבת אחת. שלב ימי התאוששות והקשב לגוף.'}
+];
+function tipPreview(){return '<div class="exercise-list">'+tips.slice(0,2).map(tipCard).join('')+'</div>'}
+function tipCard(t){return '<article class="exercise"><div class="exercise-icon">'+t.icon+'</div><div><h3>'+t.title+'</h3><p>'+t.text+'</p><div class="exercise-meta"><span class="pill">'+t.time+'</span></div></div></article>'}
+function renderTips(){
+ $('page').innerHTML='<h1 class="page-title">טיפים ותנועה<span style="color:var(--lime)">.</span></h1><p class="page-intro">רעיונות פשוטים לחימום, לשיפור ההרגלים ולהתאוששות טובה יותר.</p><div class="exercise-list">'+tips.map(tipCard).join('')+'</div><div class="section-head"><div><h2>תוכנית קצרה למתחילים</h2><p>אפשר להתאים לקצב אישי</p></div></div><div class="workout-panel"><div class="workout-status"><span class="status-dot"></span> 20 דקות בקצב רגוע</div><div class="exercise-meta" style="margin-top:14px"><span class="pill">5 דק׳ הליכה קלה</span><span class="pill">10 דק׳ הליכה נמרצת לסירוגין</span><span class="pill">5 דק׳ שחרור</span></div><p class="subtext" style="margin:13px 0 0">זו הצעה כללית בלבד. הפסק אם יש כאב, סחרחורת או קוצר נשימה חריג, והתאם את הפעילות ליכולתך.</p></div><div class="footer-note">המידע באפליקציה כללי ואינו תחליף לייעוץ רפואי או למאמן מוסמך.</div>';
+}
+function playerCard(){return '<div class="player-card"><div class="player-top"><div class="album a"><span>♫</span></div><div class="player-info"><strong id="playerTitle">'+(currentTrack?esc(currentTrack.title):'בחר שיר מהספרייה')+'</strong><span id="playerMeta">'+(currentTrack?(currentTrack.bpm?Math.round(currentTrack.bpm)+' BPM · ':'')+fmtDuration(currentTrack.duration):'ייבא שיר כדי לנגן')+'</span></div></div><div class="progress"><div id="progressFill" class="progress-fill"></div></div><div class="time-line"><span id="currentTime">00:00</span><span id="totalTime">00:00</span></div><div class="player-controls"><button class="ctrl" onclick="playPrevious()">⏮</button><button class="ctrl main" id="bigPlay" onclick="togglePlay()">▶</button><button class="ctrl" onclick="playNext()">⏭</button></div></div>'}
+function renderCurrent(){if(currentPage==='home')renderHome();else if(currentPage==='music')renderMusic();else if(currentPage==='shorts')renderShorts();else if(currentPage==='workout')renderWorkout();else renderTips()}
+function showPage(page){currentPage=page;document.querySelectorAll('.nav button').forEach(function(b){b.classList.remove('active')});const n=$('nav-'+page);if(n)n.classList.add('active');renderCurrent();window.scrollTo({top:0,behavior:'smooth'});if(window.SportStyle&&window.SportStyle.vibrate)window.SportStyle.vibrate()}
+function setMode(mode){if(!modes[mode])return;selectedMode=mode;renderCurrent();if(currentPage==='home')return}
+function playSmartMix(){const list=getModeTracks(selectedMode).filter(function(t){return !!t.bpm});const track=list[0]||getModeTracks(selectedMode)[0];if(!track){showToast('הוסף שירים כדי לבנות מיקס חכם');showPage('music');return}playTrackById(track.id,0,0);showToast('נבחר שיר בקצב המתאים ל'+modes[selectedMode].label)}
+function findTrack(id){return tracks.find(function(t){return String(t.id)===String(id)})}
+function playTrackById(id,start,limit){const t=findTrack(id);if(!t)return;playTrack(t,start,limit)}
+async function playTrack(t,start,limit){
+ if(!t)return;
+ clearTimeout(stopShortTimer);stopShortTimer=null;shortPlayingId=null;
+ if(!currentTrack||String(currentTrack.id)!==String(t.id)){currentTrack=t;audio.src=t.url;audio.load()}
+ if(start===-1){const max=Math.max(0,(t.duration||30)-15);start=Math.floor(Math.random()*Math.max(1,max+1))}
+ try{if(isFinite(start)&&start>=0)audio.currentTime=start}catch(e){}
+ $('miniTitle').textContent=t.title;$('miniMeta').textContent=(t.bpm?Math.round(t.bpm)+' BPM · ':'')+fmtDuration(t.duration);
+ updateMiniPlayer();
+ const p=audio.play();
+ if(p&&p.then){try{await p}catch(e){showToast('לא ניתן לנגן את הקובץ הזה במכשיר');return}}
+ isPlaying=true;updateMiniPlayer();
+ if(limit>0){shortPlayingId=t.id;const disc=$('disc-'+t.id);if(disc)disc.classList.add('playing');stopShortTimer=setTimeout(function(){audio.pause();isPlaying=false;const d=$('disc-'+t.id);if(d)d.classList.remove('playing');shortPlayingId=null;updateMiniPlayer()},limit*1000)}
+}
+function togglePlay(){if(!currentTrack){if(tracks.length)playTrack(tracks[0],0,0);else{showToast('ייבא שירים כדי להאזין');showPage('music')}return}if(audio.paused){audio.play().then(function(){isPlaying=true;updateMiniPlayer()}).catch(function(){showToast('לא ניתן לנגן את השיר')})}else{audio.pause();isPlaying=false;clearTimeout(stopShortTimer);updateMiniPlayer()}}
+function playPrevious(){if(!tracks.length)return;let i=currentTrack?tracks.findIndex(function(t){return String(t.id)===String(currentTrack.id)}):0;i=(i-1+tracks.length)%tracks.length;playTrack(tracks[i],0,0)}
+function playNext(){if(!tracks.length)return;let i=currentTrack?tracks.findIndex(function(t){return String(t.id)===String(currentTrack.id)}):-1;i=(i+1)%tracks.length;playTrack(tracks[i],0,0)}
+function updateMiniPlayer(){if(currentTrack){$('miniTitle').textContent=currentTrack.title;$('miniMeta').textContent=(currentTrack.bpm?Math.round(currentTrack.bpm)+' BPM · ':'')+fmtDuration(currentTrack.duration)}$('miniPlay').textContent=(!audio.paused&&isPlaying)?'Ⅱ':'▶';const b=$('bigPlay');if(b)b.textContent=(!audio.paused&&isPlaying)?'Ⅱ':'▶';const pt=$('playerTitle');if(pt&&currentTrack)pt.textContent=currentTrack.title;const pm=$('playerMeta');if(pm&&currentTrack)pm.textContent=(currentTrack.bpm?Math.round(currentTrack.bpm)+' BPM · ':'')+fmtDuration(currentTrack.duration)}
+audio.addEventListener('play',function(){isPlaying=true;updateMiniPlayer()});
+audio.addEventListener('pause',function(){isPlaying=false;updateMiniPlayer()});
+audio.addEventListener('ended',function(){isPlaying=false;clearTimeout(stopShortTimer);if(currentTrack){const d=$('disc-'+currentTrack.id);if(d)d.classList.remove('playing')}updateMiniPlayer()});
+audio.addEventListener('timeupdate',function(){const pct=audio.duration?audio.currentTime/audio.duration*100:0;const f=$('progressFill');if(f)f.style.width=pct+'%';const c=$('currentTime');if(c)c.textContent=fmtTime(audio.currentTime);const t=$('totalTime');if(t)t.textContent=fmtTime(audio.duration);const d=$('miniMeta');if(d&&currentTrack&&audio.duration)d.textContent=(currentTrack.bpm?Math.round(currentTrack.bpm)+' BPM · ':'')+fmtTime(audio.currentTime)+' / '+fmtTime(audio.duration)});
+async function analyzeFile(file){
+ let result={bpm:null,energy:50,duration:0};
+ if(!('AudioContext'in window||'webkitAudioContext'in window)||file.size>25*1024*1024)return result;
+ let ctx;
+ try{
+  const Ctx=window.AudioContext||window.webkitAudioContext;ctx=new Ctx();
+  const buffer=await ctx.decodeAudioData(await file.arrayBuffer());
+  result.duration=buffer.duration;
+  const samples=buffer.getChannelData(0),sr=buffer.sampleRate,hop=512,win=1024,limit=Math.min(samples.length,Math.floor(sr*85));
+  const env=[];
+  for(let p=0;p+win<limit;p+=hop){let sum=0;for(let j=0;j<win;j+=2){const x=samples[p+j];sum+=x*x}env.push(Math.sqrt(sum/(win/2)))}
+  if(env.length>60){
+   const flux=new Float32Array(env.length);let avg=0;
+   for(let i=1;i<env.length;i++){flux[i]=Math.max(0,env[i]-env[i-1]);avg+=flux[i]}
+   avg/=flux.length;
+   for(let i=0;i<flux.length;i++)flux[i]-=avg;
+   const lagMin=Math.max(1,Math.round(60*sr/(190*hop))),lagMax=Math.min(env.length-2,Math.round(60*sr/(55*hop)));
+   let bestLag=0,best=-1;
+   for(let lag=lagMin;lag<=lagMax;lag++){let dot=0,a=0,b=0;for(let i=lag;i<flux.length;i++){const x=flux[i],y=flux[i-lag];dot+=x*y;a+=x*x;b+=y*y}const score=dot/Math.sqrt((a*b)||1);if(score>best){best=score;bestLag=lag}}
+   if(bestLag>0&&best>0.025){let bpm=60*sr/(bestLag*hop);if(bpm<72&&bpm*2<=190)bpm*=2;else if(bpm>178)bpm/=2;if(bpm>=55&&bpm<=190)result.bpm=Math.round(bpm)}
+  }
+  let energy=0,n=Math.min(samples.length,sr*25);for(let i=0;i<n;i+=8)energy+=samples[i]*samples[i];energy=Math.sqrt(energy/Math.max(1,Math.ceil(n/8)));result.energy=Math.max(20,Math.min(100,Math.round(25+energy*300)));
+ }catch(e){result.bpm=null}finally{if(ctx){try{await ctx.close()}catch(e){}}}
+ return result;
+}
+$('musicInput').addEventListener('change',async function(event){
+ const files=Array.from(event.target.files||[]).filter(function(f){return f.type.indexOf('audio/')===0||/\.(mp3|m4a|aac|wav|ogg|flac)$/i.test(f.name)});
+ if(!files.length)return;
+ const box=$('analyzing');if(box)box.style.display='block';
+ let added=0;
+ for(let i=0;i<files.length;i++){
+  const file=files[i];if(file.size>100*1024*1024){showToast('הקובץ '+file.name+' גדול מדי (מעל 100MB)');continue}
+  if(box)box.textContent='מנתח שיר '+(i+1)+' מתוך '+files.length+': '+file.name;
+  let analysis={bpm:null,energy:50,duration:0};
+  try{analysis=await analyzeFile(file)}catch(e){}
+  const song={id:String(Date.now())+'-'+i+'-'+file.size,title:file.name.replace(/\.[^.]+$/,''),name:file.name,blob:file,type:file.type,size:file.size,addedAt:Date.now(),bpm:analysis.bpm,energy:analysis.energy,duration:analysis.duration||0};
+  try{await dbPut(song);added++}catch(e){showToast('לא ניתן לשמור את הקובץ. ייתכן שאחסון האפליקציה מלא.')}
+ }
+ if(box)box.style.display='none';event.target.value='';await loadLibrary();showToast('נוספו '+added+' שירים לספרייה שלך');
+});
+function haversine(a,b){const rad=Math.PI/180,dLat=(b.latitude-a.latitude)*rad,dLon=(b.longitude-a.longitude)*rad;const x=Math.sin(dLat/2)**2+Math.cos(a.latitude*rad)*Math.cos(b.latitude*rad)*Math.sin(dLon/2)**2;return 6371000*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x))}
+function updateWorkoutUI(){const elapsed=Math.floor((Date.now()-workoutStartedAt)/1000+workoutElapsedBeforePause);const timer=$('workoutTimer');if(timer&&workoutActive)timer.textContent=fmtTime(elapsed);const d=$('liveDistance');if(d)d.textContent=fmtDistance(distanceMeters);const p=$('livePace');if(p)p.textContent=currentPace;const s=$('liveSteps');if(s)s.textContent=Math.max(0,stepTotal-stepsAtStart);if(workoutActive)workoutTimer=setTimeout(updateWorkoutUI,1000)}
+function requestStartWorkout(){
+ if(workoutActive)return;
+ if(window.SportStyle&&typeof window.SportStyle.requestPermissionsForWorkout==='function'){
+  if(!window.SportStyle.hasLocationPermission()){pendingStartWorkout=true;window.SportStyle.requestPermissionsForWorkout();return}
+  startWorkout();return;
+ }
+ startWorkout();
+}
+function startWorkout(){
+ pendingStartWorkout=false;workoutActive=true;workoutStartedAt=Date.now();workoutElapsedBeforePause=0;distanceMeters=0;lastPosition=null;currentPace='--:--';stepsAtStart=stepTotal;
+ if(window.SportStyle&&window.SportStyle.keepScreenOn)window.SportStyle.keepScreenOn(true);
+ if(navigator.geolocation){try{gpsWatch=navigator.geolocation.watchPosition(function(pos){if(!workoutActive)return;const c=pos.coords;if(c.accuracy&&c.accuracy>55)return;if(lastPosition){const delta=haversine(lastPosition,c);if(delta>0.8&&delta<150)distanceMeters+=delta}lastPosition=c;if(distanceMeters>15){const sec=(Date.now()-workoutStartedAt)/1000+workoutElapsedBeforePause;const pace=sec/(distanceMeters/1000);currentPace=fmtTime(pace)}const n=$('gpsNote');if(n)n.textContent='GPS פעיל · הדיוק תלוי במכשיר ובקליטת הלוויינים.';const d=$('liveDistance');if(d)d.textContent=fmtDistance(distanceMeters);const p=$('livePace');if(p)p.textContent=currentPace},function(err){const n=$('gpsNote');if(n)n.textContent='לא התקבלה מדידת GPS. אפשר להמשיך למדוד זמן, אך המרחק לא יהיה זמין.'},{enableHighAccuracy:true,maximumAge:1000,timeout:15000})}catch(e){}}}
+ showPage('workout');updateWorkoutUI();showToast('האימון התחיל — בהצלחה!');
+ if(tracks.length){const t=getModeTracks(selectedMode)[0];if(t&&(!currentTrack||audio.paused))playTrack(t,0,0)}
+}
+window.onNativeLocationPermission=function(granted){if(pendingStartWorkout){startWorkout();if(!granted){const n=$('gpsNote');if(n)n.textContent='הרשאת מיקום לא ניתנה. האימון יימדד בזמן בלבד; אפשר להפעיל מיקום בהגדרות.'}}};
+window.onStepUpdate=function(total){stepTotal=Number(total)||stepTotal;if(workoutActive){const s=$('liveSteps');if(s)s.textContent=Math.max(0,stepTotal-stepsAtStart)}};
+function stopWorkout(){
+ if(!workoutActive)return;
+ workoutActive=false;clearTimeout(workoutTimer);if(gpsWatch!==null&&navigator.geolocation){navigator.geolocation.clearWatch(gpsWatch);gpsWatch=null}
+ if(window.SportStyle&&window.SportStyle.keepScreenOn)window.SportStyle.keepScreenOn(false);
+ const durationSec=Math.max(0,Math.floor((Date.now()-workoutStartedAt)/1000+workoutElapsedBeforePause));
+ const session={id:Date.now(),finishedAt:new Date().toISOString(),durationSec:durationSec,distanceKm:distanceMeters/1000,calories:Math.round(distanceMeters/1000*60),steps:Math.max(0,stepTotal-stepsAtStart),mode:selectedMode};
+ const sessions=readSessions();sessions.push(session);localStorage.setItem('ss-sessions',JSON.stringify(sessions.slice(-120)));
+ workoutElapsedBeforePause=durationSec;
+ currentPace=distanceMeters>15?fmtTime(durationSec/(distanceMeters/1000)):'--:--';showPage('workout');showToast('האימון נשמר בסיכום היומי'); 
+}
+window.handleAndroidBack=function(){if(currentPage!=='home'){showPage('home');return true}return false};
+window.showPage=showPage;window.setMode=setMode;window.playTrackById=playTrackById;window.playSmartMix=playSmartMix;window.togglePlay=togglePlay;window.playPrevious=playPrevious;window.playNext=playNext;window.requestStartWorkout=requestStartWorkout;window.stopWorkout=stopWorkout;
+async function boot(){if(window.SportStyle&&window.SportStyle.hasStepCounter&&window.SportStyle.hasStepCounter()){}await loadLibrary();renderCurrent()}
+boot();
+})();
+</script>
+</body>
+</html>
