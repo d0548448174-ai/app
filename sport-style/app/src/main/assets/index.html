@@ -230,7 +230,7 @@ function renderMusic(){
  const ranked=getModeTracks(selectedMode);
  $('page').innerHTML='<h1 class="page-title">המוזיקה שלך<span style="color:var(--lime)">.</span></h1><p class="page-intro">נגן אישי לאימונים שלך. השירים נשארים במכשיר, וההתאמה נעשית לפי קצב BPM שהאפליקציה מנתחת.</p>'+
  modeButtons()+
- '<button class="import-btn" onclick="$(\'musicInput\').click()">＋ הוסף שירים מהמכשיר</button>'+
+ '<button class="import-btn" onclick="document.getElementById('musicInput').click()">＋ הוסף שירים מהמכשיר</button>'+
  '<div class="tiny-note">נתמכים קובצי אודיו רגילים כמו MP3, M4A ו־WAV. לא נדרש חשבון, והשירים נשמרים בספרייה המקומית במכשיר.</div><div class="analyzing" id="analyzing">מנתח את השיר… משך הניתוח תלוי באורך הקובץ.</div>'+
  '<div class="toolbar"><div><strong style="font-size:16px">הספרייה שלי</strong><div class="subtext" style="font-size:10px;margin-top:4px">'+tracks.length+' שירים · התאמה ל'+modes[selectedMode].label+'</div></div>'+(tracks.length?'<button class="soft-btn" onclick="playSmartMix()">▶ נגן מיקס</button>':'')+'</div>'+
  (ranked.length?'<div class="track-list">'+ranked.map(function(t){return trackRow(t,true)}).join('')+'</div>':emptyLibrary())+
