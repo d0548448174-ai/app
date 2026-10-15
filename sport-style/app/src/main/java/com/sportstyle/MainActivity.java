@@ -6,6 +6,9 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.media.AudioAttributes;
 import android.media.MediaPlayer;
+import android.media.MediaMetadataRetriever;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -33,6 +36,11 @@ import android.webkit.WebViewClient;
 import androidx.annotation.NonNull;
 import androidx.webkit.WebViewAssetLoader;
 import java.io.IOException;
+import java.io.ByteArrayOutputStream;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import androidx.webkit.WebViewClientCompat;
@@ -55,6 +63,8 @@ public class MainActivity extends Activity implements SensorEventListener {
     private boolean devicePlayerPrepared = false;
     private Uri activeDeviceUri;
     private Runnable deviceProgressTask;
+    private final ExecutorService artworkExecutor = Executors.newSingleThreadExecutor();
+    private final Map<String, String> artworkCache = new ConcurrentHashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -361,6 +371,7 @@ public class MainActivity extends Activity implements SensorEventListener {
     protected void onDestroy() {
         releaseDevicePlayer();
         mainHandler.removeCallbacksAndMessages(null);
+        artworkExecutor.shutdownNow();
         if (webView != null) {
             webView.removeJavascriptInterface("SportStyle");
             webView.destroy();
@@ -512,6 +523,61 @@ public class MainActivity extends Activity implements SensorEventListener {
             runOnUiThread(() -> releaseDevicePlayer());
         }
 
+        @JavascriptInterface
+        public void seekDeviceTrack(int positionMs) {
+            runOnUiThread(() -> {
+                try {
+                    if (devicePlayer != null && devicePlayerPrepared) {
+                        int safePosition = Math.max(0, Math.min(positionMs, devicePlayer.getDuration()));
+                        devicePlayer.seekTo(safePosition);
+                        scheduleDeviceProgress();
+                    }
+                } catch (IllegalStateException ignored) { }
+            });
+        }
+
+        @JavascriptInterface
+        public void loadDeviceTrackArtwork(String uri, String trackId) {
+            if (uri == null || uri.isEmpty() || trackId == null) return;
+            artworkExecutor.execute(() -> {
+                String artwork = artworkCache.get(uri);
+                if (artwork == null && !artworkCache.containsKey(uri)) {
+                    artwork = "";
+                    MediaMetadataRetriever retriever = new MediaMetadataRetriever();
+                    try {
+                        retriever.setDataSource(MainActivity.this, Uri.parse(uri));
+                        byte[] embedded = retriever.getEmbeddedPicture();
+                        if (embedded != null && embedded.length > 0) {
+                            Bitmap source = BitmapFactory.decodeByteArray(embedded, 0, embedded.length);
+                            if (source != null) {
+                                int maxSide = Math.max(source.getWidth(), source.getHeight());
+                                Bitmap scaled = source;
+                                if (maxSide > 480) {
+                                    float ratio = 480f / maxSide;
+                                    scaled = Bitmap.createScaledBitmap(source,
+                                            Math.max(1, Math.round(source.getWidth() * ratio)),
+                                            Math.max(1, Math.round(source.getHeight() * ratio)), true);
+                                }
+                                ByteArrayOutputStream output = new ByteArrayOutputStream();
+                                scaled.compress(Bitmap.CompressFormat.JPEG, 82, output);
+                                byte[] jpeg = output.toByteArray();
+                                artwork = "data:image/jpeg;base64," + android.util.Base64.encodeToString(jpeg, android.util.Base64.NO_WRAP);
+                                output.close();
+                                if (scaled != source) scaled.recycle();
+                                source.recycle();
+                            }
+                        }
+                    } catch (Exception e) {
+                        android.util.Log.d("SportStyle", "No embedded artwork for " + uri, e);
+                    } finally {
+                        try { retriever.release(); } catch (Exception ignored) { }
+                    }
+                    artworkCache.put(uri, artwork);
+                }
+                String result = artwork == null ? "" : artwork;
+                dispatchJs("window.onNativeTrackArtwork && window.onNativeTrackArtwork(" + JSONObject.quote(trackId) + "," + JSONObject.quote(result) + ")");
+            });
+        }
 
         @JavascriptInterface
         public void keepScreenOn(boolean enabled) {
