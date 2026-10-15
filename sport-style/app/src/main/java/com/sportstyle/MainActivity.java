@@ -308,10 +308,12 @@ public class MainActivity extends Activity implements SensorEventListener {
                         MediaStore.Audio.Media.MIME_TYPE,
                         MediaStore.Audio.Media.DATE_ADDED
                 };
-                String selection = MediaStore.Audio.Media.IS_MUSIC + " != 0 AND "
-                        + MediaStore.Audio.Media.DURATION + " > 0";
+                String selection = MediaStore.Audio.Media.DURATION + " > 0";
+                Uri audioCollection = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
+                        ? MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
+                        : MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
                 cursor = getContentResolver().query(
-                        MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                        audioCollection,
                         projection,
                         selection,
                         null,
@@ -342,8 +344,7 @@ public class MainActivity extends Activity implements SensorEventListener {
                     song.put("size", Math.max(0L, cursor.getLong(sizeCol)));
                     song.put("type", cursor.getString(mimeCol) == null ? "audio/*" : cursor.getString(mimeCol));
                     song.put("addedAt", cursor.getLong(addedCol));
-                    song.put("uri", android.content.ContentUris.withAppendedId(
-                            MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id).toString());
+                    song.put("uri", android.content.ContentUris.withAppendedId(audioCollection, id).toString());
                     songs.put(song);
                 }
             } catch (Exception e) {
