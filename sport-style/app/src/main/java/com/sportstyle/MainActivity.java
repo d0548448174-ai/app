@@ -4,6 +4,8 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.database.Cursor;
+import android.media.AudioAttributes;
+import android.media.MediaPlayer;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -12,6 +14,8 @@ import android.hardware.SensorManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.provider.MediaStore;
@@ -28,6 +32,7 @@ import android.webkit.WebViewClient;
 
 import androidx.annotation.NonNull;
 import androidx.webkit.WebViewAssetLoader;
+import java.io.IOException;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import androidx.webkit.WebViewClientCompat;
@@ -45,6 +50,11 @@ public class MainActivity extends Activity implements SensorEventListener {
     private SensorManager sensorManager;
     private Sensor stepSensor;
     private float lastStepCount = -1f;
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    private MediaPlayer devicePlayer;
+    private boolean devicePlayerPrepared = false;
+    private Uri activeDeviceUri;
+    private Runnable deviceProgressTask;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -254,6 +264,111 @@ public class MainActivity extends Activity implements SensorEventListener {
         }
     }
 
+    private void dispatchJs(String script) {
+        if (webView != null) {
+            webView.post(() -> webView.evaluateJavascript(script, null));
+        }
+    }
+
+    private void dispatchDeviceMusicResult(String json) {
+        dispatchJs("window.onNativeDeviceMusicResult && window.onNativeDeviceMusicResult(" + JSONObject.quote(json) + ")");
+    }
+
+    private void startDevicePlayback(String uri, int startMs) {
+        releaseDevicePlayer();
+        try {
+            Uri trackUri = Uri.parse(uri);
+            MediaPlayer player = new MediaPlayer();
+            devicePlayer = player;
+            activeDeviceUri = trackUri;
+            devicePlayerPrepared = false;
+            player.setAudioAttributes(new AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_MEDIA)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                    .build());
+            player.setDataSource(this, trackUri);
+            player.setOnPreparedListener(mp -> {
+                if (devicePlayer != mp) {
+                    mp.release();
+                    return;
+                }
+                devicePlayerPrepared = true;
+                try {
+                    if (startMs > 0) mp.seekTo(startMs);
+                    mp.start();
+                    dispatchJs("window.onNativeDevicePlaybackState && window.onNativeDevicePlaybackState(true)");
+                    scheduleDeviceProgress();
+                } catch (IllegalStateException e) {
+                    dispatchJs("window.onNativeDevicePlaybackError && window.onNativeDevicePlaybackError()");
+                }
+            });
+            player.setOnCompletionListener(mp -> {
+                if (devicePlayer == mp) {
+                    releaseDevicePlayer();
+                    dispatchJs("window.onNativeDeviceTrackEnded && window.onNativeDeviceTrackEnded()");
+                }
+            });
+            player.setOnErrorListener((mp, what, extra) -> {
+                if (devicePlayer == mp) releaseDevicePlayer();
+                dispatchJs("window.onNativeDevicePlaybackError && window.onNativeDevicePlaybackError()");
+                return true;
+            });
+            player.prepareAsync();
+        } catch (IOException | IllegalArgumentException | SecurityException | IllegalStateException e) {
+            android.util.Log.e("SportStyle", "Could not play device audio: " + uri, e);
+            releaseDevicePlayer();
+            dispatchJs("window.onNativeDevicePlaybackError && window.onNativeDevicePlaybackError()");
+        }
+    }
+
+    private void scheduleDeviceProgress() {
+        if (deviceProgressTask != null) mainHandler.removeCallbacks(deviceProgressTask);
+        deviceProgressTask = new Runnable() {
+            @Override
+            public void run() {
+                if (devicePlayer == null || !devicePlayerPrepared) return;
+                try {
+                    int position = devicePlayer.getCurrentPosition();
+                    int duration = devicePlayer.getDuration();
+                    boolean playing = devicePlayer.isPlaying();
+                    dispatchJs("window.onNativeDeviceProgress && window.onNativeDeviceProgress("
+                            + position + "," + duration + "," + playing + ")");
+                    if (playing) mainHandler.postDelayed(this, 400);
+                } catch (IllegalStateException ignored) { }
+            }
+        };
+        mainHandler.post(deviceProgressTask);
+    }
+
+    private void releaseDevicePlayer() {
+        if (deviceProgressTask != null) {
+            mainHandler.removeCallbacks(deviceProgressTask);
+            deviceProgressTask = null;
+        }
+        MediaPlayer player = devicePlayer;
+        devicePlayer = null;
+        activeDeviceUri = null;
+        devicePlayerPrepared = false;
+        if (player != null) {
+            try {
+                if (player.isPlaying()) player.stop();
+            } catch (IllegalStateException ignored) { }
+            try { player.release(); } catch (Exception ignored) { }
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        releaseDevicePlayer();
+        mainHandler.removeCallbacksAndMessages(null);
+        if (webView != null) {
+            webView.removeJavascriptInterface("SportStyle");
+            webView.destroy();
+            webView = null;
+        }
+        super.onDestroy();
+    }
+
     public class AppBridge {
         @JavascriptInterface
         public void requestPermissionsForWorkout() {
@@ -293,68 +408,110 @@ public class MainActivity extends Activity implements SensorEventListener {
         }
 
         @JavascriptInterface
-        public String scanDeviceMusic() {
-            if (!MainActivity.this.hasAudioPermission()) return "[]";
-            JSONArray songs = new JSONArray();
-            Cursor cursor = null;
-            try {
-                String[] projection = new String[]{
-                        MediaStore.Audio.Media._ID,
-                        MediaStore.Audio.Media.TITLE,
-                        MediaStore.Audio.Media.ARTIST,
-                        MediaStore.Audio.Media.ALBUM,
-                        MediaStore.Audio.Media.DURATION,
-                        MediaStore.Audio.Media.SIZE,
-                        MediaStore.Audio.Media.MIME_TYPE,
-                        MediaStore.Audio.Media.DATE_ADDED
-                };
-                String selection = MediaStore.Audio.Media.DURATION + " > 0";
-                Uri audioCollection = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
-                        ? MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
-                        : MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-                cursor = getContentResolver().query(
-                        audioCollection,
-                        projection,
-                        selection,
-                        null,
-                        MediaStore.Audio.Media.TITLE + " COLLATE NOCASE ASC");
-                if (cursor == null) return "[]";
-                int idCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID);
-                int titleCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE);
-                int artistCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST);
-                int albumCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM);
-                int durationCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION);
-                int sizeCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.SIZE);
-                int mimeCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.MIME_TYPE);
-                int addedCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_ADDED);
-                while (cursor.moveToNext()) {
-                    long id = cursor.getLong(idCol);
-                    String title = cursor.getString(titleCol);
-                    if (title == null || title.trim().isEmpty()) title = "שיר ללא שם";
-                    String artist = cursor.getString(artistCol);
-                    if (artist == null || artist.equals(MediaStore.UNKNOWN_STRING)) artist = "";
-                    String album = cursor.getString(albumCol);
-                    if (album == null || album.equals(MediaStore.UNKNOWN_STRING)) album = "";
-                    JSONObject song = new JSONObject();
-                    song.put("id", String.valueOf(id));
-                    song.put("title", title);
-                    song.put("artist", artist);
-                    song.put("album", album);
-                    song.put("duration", Math.max(0L, cursor.getLong(durationCol)));
-                    song.put("size", Math.max(0L, cursor.getLong(sizeCol)));
-                    song.put("type", cursor.getString(mimeCol) == null ? "audio/*" : cursor.getString(mimeCol));
-                    song.put("addedAt", cursor.getLong(addedCol));
-                    song.put("uri", android.content.ContentUris.withAppendedId(audioCollection, id).toString());
-                    songs.put(song);
-                }
-            } catch (Exception e) {
-                android.util.Log.e("SportStyle", "Could not scan device music", e);
-                return "[]";
-            } finally {
-                if (cursor != null) cursor.close();
+        public void scanDeviceMusic() {
+            if (!MainActivity.this.hasAudioPermission()) {
+                dispatchDeviceMusicResult("[]");
+                return;
             }
-            return songs.toString();
+            Thread scanner = new Thread(() -> {
+                JSONArray songs = new JSONArray();
+                Cursor cursor = null;
+                try {
+                    String[] projection = new String[]{
+                            MediaStore.Audio.Media._ID,
+                            MediaStore.Audio.Media.TITLE,
+                            MediaStore.Audio.Media.ARTIST,
+                            MediaStore.Audio.Media.ALBUM,
+                            MediaStore.Audio.Media.DURATION,
+                            MediaStore.Audio.Media.SIZE,
+                            MediaStore.Audio.Media.MIME_TYPE,
+                            MediaStore.Audio.Media.DATE_ADDED
+                    };
+                    String selection = MediaStore.Audio.Media.DURATION + " > 0";
+                    Uri audioCollection = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
+                            ? MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
+                            : MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+                    cursor = getContentResolver().query(
+                            audioCollection, projection, selection, null,
+                            MediaStore.Audio.Media.TITLE + " COLLATE NOCASE ASC");
+                    if (cursor != null) {
+                        int idCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID);
+                        int titleCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE);
+                        int artistCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST);
+                        int albumCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM);
+                        int durationCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION);
+                        int sizeCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.SIZE);
+                        int mimeCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.MIME_TYPE);
+                        int addedCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_ADDED);
+                        while (cursor.moveToNext()) {
+                            long id = cursor.getLong(idCol);
+                            String title = cursor.getString(titleCol);
+                            if (title == null || title.trim().isEmpty()) title = "שיר ללא שם";
+                            String artist = cursor.getString(artistCol);
+                            if (artist == null || artist.equals(MediaStore.UNKNOWN_STRING)) artist = "";
+                            String album = cursor.getString(albumCol);
+                            if (album == null || album.equals(MediaStore.UNKNOWN_STRING)) album = "";
+                            JSONObject song = new JSONObject();
+                            song.put("id", String.valueOf(id));
+                            song.put("title", title);
+                            song.put("artist", artist);
+                            song.put("album", album);
+                            song.put("duration", Math.max(0L, cursor.getLong(durationCol)));
+                            song.put("size", Math.max(0L, cursor.getLong(sizeCol)));
+                            song.put("type", cursor.getString(mimeCol) == null ? "audio/*" : cursor.getString(mimeCol));
+                            song.put("addedAt", cursor.getLong(addedCol));
+                            song.put("uri", android.content.ContentUris.withAppendedId(audioCollection, id).toString());
+                            songs.put(song);
+                        }
+                    }
+                } catch (Exception e) {
+                    android.util.Log.e("SportStyle", "Could not scan device music", e);
+                } finally {
+                    if (cursor != null) cursor.close();
+                }
+                dispatchDeviceMusicResult(songs.toString());
+            }, "SportStyle-MusicScanner");
+            scanner.setDaemon(true);
+            scanner.start();
         }
+
+        @JavascriptInterface
+        public void playDeviceTrack(String uri, int startMs) {
+            runOnUiThread(() -> startDevicePlayback(uri, startMs));
+        }
+
+        @JavascriptInterface
+        public void pauseDeviceTrack() {
+            runOnUiThread(() -> {
+                try {
+                    if (devicePlayer != null && devicePlayerPrepared && devicePlayer.isPlaying()) {
+                        devicePlayer.pause();
+                        dispatchJs("window.onNativeDevicePlaybackState && window.onNativeDevicePlaybackState(false)");
+                    }
+                } catch (IllegalStateException ignored) { }
+            });
+        }
+
+        @JavascriptInterface
+        public void resumeDeviceTrack() {
+            runOnUiThread(() -> {
+                try {
+                    if (devicePlayer != null && devicePlayerPrepared && !devicePlayer.isPlaying()) {
+                        devicePlayer.start();
+                        dispatchJs("window.onNativeDevicePlaybackState && window.onNativeDevicePlaybackState(true)");
+                        scheduleDeviceProgress();
+                    }
+                } catch (IllegalStateException e) {
+                    dispatchJs("window.onNativeDevicePlaybackError && window.onNativeDevicePlaybackError()");
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void stopDeviceTrack() {
+            runOnUiThread(() -> releaseDevicePlayer());
+        }
+
 
         @JavascriptInterface
         public void keepScreenOn(boolean enabled) {
