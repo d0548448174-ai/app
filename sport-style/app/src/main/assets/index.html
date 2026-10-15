@@ -185,7 +185,9 @@ h1{font-size:29px;line-height:1.15;letter-spacing:-.7px;margin:7px 0 8px;font-we
 'use strict';
 const $ = function(id){return document.getElementById(id)};
 let db = null, tracks = [], deviceTracks = [], currentPage = 'home', selectedMode = 'run';
-let audioPermissionAsked = false, deviceLibraryScanned = false;
+let audioPermissionAsked = false, deviceLibraryScanned = false, deviceScanInProgress = false;
+let musicVisibleCount = 100, shortsVisibleCount = 24;
+const localUrlCache = new Map();
 let currentTrack = null, isPlaying = false, stopShortTimer = null, shortPlayingId = null;
 let smartQueue = [], smartQueueActive = false;
 let workoutActive = false, workoutStartedAt = 0, workoutElapsedBeforePause = 0, workoutTimer = null;
@@ -207,14 +209,43 @@ function openDb(){return new Promise(function(resolve,reject){if(db){resolve(db)
 async function dbPut(track){const d=await openDb();return new Promise(function(resolve,reject){const tx=d.transaction('tracks','readwrite');tx.objectStore('tracks').put(track);tx.oncomplete=function(){resolve()};tx.onerror=function(){reject(tx.error)}})}
 async function dbAll(){const d=await openDb();return new Promise(function(resolve,reject){const tx=d.transaction('tracks','readonly');const req=tx.objectStore('tracks').getAll();req.onsuccess=function(){resolve(req.result||[])};req.onerror=function(){reject(req.error)}})}
 async function dbDelete(id){const d=await openDb();return new Promise(function(resolve,reject){const tx=d.transaction('tracks','readwrite');tx.objectStore('tracks').delete(id);tx.oncomplete=function(){resolve()};tx.onerror=function(){reject(tx.error)}})}
-function enrichTrack(t){t.title=t.title||t.name||'שיר ללא שם';t.url=URL.createObjectURL(t.blob);return t}
+function enrichTrack(t){t.title=t.title||t.name||'שיר ללא שם';if(t.blob){let cached=localUrlCache.get(String(t.id));if(!cached){cached=URL.createObjectURL(t.blob);localUrlCache.set(String(t.id),cached)}t.url=cached}return t}
 async function loadLibrary(){let localTracks=[];try{localTracks=(await dbAll()).map(enrichTrack)}catch(e){localTracks=[]}const deviceKeys=new Set(deviceTracks.filter(function(t){return t.size>0}).map(function(t){return (t.title||'').trim().toLowerCase()+'|'+t.size}));localTracks=localTracks.filter(function(t){return !(t.size>0&&deviceKeys.has((t.title||'').trim().toLowerCase()+'|'+t.size))});tracks=deviceTracks.concat(localTracks);tracks.sort(function(a,b){return (b.addedAt||0)-(a.addedAt||0)});renderCurrent();updateMiniPlayer()}
 function setDeviceLibraryStatus(message){const el=$('deviceLibraryStatus');if(el)el.textContent=message}
-async function syncDeviceLibrary(announce,forcePrompt){if(!window.SportStyle||typeof window.SportStyle.scanDeviceMusic!=='function'){if(announce)showToast('סריקה אוטומטית זמינה בגרסת Android של Sport Style');return}try{if(!window.SportStyle.hasAudioPermission()){setDeviceLibraryStatus('כדי לטעון את כל השירים, יש לאשר גישה למוזיקה במכשיר.');if(!audioPermissionAsked||forcePrompt){audioPermissionAsked=true;window.SportStyle.requestAudioPermission()}return}const raw=window.SportStyle.scanDeviceMusic();const found=JSON.parse(raw||'[]');deviceTracks=found.map(function(t){return {id:'device-'+String(t.id),deviceId:String(t.id),source:'device',title:t.title||'שיר ללא שם',artist:t.artist||'',album:t.album||'',type:t.type||'audio/*',size:Number(t.size)||0,addedAt:(Number(t.addedAt)||0)*1000,duration:(Number(t.duration)||0)/1000,bpm:null,energy:50,url:t.uri}});deviceLibraryScanned=true;await loadLibrary();setDeviceLibraryStatus('נמצאו '+deviceTracks.length+' שירים בספריית המוזיקה של המכשיר.');if(announce)showToast('נמצאו '+deviceTracks.length+' שירים במכשיר')}catch(e){setDeviceLibraryStatus('לא הצלחנו לקרוא את ספריית המוזיקה. אפשר לנסות שוב או לבחור קבצים ידנית.');if(announce)showToast('הסריקה לא הצליחה במכשיר הזה')}}
+function syncDeviceLibrary(announce,forcePrompt){
+ if(!window.SportStyle||typeof window.SportStyle.scanDeviceMusic!=='function'){if(announce)showToast('סריקה אוטומטית זמינה בגרסת Android של Sport Style');return}
+ try{
+  if(!window.SportStyle.hasAudioPermission()){
+   setDeviceLibraryStatus('כדי לטעון את השירים, יש לאשר גישה למוזיקה במכשיר.');
+   if(!audioPermissionAsked||forcePrompt){audioPermissionAsked=true;window.SportStyle.requestAudioPermission()}
+   return;
+  }
+  if(deviceScanInProgress){if(announce)showToast('סריקת המוזיקה כבר מתבצעת');return}
+  deviceScanInProgress=true;
+  setDeviceLibraryStatus('סורקים את ספריית המוזיקה ברקע… אפשר להמשיך להשתמש באפליקציה.');
+  window.SportStyle.scanDeviceMusic();
+ }catch(e){
+  deviceScanInProgress=false;
+  setDeviceLibraryStatus('לא הצלחנו לסרוק את המוזיקה. אפשר לנסות שוב.');
+  if(announce)showToast('הסריקה לא הצליחה');
+ }
+}
+window.onNativeDeviceMusicResult=async function(payload){
+ deviceScanInProgress=false;
+ try{
+  const found=Array.isArray(payload)?payload:JSON.parse(payload||'[]');
+  deviceTracks=found.map(function(t){return {id:'device-'+String(t.id),deviceId:String(t.id),source:'device',title:t.title||'שיר ללא שם',artist:t.artist||'',album:t.album||'',type:t.type||'audio/*',size:Number(t.size)||0,addedAt:(Number(t.addedAt)||0)*1000,duration:(Number(t.duration)||0)/1000,bpm:null,energy:50,url:t.uri}});
+  deviceLibraryScanned=true;
+  await loadLibrary();
+  setDeviceLibraryStatus('נמצאו '+deviceTracks.length+' שירים בספריית המוזיקה של המכשיר.');
+ }catch(e){
+  setDeviceLibraryStatus('לא הצלחנו לקרוא את ספריית המוזיקה. אפשר לנסות שוב או לבחור קבצים ידנית.');
+ }
+};
 function getModeTracks(mode){const m=modes[mode];const low={run:150,walk:110,relax:60}[mode],high={run:185,walk:145,relax:100}[mode];function score(t){if(!t.bpm)return 5000;let s=Math.abs(t.bpm-m.target);if(t.bpm<low||t.bpm>high)s+=55;const energy=Number(t.energy)||50;if(mode==='run')s+=Math.max(0,58-energy)*0.22;else if(mode==='walk')s+=Math.abs(energy-58)*0.08;else s+=Math.max(0,energy-48)*0.2;return s}return tracks.slice().sort(function(a,b){return score(a)-score(b)})}
 function trackMood(t){if(!t.bpm)return 'קצב לא זוהה';if(t.bpm>=150)return 'ריצה';if(t.bpm>=110)return 'הליכה מהירה';if(t.bpm>=60)return 'הרפייה';return 'קצב איטי'}
 function albumClass(t){return colors[Math.abs((t.title||'').length+(t.bpm||0))%colors.length]}
-function trackRow(t,full){return '<div class="track-row"><div class="album '+albumClass(t)+'"><span>♫</span></div><div class="track-main"><div class="track-name">'+esc(t.title)+'</div><div class="track-meta">'+(t.bpm?'<span class="pill good">'+Math.round(t.bpm)+' BPM</span>':'<span class="pill">BPM לא זוהה</span>')+'<span>'+esc(trackMood(t))+'</span>'+(t.duration?'<span>'+fmtDuration(t.duration)+'</span>':'')+'</div></div><button class="play-small" onclick="playTrackById(\''+t.id+'\',0,0)" aria-label="נגן '+esc(t.title)+'">▶</button></div>'}
+function trackRow(t,full){return '<div class="track-row"><div class="album '+albumClass(t)+'"><span>♫</span></div><div class="track-main"><div class="track-name">'+esc(t.title)+'</div><div class="track-meta">'+(t.bpm?'<span class="pill good">'+Math.round(t.bpm)+' BPM</span>':'<span class="pill">BPM לא זוהה</span>')+(t.artist?'<span>'+esc(t.artist)+'</span>':'')+'<span>'+esc(trackMood(t))+'</span>'+(t.duration?'<span>'+fmtDuration(t.duration)+'</span>':'')+'</div></div><button class="play-small" onclick="playTrackById(\''+t.id+'\',0,0)" aria-label="נגן '+esc(t.title)+'">▶</button></div>'}
 function modeButtons(){return '<div class="mode-grid">'+Object.keys(modes).map(function(k){const m=modes[k];return '<button class="mode-card '+(selectedMode===k?'active':'')+'" onclick="setMode(\''+k+'\')"><span class="mode-dot"></span><span class="mode-icon">'+m.emoji+'</span><span class="mode-title">'+m.label+'</span><span class="mode-range">'+m.range+'</span></button>'}).join('')+'</div>'}
 function emptyLibrary(){return '<div class="empty"><div class="big">♫</div><strong>מחפשים את המוזיקה שלך</strong><p>אפשר לסרוק אוטומטית את כל השירים שזמינים בספריית המוזיקה במכשיר, או לבחור קבצים ידנית.</p><button class="soft-btn" onclick="syncDeviceLibrary(true,true)">↻ סרוק מוזיקה במכשיר</button><button class="soft-btn" style="margin-right:6px" onclick="showPage(\'music\')">פתח את הספרייה</button></div>'}
 function readSessions(){try{return JSON.parse(localStorage.getItem('ss-sessions')||'[]')}catch(e){return []}}
@@ -230,6 +261,7 @@ function renderHome(){
  (tracks.length?'<div class="track-list">'+(rec.length?rec.map(function(t){return trackRow(t,true)}).join(''):'<div class="empty"><strong>עוד אין התאמות</strong><p>ייבא כמה שירים כדי שאוכל לנתח את הקצב שלהם.</p><button class="soft-btn" onclick="showPage(\'music\')">ייבוא שירים</button></div>')+'</div><button class="import-btn" onclick="playSmartMix()">▶ נגן מיקס חכם ל'+modes[selectedMode].label+'</button>':emptyLibrary())+
  '<div class="section-head"><div><h2>זזים נכון</h2><p>טיפים קטנים לאימון טוב יותר</p></div><button class="text-btn" onclick="showPage(\'tips\')">לכל הטיפים ←</button></div>'+tipPreview()+'<div class="bottom-space"></div>';
 }
+function loadMoreMusic(){musicVisibleCount=Math.min(musicVisibleCount+100,tracks.length);renderMusic()}
 function renderMusic(){
  const ranked=getModeTracks(selectedMode);
  $('page').innerHTML='<h1 class="page-title">המוזיקה שלך<span style="color:var(--lime)">.</span></h1><p class="page-intro">Sport Style סורקת אוטומטית את ספריית המוזיקה במכשיר. השירים נשארים מקומיים, וניתן להוסיף גם קבצים ידנית.</p>'+
@@ -237,15 +269,17 @@ function renderMusic(){
  '<button class="import-btn" onclick="syncDeviceLibrary(true,true)">↻ סרוק מחדש את כל המוזיקה במכשיר</button><div class="tiny-note" id="deviceLibraryStatus">'+(deviceLibraryScanned?'נמצאו '+deviceTracks.length+' שירים בספריית המכשיר.':'הסריקה האוטומטית מתבצעת לאחר אישור גישה למוזיקה.')+'</div><button class="soft-btn" style="width:100%;margin-bottom:10px" onclick="document.getElementById(&quot;musicInput&quot;).click()">בחירת קבצים ידנית ＋</button>'+
  '<div class="tiny-note">השירים שנמצאו במכשיר לא מועתקים או מועלים לשום שרת; האפליקציה משתמשת בקבצים המקוריים שלהם.</div><div class="analyzing" id="analyzing">מנתח את השיר… משך הניתוח תלוי באורך הקובץ.</div>'+
  '<div class="toolbar"><div><strong style="font-size:16px">הספרייה שלי</strong><div class="subtext" style="font-size:10px;margin-top:4px">'+tracks.length+' שירים · התאמה ל'+modes[selectedMode].label+'</div></div>'+(tracks.length?'<button class="soft-btn" onclick="playSmartMix()">▶ נגן מיקס</button>':'')+'</div>'+
- (ranked.length?'<div class="track-list">'+ranked.map(function(t){return trackRow(t,true)}).join('')+'</div>':emptyLibrary())+
+ (ranked.length?'<div class="track-list">'+ranked.slice(0,musicVisibleCount).map(function(t){return trackRow(t,true)}).join('')+'</div>'+(ranked.length>musicVisibleCount?'<button class="soft-btn" style="width:100%;margin-top:12px" onclick="loadMoreMusic()">הצג עוד שירים ('+(ranked.length-musicVisibleCount)+') ↓</button>':''):emptyLibrary())+
  '<div class="notice">איך הבחירה החכמה עובדת? האפליקציה מנתחת את גל הקול, מעריכה את ה־BPM ומשווה אותו לטווחי קצב מומלצים. הקצב הוא אומדן ועלול לטעות בשירים עם שינויי קצב, פתיחה ארוכה או תופים לא ברורים.</div>'+
  '<div class="section-head"><div><h2>הנגן שלך</h2><p>שליטה מלאה בהשמעה</p></div></div>'+playerCard()+
  '<div class="footer-note">Sport Style · המוזיקה נמצאת במכשיר שלך. לא מועלים שירים לשרת.</div>';
 }
 function renderShorts(){
  if(!tracks.length){$('page').innerHTML='<h1 class="page-title">Sport Shorts<span style="color:var(--lime)">.</span></h1><p class="page-intro">גלילה בין קטעים קצרים מהשירים שלך, עם אפשרות לעבור מיד לשיר המלא.</p>'+emptyLibrary();return}
- $('page').innerHTML='<h1 class="page-title">Sport Shorts<span style="color:var(--lime)">.</span></h1><p class="page-intro">טעימות מוזיקה באורך 15 שניות. אהבת את הקטע? המשך לשיר המלא. גלול כדי לעבור לשיר הבא.</p><div class="short-feed">'+tracks.map(function(t,i){return '<article class="short-card"><div class="short-bg"></div><div class="short-top"><span class="short-badge">SPORT SHORTS · '+String(i+1).padStart(2,'0')+'</span><span class="short-badge">'+(t.bpm?Math.round(t.bpm)+' BPM':'קצב לא זוהה')+'</span></div><div class="disc-wrap"><div class="disc" id="disc-'+t.id+'"><span class="disc-logo">SPORT<br>STYLE</span></div></div><div class="short-bottom"><h3>'+esc(t.title)+'</h3><p>'+esc(trackMood(t))+' · '+fmtDuration(t.duration)+'</p><div class="short-actions"><button class="short-play" onclick="playTrackById(\''+t.id+'\',-1,15)">▶ קטע של 15 שנ׳</button><button class="short-full" onclick="playTrackById(\''+t.id+'\',0,0)">♫ השיר המלא</button></div></div></article>'}).join('')+'</div>';
+ const visible=tracks.slice(0,shortsVisibleCount);
+ $('page').innerHTML='<h1 class="page-title">Sport Shorts<span style="color:var(--lime)">.</span></h1><p class="page-intro">טעימות מוזיקה באורך 15 שניות. אהבת את הקטע? המשך לשיר המלא.</p><div class="tiny-note">'+tracks.length+' שירים בספרייה · מוצגים '+visible.length+'</div><div class="short-feed">'+visible.map(function(t,i){return '<article class="short-card"><div class="short-bg"></div><div class="short-top"><span class="short-badge">SPORT SHORTS · '+String(i+1).padStart(2,'0')+'</span><span class="short-badge">'+(t.bpm?Math.round(t.bpm)+' BPM':'קצב לא זוהה')+'</span></div><div class="disc-wrap"><div class="disc '+(shortPlayingId===t.id&&isPlaying?'playing':'')+'" id="disc-'+t.id+'"><span class="disc-logo">SPORT<br>STYLE</span></div></div><div class="short-bottom"><h3>'+esc(t.title)+'</h3><p>'+esc(t.artist||trackMood(t))+' · '+fmtDuration(t.duration)+'</p><div class="short-actions"><button class="short-play" onclick="playTrackById(\''+t.id+'\',-1,15)">▶ קטע של 15 שנ׳</button><button class="short-full" onclick="playTrackById(\''+t.id+'\',0,0)">♫ השיר המלא</button></div></div></article>'}).join('')+'</div>'+(visible.length<tracks.length?'<button class="soft-btn" style="width:100%;margin-top:12px" onclick="loadMoreShorts()">טען עוד שירים ↓</button>':'');
 }
+function loadMoreShorts(){shortsVisibleCount=Math.min(shortsVisibleCount+24,tracks.length);renderShorts()}
 function renderWorkout(){
  const elapsed=workoutActive?Math.floor((Date.now()-workoutStartedAt)/1000+workoutElapsedBeforePause):workoutElapsedBeforePause;
  $('page').innerHTML='<h1 class="page-title">האימון שלי<span style="color:var(--lime)">.</span></h1><p class="page-intro">מעקב אחרי זמן, מרחק, קצב צעדים ומוזיקה מתאימה. אפשר להתחיל אימון גם בלי GPS, אך המרחק לא יימדד.</p>'+
@@ -279,8 +313,22 @@ function playTrackById(id,start,limit){const t=findTrack(id);if(!t)return;clearS
 async function playTrack(t,start,limit){
  if(!t)return;
  clearTimeout(stopShortTimer);stopShortTimer=null;shortPlayingId=null;
- if(!currentTrack||String(currentTrack.id)!==String(t.id)){currentTrack=t;audio.src=t.url;audio.load()}
  if(start===-1){const max=Math.max(0,(t.duration||30)-15);start=Math.floor(Math.random()*Math.max(1,max+1))}
+ if(t.source==='device'){
+  try{audio.pause();audio.removeAttribute('src');audio.load()}catch(e){}
+  currentTrack=t;
+  $('miniTitle').textContent=t.title;$('miniMeta').textContent=(t.artist?t.artist+' · ':'')+fmtDuration(t.duration);
+  isPlaying=false;updateMiniPlayer();
+  if(!window.SportStyle||typeof window.SportStyle.playDeviceTrack!=='function'){showToast('ניגון שירים מהספרייה דורש את גרסת Android העדכנית');return}
+  try{window.SportStyle.playDeviceTrack(t.url,Math.max(0,Math.floor(start*1000)))}catch(e){showToast('לא הצלחנו להפעיל את השיר');return}
+  if(limit>0){
+   shortPlayingId=t.id;const disc=$('disc-'+t.id);if(disc)disc.classList.add('playing');
+   stopShortTimer=setTimeout(function(){if(window.SportStyle&&window.SportStyle.pauseDeviceTrack)window.SportStyle.pauseDeviceTrack();isPlaying=false;const d=$('disc-'+t.id);if(d)d.classList.remove('playing');shortPlayingId=null;updateMiniPlayer()},limit*1000);
+  }
+  updateMiniPlayer();return;
+ }
+ if(currentTrack&&currentTrack.source==='device'&&window.SportStyle&&window.SportStyle.stopDeviceTrack)window.SportStyle.stopDeviceTrack();
+ if(!currentTrack||String(currentTrack.id)!==String(t.id)){currentTrack=t;audio.src=t.url;audio.load()}
  try{if(isFinite(start)&&start>=0)audio.currentTime=start}catch(e){}
  $('miniTitle').textContent=t.title;$('miniMeta').textContent=(t.bpm?Math.round(t.bpm)+' BPM · ':'')+fmtDuration(t.duration);
  updateMiniPlayer();
@@ -289,13 +337,14 @@ async function playTrack(t,start,limit){
  isPlaying=true;updateMiniPlayer();
  if(limit>0){shortPlayingId=t.id;const disc=$('disc-'+t.id);if(disc)disc.classList.add('playing');stopShortTimer=setTimeout(function(){audio.pause();isPlaying=false;const d=$('disc-'+t.id);if(d)d.classList.remove('playing');shortPlayingId=null;updateMiniPlayer()},limit*1000)}
 }
-function togglePlay(){if(!currentTrack){if(tracks.length)playTrack(tracks[0],0,0);else{showToast('ייבא שירים כדי להאזין');showPage('music')}return}if(audio.paused){audio.play().then(function(){isPlaying=true;updateMiniPlayer()}).catch(function(){showToast('לא ניתן לנגן את השיר')})}else{audio.pause();isPlaying=false;clearTimeout(stopShortTimer);updateMiniPlayer()}}
+function togglePlay(){if(!currentTrack){if(tracks.length)playTrack(tracks[0],0,0);else{showToast('ייבא שירים כדי להאזין');showPage('music')}return}if(currentTrack.source==='device'){clearTimeout(stopShortTimer);if(isPlaying){if(window.SportStyle&&window.SportStyle.pauseDeviceTrack)window.SportStyle.pauseDeviceTrack()}else{if(window.SportStyle&&window.SportStyle.resumeDeviceTrack)window.SportStyle.resumeDeviceTrack()}return}if(audio.paused){audio.play().then(function(){isPlaying=true;updateMiniPlayer()}).catch(function(){showToast('לא ניתן לנגן את השיר')})}else{audio.pause();isPlaying=false;clearTimeout(stopShortTimer);updateMiniPlayer()}}
 function playPrevious(){if(!tracks.length)return;clearSmartQueue();let i=currentTrack?tracks.findIndex(function(t){return String(t.id)===String(currentTrack.id)}):0;i=(i-1+tracks.length)%tracks.length;playTrack(tracks[i],0,0)}
 function playNext(){if(!tracks.length)return;clearSmartQueue();let i=currentTrack?tracks.findIndex(function(t){return String(t.id)===String(currentTrack.id)}):-1;i=(i+1)%tracks.length;playTrack(tracks[i],0,0)}
-function updateMiniPlayer(){if(currentTrack){$('miniTitle').textContent=currentTrack.title;$('miniMeta').textContent=(currentTrack.bpm?Math.round(currentTrack.bpm)+' BPM · ':'')+fmtDuration(currentTrack.duration)}$('miniPlay').textContent=(!audio.paused&&isPlaying)?'Ⅱ':'▶';const b=$('bigPlay');if(b)b.textContent=(!audio.paused&&isPlaying)?'Ⅱ':'▶';const pt=$('playerTitle');if(pt&&currentTrack)pt.textContent=currentTrack.title;const pm=$('playerMeta');if(pm&&currentTrack)pm.textContent=(currentTrack.bpm?Math.round(currentTrack.bpm)+' BPM · ':'')+fmtDuration(currentTrack.duration)}
+function updateMiniPlayer(){if(currentTrack){$('miniTitle').textContent=currentTrack.title;$('miniMeta').textContent=(currentTrack.artist?currentTrack.artist+' · ':'')+(currentTrack.bpm?Math.round(currentTrack.bpm)+' BPM · ':'')+fmtDuration(currentTrack.duration)}const playingNow=!!isPlaying&&(currentTrack&&currentTrack.source==='device'||!audio.paused);$('miniPlay').textContent=playingNow?'Ⅱ':'▶';const b=$('bigPlay');if(b)b.textContent=playingNow?'Ⅱ':'▶';const pt=$('playerTitle');if(pt&&currentTrack)pt.textContent=currentTrack.title;const pm=$('playerMeta');if(pm&&currentTrack)pm.textContent=(currentTrack.artist?currentTrack.artist+' · ':'')+(currentTrack.bpm?Math.round(currentTrack.bpm)+' BPM · ':'')+fmtDuration(currentTrack.duration)}
 audio.addEventListener('play',function(){isPlaying=true;updateMiniPlayer()});
 audio.addEventListener('pause',function(){isPlaying=false;updateMiniPlayer()});
-audio.addEventListener('ended',function(){isPlaying=false;clearTimeout(stopShortTimer);if(currentTrack){const d=$('disc-'+currentTrack.id);if(d)d.classList.remove('playing')}if(smartQueueActive&&currentTrack){const i=smartQueue.indexOf(String(currentTrack.id));const nextId=i>=0?smartQueue[i+1]:null;const next=nextId?findTrack(nextId):null;if(next){playTrack(next,0,0);return}smartQueueActive=false;smartQueue=[]}updateMiniPlayer()});
+function handleTrackEnded(){isPlaying=false;clearTimeout(stopShortTimer);if(currentTrack){const d=$('disc-'+currentTrack.id);if(d)d.classList.remove('playing')}if(smartQueueActive&&currentTrack){const i=smartQueue.indexOf(String(currentTrack.id));const nextId=i>=0?smartQueue[i+1]:null;const next=nextId?findTrack(nextId):null;if(next){playTrack(next,0,0);return}smartQueueActive=false;smartQueue=[]}updateMiniPlayer()}
+audio.addEventListener('ended',handleTrackEnded);
 audio.addEventListener('timeupdate',function(){const pct=audio.duration?audio.currentTime/audio.duration*100:0;const f=$('progressFill');if(f)f.style.width=pct+'%';const c=$('currentTime');if(c)c.textContent=fmtTime(audio.currentTime);const t=$('totalTime');if(t)t.textContent=fmtTime(audio.duration);const d=$('miniMeta');if(d&&currentTrack&&audio.duration)d.textContent=(currentTrack.bpm?Math.round(currentTrack.bpm)+' BPM · ':'')+fmtTime(audio.currentTime)+' / '+fmtTime(audio.duration)});
 async function analyzeFile(file){
  let result={bpm:null,energy:50,duration:0};
@@ -369,8 +418,19 @@ function stopWorkout(){
 window.handleAndroidBack=function(){if(currentPage!=='home'){showPage('home');return true}return false};
 window.showPage=showPage;window.setMode=setMode;window.playTrackById=playTrackById;window.playSmartMix=playSmartMix;window.togglePlay=togglePlay;window.playPrevious=playPrevious;window.playNext=playNext;window.requestStartWorkout=requestStartWorkout;window.stopWorkout=stopWorkout;window.syncDeviceLibrary=syncDeviceLibrary;
 window.onNativeAudioPermission=function(granted){audioPermissionAsked=true;if(granted){syncDeviceLibrary(false,false)}else{setDeviceLibraryStatus('הגישה למוזיקה לא אושרה. אפשר לאשר בהגדרות האפליקציה או לבחור קבצים ידנית.');loadLibrary()}};
+window.onNativeDevicePlaybackState=function(playing){isPlaying=!!playing;if(playing&&currentTrack&&currentTrack.source==='device')shortPlayingId=currentTrack.id;updateMiniPlayer();const d=currentTrack&&$('disc-'+currentTrack.id);if(d)d.classList.toggle('playing',!!playing)};
+window.onNativeDeviceProgress=function(positionMs,durationMs,playing){
+ isPlaying=!!playing;const duration=Math.max(0,durationMs/1000),position=Math.max(0,positionMs/1000);
+ const f=$('progressFill');if(f)f.style.width=(duration?position/duration*100:0)+'%';
+ const c=$('currentTime');if(c)c.textContent=fmtTime(position);const t=$('totalTime');if(t)t.textContent=fmtTime(duration);
+ const m=$('miniMeta');if(m&&currentTrack&&currentTrack.source==='device')m.textContent=(currentTrack.artist?currentTrack.artist+' · ':'')+fmtTime(position)+' / '+fmtTime(duration);
+ updateMiniPlayer();
+};
+window.onNativeDeviceTrackEnded=function(){handleTrackEnded()};
+window.onNativeDevicePlaybackError=function(){isPlaying=false;updateMiniPlayer();showToast('לא ניתן לנגן את קובץ המוזיקה הזה במכשיר')};
+
 window.onNativeAppResume=function(){if(window.SportStyle&&window.SportStyle.hasAudioPermission&&window.SportStyle.hasAudioPermission())syncDeviceLibrary(false,false)};
-async function boot(){await loadLibrary();renderCurrent();if(window.SportStyle&&window.SportStyle.hasAudioPermission){syncDeviceLibrary(false,false)}}
+async function boot(){await loadLibrary();if(window.SportStyle&&window.SportStyle.hasAudioPermission){syncDeviceLibrary(false,false)}}
 boot();
 })();
 </script>
