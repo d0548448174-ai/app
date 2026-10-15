@@ -184,7 +184,8 @@ h1{font-size:29px;line-height:1.15;letter-spacing:-.7px;margin:7px 0 8px;font-we
 (function(){
 'use strict';
 const $ = function(id){return document.getElementById(id)};
-let db = null, tracks = [], currentPage = 'home', selectedMode = 'run';
+let db = null, tracks = [], deviceTracks = [], currentPage = 'home', selectedMode = 'run';
+let audioPermissionAsked = false, deviceLibraryScanned = false;
 let currentTrack = null, isPlaying = false, stopShortTimer = null, shortPlayingId = null;
 let smartQueue = [], smartQueueActive = false;
 let workoutActive = false, workoutStartedAt = 0, workoutElapsedBeforePause = 0, workoutTimer = null;
@@ -207,13 +208,15 @@ async function dbPut(track){const d=await openDb();return new Promise(function(r
 async function dbAll(){const d=await openDb();return new Promise(function(resolve,reject){const tx=d.transaction('tracks','readonly');const req=tx.objectStore('tracks').getAll();req.onsuccess=function(){resolve(req.result||[])};req.onerror=function(){reject(req.error)}})}
 async function dbDelete(id){const d=await openDb();return new Promise(function(resolve,reject){const tx=d.transaction('tracks','readwrite');tx.objectStore('tracks').delete(id);tx.oncomplete=function(){resolve()};tx.onerror=function(){reject(tx.error)}})}
 function enrichTrack(t){t.title=t.title||t.name||'שיר ללא שם';t.url=URL.createObjectURL(t.blob);return t}
-async function loadLibrary(){try{tracks=(await dbAll()).map(enrichTrack);tracks.sort(function(a,b){return (b.addedAt||0)-(a.addedAt||0)})}catch(e){tracks=[];showToast('לא ניתן לקרוא את ספריית המוזיקה במכשיר הזה')}renderCurrent();updateMiniPlayer()}
+async function loadLibrary(){let localTracks=[];try{localTracks=(await dbAll()).map(enrichTrack)}catch(e){localTracks=[]}const deviceKeys=new Set(deviceTracks.filter(function(t){return t.size>0}).map(function(t){return (t.title||'').trim().toLowerCase()+'|'+t.size}));localTracks=localTracks.filter(function(t){return !(t.size>0&&deviceKeys.has((t.title||'').trim().toLowerCase()+'|'+t.size))});tracks=deviceTracks.concat(localTracks);tracks.sort(function(a,b){return (b.addedAt||0)-(a.addedAt||0)});renderCurrent();updateMiniPlayer()}
+function setDeviceLibraryStatus(message){const el=$('deviceLibraryStatus');if(el)el.textContent=message}
+async function syncDeviceLibrary(announce,forcePrompt){if(!window.SportStyle||typeof window.SportStyle.scanDeviceMusic!=='function'){if(announce)showToast('סריקה אוטומטית זמינה בגרסת Android של Sport Style');return}try{if(!window.SportStyle.hasAudioPermission()){setDeviceLibraryStatus('כדי לטעון את כל השירים, יש לאשר גישה למוזיקה במכשיר.');if(!audioPermissionAsked||forcePrompt){audioPermissionAsked=true;window.SportStyle.requestAudioPermission()}return}const raw=window.SportStyle.scanDeviceMusic();const found=JSON.parse(raw||'[]');deviceTracks=found.map(function(t){return {id:'device-'+String(t.id),deviceId:String(t.id),source:'device',title:t.title||'שיר ללא שם',artist:t.artist||'',album:t.album||'',type:t.type||'audio/*',size:Number(t.size)||0,addedAt:(Number(t.addedAt)||0)*1000,duration:(Number(t.duration)||0)/1000,bpm:null,energy:50,url:t.uri}});deviceLibraryScanned=true;await loadLibrary();setDeviceLibraryStatus('נמצאו '+deviceTracks.length+' שירים בספריית המוזיקה של המכשיר.');if(announce)showToast('נמצאו '+deviceTracks.length+' שירים במכשיר')}catch(e){setDeviceLibraryStatus('לא הצלחנו לקרוא את ספריית המוזיקה. אפשר לנסות שוב או לבחור קבצים ידנית.');if(announce)showToast('הסריקה לא הצליחה במכשיר הזה')}}
 function getModeTracks(mode){const m=modes[mode];const low={run:150,walk:110,relax:60}[mode],high={run:185,walk:145,relax:100}[mode];function score(t){if(!t.bpm)return 5000;let s=Math.abs(t.bpm-m.target);if(t.bpm<low||t.bpm>high)s+=55;const energy=Number(t.energy)||50;if(mode==='run')s+=Math.max(0,58-energy)*0.22;else if(mode==='walk')s+=Math.abs(energy-58)*0.08;else s+=Math.max(0,energy-48)*0.2;return s}return tracks.slice().sort(function(a,b){return score(a)-score(b)})}
 function trackMood(t){if(!t.bpm)return 'קצב לא זוהה';if(t.bpm>=150)return 'ריצה';if(t.bpm>=110)return 'הליכה מהירה';if(t.bpm>=60)return 'הרפייה';return 'קצב איטי'}
 function albumClass(t){return colors[Math.abs((t.title||'').length+(t.bpm||0))%colors.length]}
 function trackRow(t,full){return '<div class="track-row"><div class="album '+albumClass(t)+'"><span>♫</span></div><div class="track-main"><div class="track-name">'+esc(t.title)+'</div><div class="track-meta">'+(t.bpm?'<span class="pill good">'+Math.round(t.bpm)+' BPM</span>':'<span class="pill">BPM לא זוהה</span>')+'<span>'+esc(trackMood(t))+'</span>'+(t.duration?'<span>'+fmtDuration(t.duration)+'</span>':'')+'</div></div><button class="play-small" onclick="playTrackById(\''+t.id+'\',0,0)" aria-label="נגן '+esc(t.title)+'">▶</button></div>'}
 function modeButtons(){return '<div class="mode-grid">'+Object.keys(modes).map(function(k){const m=modes[k];return '<button class="mode-card '+(selectedMode===k?'active':'')+'" onclick="setMode(\''+k+'\')"><span class="mode-dot"></span><span class="mode-icon">'+m.emoji+'</span><span class="mode-title">'+m.label+'</span><span class="mode-range">'+m.range+'</span></button>'}).join('')+'</div>'}
-function emptyLibrary(){return '<div class="empty"><div class="big">♫</div><strong>הפלייליסט שלך עוד ריק</strong><p>ייבא שירים מהמכשיר. Sport Style ינסה למדוד את קצב השיר ולהציע התאמה לריצה, להליכה מהירה או להרפייה.</p><button class="soft-btn" onclick="showPage(\'music\')">הוסף שירים למוזיקה ＋</button></div>'}
+function emptyLibrary(){return '<div class="empty"><div class="big">♫</div><strong>מחפשים את המוזיקה שלך</strong><p>אפשר לסרוק אוטומטית את כל השירים שזמינים בספריית המוזיקה במכשיר, או לבחור קבצים ידנית.</p><button class="soft-btn" onclick="syncDeviceLibrary(true,true)">↻ סרוק מוזיקה במכשיר</button><button class="soft-btn" style="margin-right:6px" onclick="showPage(\'music\')">פתח את הספרייה</button></div>'}
 function readSessions(){try{return JSON.parse(localStorage.getItem('ss-sessions')||'[]')}catch(e){return []}}
 function todaySessions(){const key=new Date().toDateString();return readSessions().filter(function(s){return new Date(s.finishedAt).toDateString()===key})}
 function todaySummary(){const s=todaySessions();return {km:s.reduce(function(a,x){return a+(x.distanceKm||0)},0),min:s.reduce(function(a,x){return a+(x.durationSec||0)},0)/60,kcal:s.reduce(function(a,x){return a+(x.calories||0)},0)}}
@@ -229,10 +232,10 @@ function renderHome(){
 }
 function renderMusic(){
  const ranked=getModeTracks(selectedMode);
- $('page').innerHTML='<h1 class="page-title">המוזיקה שלך<span style="color:var(--lime)">.</span></h1><p class="page-intro">נגן אישי לאימונים שלך. השירים נשארים במכשיר, וההתאמה נעשית לפי קצב BPM שהאפליקציה מנתחת.</p>'+
+ $('page').innerHTML='<h1 class="page-title">המוזיקה שלך<span style="color:var(--lime)">.</span></h1><p class="page-intro">Sport Style סורקת אוטומטית את ספריית המוזיקה במכשיר. השירים נשארים מקומיים, וניתן להוסיף גם קבצים ידנית.</p>'+
  modeButtons()+
- '<button class="import-btn" onclick="document.getElementById(&quot;musicInput&quot;).click()">＋ הוסף שירים מהמכשיר</button>'+
- '<div class="tiny-note">נתמכים קובצי אודיו רגילים כמו MP3, M4A ו־WAV. לא נדרש חשבון, והשירים נשמרים בספרייה המקומית במכשיר.</div><div class="analyzing" id="analyzing">מנתח את השיר… משך הניתוח תלוי באורך הקובץ.</div>'+
+ '<button class="import-btn" onclick="syncDeviceLibrary(true,true)">↻ סרוק מחדש את כל המוזיקה במכשיר</button><div class="tiny-note" id="deviceLibraryStatus">'+(deviceLibraryScanned?'נמצאו '+deviceTracks.length+' שירים בספריית המכשיר.':'הסריקה האוטומטית מתבצעת לאחר אישור גישה למוזיקה.')+'</div><button class="soft-btn" style="width:100%;margin-bottom:10px" onclick="document.getElementById(&quot;musicInput&quot;).click()">בחירת קבצים ידנית ＋</button>'+
+ '<div class="tiny-note">השירים שנמצאו במכשיר לא מועתקים או מועלים לשום שרת; האפליקציה משתמשת בקבצים המקוריים שלהם.</div><div class="analyzing" id="analyzing">מנתח את השיר… משך הניתוח תלוי באורך הקובץ.</div>'+
  '<div class="toolbar"><div><strong style="font-size:16px">הספרייה שלי</strong><div class="subtext" style="font-size:10px;margin-top:4px">'+tracks.length+' שירים · התאמה ל'+modes[selectedMode].label+'</div></div>'+(tracks.length?'<button class="soft-btn" onclick="playSmartMix()">▶ נגן מיקס</button>':'')+'</div>'+
  (ranked.length?'<div class="track-list">'+ranked.map(function(t){return trackRow(t,true)}).join('')+'</div>':emptyLibrary())+
  '<div class="notice">איך הבחירה החכמה עובדת? האפליקציה מנתחת את גל הקול, מעריכה את ה־BPM ומשווה אותו לטווחי קצב מומלצים. הקצב הוא אומדן ועלול לטעות בשירים עם שינויי קצב, פתיחה ארוכה או תופים לא ברורים.</div>'+
@@ -364,8 +367,11 @@ function stopWorkout(){
  currentPace=distanceMeters>15?fmtTime(durationSec/(distanceMeters/1000)):'--:--';showPage('workout');showToast('האימון נשמר בסיכום היומי'); 
 }
 window.handleAndroidBack=function(){if(currentPage!=='home'){showPage('home');return true}return false};
-window.showPage=showPage;window.setMode=setMode;window.playTrackById=playTrackById;window.playSmartMix=playSmartMix;window.togglePlay=togglePlay;window.playPrevious=playPrevious;window.playNext=playNext;window.requestStartWorkout=requestStartWorkout;window.stopWorkout=stopWorkout;
-async function boot(){if(window.SportStyle&&window.SportStyle.hasStepCounter&&window.SportStyle.hasStepCounter()){}await loadLibrary();renderCurrent()}
+window.showPage=showPage;window.setMode=setMode;window.playTrackById=playTrackById;window.playSmartMix=playSmartMix;window.togglePlay=togglePlay;window.playPrevious=playPrevious;window.playNext=playNext;window.requestStartWorkout=requestStartWorkout;window.stopWorkout=stopWorkout;window.syncDeviceLibrary=syncDeviceLibrary;
+window.onNativeAudioPermission=function(granted){audioPermissionAsked=true;if(granted){syncDeviceLibrary(false,false)}else{setDeviceLibraryStatus('הגישה למוזיקה לא אושרה. אפשר לאשר בהגדרות האפליקציה או לבחור קבצים ידנית.');loadLibrary()}};
+window.onNativeAppResume=function(){if(window.SportStyle&&window.SportStyle.hasAudioPermission&&window.SportStyle.hasAudioPermission())syncDeviceLibrary(false,false)};
+async function boot(){await loadLibrary();renderCurrent();if(window.SportStyle&&window.SportStyle.hasAudioPermission){syncDeviceLibrary(false,false)}}
+boot();
 boot();
 })();
 </script>
