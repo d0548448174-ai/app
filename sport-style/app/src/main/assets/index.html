@@ -372,7 +372,6 @@ window.onNativeAudioPermission=function(granted){audioPermissionAsked=true;if(gr
 window.onNativeAppResume=function(){if(window.SportStyle&&window.SportStyle.hasAudioPermission&&window.SportStyle.hasAudioPermission())syncDeviceLibrary(false,false)};
 async function boot(){await loadLibrary();renderCurrent();if(window.SportStyle&&window.SportStyle.hasAudioPermission){syncDeviceLibrary(false,false)}}
 boot();
-boot();
 })();
 </script>
 </body>
