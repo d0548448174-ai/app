@@ -20,7 +20,7 @@ def main() -> None:
             1,
         )
 
-    binding_anchor = 'class_<SuggestionSearchWrapper>("SuggestionSearch")\n      .constructor<>()'
+    binding_anchor = 'class_<SuggestionSearchWrapper>("SuggestionSearch")'
     binding_replacement = (
         binding_anchor
         + '\n      .function("forceRangeSuggestion", &SuggestionSearchWrapper::forceRangeSuggestion)'
