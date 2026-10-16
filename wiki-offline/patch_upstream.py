@@ -1,38 +1,31 @@
 #!/usr/bin/env python3
-"""Apply the small Wiki Offline customization to Kiwix Android source."""
 from pathlib import Path
 import sys
 
-if len(sys.argv) != 2:
-    raise SystemExit("Usage: patch_upstream.py /path/to/kiwix-android")
 root = Path(sys.argv[1]).resolve()
 
-# Change the launcher/display name and ensure the already-compressed ZIM payload
-# is stored without re-compressing it inside the APK.
 gradle = root / "app/build.gradle.kts"
 s = gradle.read_text(encoding="utf-8")
-for old, new in (
-    ('resValue("string", "app_name", "Kiwix")', 'resValue("string", "app_name", "ויקיפדיה אופליין")'),
-    ('resValue("string", "app_search_string", "Search Kiwix")', 'resValue("string", "app_search_string", "חיפוש ויקיפדיה אופליין")'),
-):
+replacements = {
+    'resValue("string", "app_name", "Kiwix")': 'resValue("string", "app_name", "ויקיפדיה אופליין")',
+    'resValue("string", "app_search_string", "Search Kiwix")': 'resValue("string", "app_search_string", "חיפוש ויקיפדיה אופליין")',
+}
+for old, new in replacements.items():
     if old not in s:
-        raise SystemExit(f"Could not find expected build.gradle.kts text: {old}")
+        raise SystemExit(f"Missing expected Gradle setting: {old}")
     s = s.replace(old, new, 1)
 if 'noCompress += "zim"' not in s:
     marker = "android {\n"
     if marker not in s:
-        raise SystemExit("Could not find android { block in app/build.gradle.kts")
+        raise SystemExit("Could not find android block")
     s = s.replace(marker, marker + '  androidResources {\n    noCompress += "zim"\n  }\n', 1)
 gradle.write_text(s, encoding="utf-8")
 
-# On first launch, copy the bundled ZIM to Android/media/<package>/ where the
-# standalone Kiwix app can detect it as a local book. Use a temporary filename
-# so a partial copy is never presented as a valid ZIM.
 app = root / "app/src/main/java/org/kiwix/kiwixmobile/KiwixApp.kt"
 app.write_text('''package org.kiwix.kiwixmobile
 
 import android.util.Log
-import dagger.hilt.androidApp
+import dagger.hilt.android.HiltAndroidApp
 import org.kiwix.kiwixmobile.core.CoreApp
 import java.io.File
 import java.io.FileOutputStream
@@ -42,51 +35,32 @@ import java.io.IOException
 class KiwixApp : CoreApp() {
   override fun onCreate() {
     super.onCreate()
-    Thread({ installBundledZim() }, "wiki-offline-zim-installer").apply {
-      isDaemon = true
-      start()
-    }
+    Thread({ installBundledZim() }, "wiki-offline-zim-installer").apply { isDaemon = true; start() }
   }
-
   private fun installBundledZim() {
-    val zimName = "wikipedia_he_all_mini_2026-07a.zim"
+    val name = "wikipedia_he_all_mini_2026-07a.zim"
     runCatching {
-      val expectedLength = assets.openFd(zimName).use { it.length }
-      val targetDirectory = externalMediaDirs.firstOrNull() ?: filesDir
-      if (!targetDirectory.exists() && !targetDirectory.mkdirs()) {
-        throw IOException("Cannot create ZIM directory: $targetDirectory")
-      }
-      val target = File(targetDirectory, zimName)
-      if (target.isFile && target.length() == expectedLength) return
-      val temp = File(targetDirectory, "$zimName.part")
-      assets.open(zimName).use { input ->
-        FileOutputStream(temp).use { output ->
-          input.copyTo(output, 1024 * 1024)
-          output.fd.sync()
-        }
-      }
-      if (temp.length() != expectedLength) {
-        throw IOException("ZIM copy incomplete: ${temp.length()} / $expectedLength bytes")
-      }
-      if (target.exists() && !target.delete()) {
-        throw IOException("Cannot replace existing ZIM: $target")
-      }
-      if (!temp.renameTo(target)) throw IOException("Cannot finalize ZIM copy: $target")
-      Log.i("WikiOffline", "Bundled Hebrew Wikipedia ZIM is ready: $target")
-    }.onFailure {
-      Log.e("WikiOffline", "Could not install bundled Hebrew Wikipedia ZIM", it)
-    }
+      val expected = assets.openFd(name).use { it.length }
+      val dir = externalMediaDirs.firstOrNull() ?: filesDir
+      if (!dir.exists() && !dir.mkdirs()) throw IOException("Cannot create $dir")
+      val target = File(dir, name)
+      if (target.isFile && target.length() == expected) return
+      val temp = File(dir, "$name.part")
+      assets.open(name).use { input -> FileOutputStream(temp).use { output -> input.copyTo(output, 1024 * 1024); output.fd.sync() } }
+      if (temp.length() != expected) throw IOException("Incomplete ZIM copy: ${temp.length()} / $expected")
+      if (target.exists() && !target.delete()) throw IOException("Cannot replace $target")
+      if (!temp.renameTo(target)) throw IOException("Cannot finalize $target")
+      Log.i("WikiOffline", "Hebrew ZIM installed: $target")
+    }.onFailure { Log.e("WikiOffline", "Could not install bundled ZIM", it) }
   }
 }
 ''', encoding="utf-8")
 
-# Prevent page images from loading, then strip image/video elements and CSS
-# background images after each ZIM article finishes rendering.
 webview = root / "core/src/main/java/org/kiwix/kiwixmobile/core/main/KiwixWebView.kt"
 s = webview.read_text(encoding="utf-8")
 needle = '      userAgentString = "${userAgent(context)} ${getCurrentLocale(context)}"\n'
 if needle not in s:
-    raise SystemExit("Could not find WebView user-agent setup")
+    raise SystemExit("Could not find WebView setup")
 if "loadsImagesAutomatically = false" not in s:
     s = s.replace(needle, needle + "      loadsImagesAutomatically = false\n", 1)
 webview.write_text(s, encoding="utf-8")
@@ -101,9 +75,8 @@ js = '''    view.evaluateJavascript(
     )
 '''
 if needle not in s:
-    raise SystemExit("Could not find article page-finished hook")
+    raise SystemExit("Could not find article load hook")
 if "document.querySelectorAll('img,picture,video,source')" not in s:
     s = s.replace(needle, js + needle, 1)
 client.write_text(s, encoding="utf-8")
-
-print("Applied Wiki Offline changes to", root)
+print("Patched Kiwix Android at", root)
