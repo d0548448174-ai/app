@@ -54,17 +54,17 @@ jobs:
       - name: Apply the custom name, bundled ZIM, and image-free reader
         run: python3 wiki-offline/patch_upstream.py "$UPSTREAM_DIR"
 
-      - name: Build standalone APK
+      - name: Build installable debug APK
         shell: bash
         run: |
           set -euo pipefail
           cd "$UPSTREAM_DIR"
           chmod +x gradlew
-          ./gradlew --no-daemon :app:assembleStandaloneDebug
+          ./gradlew --no-daemon :app:assembleDebug
           mkdir -p "$GITHUB_WORKSPACE/dist"
-          APK=$(find app/build/outputs/apk -type f -name '*.apk' | grep -i standalone | head -n 1)
+          APK=$(find app/build/outputs/apk -type f -name '*.apk' | head -n 1)
           if [ -z "$APK" ]; then
-            echo 'Could not locate standalone APK output' >&2
+            echo 'Could not locate APK output' >&2
             find app/build/outputs/apk -type f -maxdepth 4 -print >&2 || true
             exit 1
           fi
