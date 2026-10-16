@@ -52,13 +52,11 @@ jobs:
           mkdir -p zipedia/data
           file="wikipedia_he_all_mini_2026-07a.zim"
           target="zipedia/data/$file"
-          urls=(
-            "https://download.kiwix.org/zim/wikipedia"
-            "https://ftpmirror.your.org/pub/kiwix/zim/wikipedia"
-            "https://thuli.pics/kiwix/zim/wikipedia"
-          )
           success=0
-          for base in "\${urls[@]}"; do
+          for base in \
+            "https://download.kiwix.org/zim/wikipedia" \
+            "https://ftpmirror.your.org/pub/kiwix/zim/wikipedia" \
+            "https://thuli.pics/kiwix/zim/wikipedia"; do
             echo "Trying $base/$file"
             rm -f "$target"
             if curl --fail --location --silent --show-error --retry 2 --retry-delay 2 \
