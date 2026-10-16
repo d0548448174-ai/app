@@ -45,6 +45,40 @@ jobs:
           test -s /tmp/javascript-libzim/libzim-wasm.js
           test -s /tmp/javascript-libzim/libzim-wasm.wasm
 
+      - name: Download bundled Hebrew Wikipedia ZIM (all-mini edition)
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p zipedia/data
+          file="wikipedia_he_all_mini_2026-07a.zim"
+          target="zipedia/data/$file"
+          urls=(
+            "https://download.kiwix.org/zim/wikipedia"
+            "https://ftpmirror.your.org/pub/kiwix/zim/wikipedia"
+            "https://thuli.pics/kiwix/zim/wikipedia"
+          )
+          success=0
+          for base in "\${urls[@]}"; do
+            echo "Trying $base/$file"
+            rm -f "$target"
+            if curl --fail --location --silent --show-error --retry 2 --retry-delay 2 \
+              --connect-timeout 30 --max-time 1800 "$base/$file" --output "$target"; then
+              size="$(stat -c '%s' "$target")"
+              magic="$(head -c 4 "$target" | od -An -tx1 | tr -d ' \n')"
+              echo "Downloaded $size bytes; ZIM magic=$magic"
+              if [ "$size" -gt 700000000 ] && [ "$magic" = "5a494d04" ]; then
+                success=1
+                break
+              fi
+              echo "Downloaded file failed size or ZIM-header validation." >&2
+            fi
+          done
+          if [ "$success" -ne 1 ]; then
+            echo "Could not download and validate the Hebrew Wikipedia ZIM archive from any configured source." >&2
+            exit 1
+          fi
+          echo "Bundled encyclopedia size: $(du -h "$target" | cut -f1)"
+
       - name: Package the web app inside Android assets
         shell: bash
         run: |
@@ -56,6 +90,8 @@ jobs:
           test -s android/app/src/main/assets/www/index.html
           test -s android/app/src/main/assets/www/vendor/libzim-wasm.js
           test -s android/app/src/main/assets/www/vendor/libzim-wasm.wasm
+          test -s android/app/src/main/assets/www/data/wikipedia_he_all_mini_2026-07a.zim
+          test "$(stat -c '%s' android/app/src/main/assets/www/data/wikipedia_he_all_mini_2026-07a.zim)" -gt 700000000
 
       - name: Validate JavaScript and HTML
         shell: bash
