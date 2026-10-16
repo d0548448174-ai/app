@@ -275,7 +275,7 @@
         setResultsLoading(false);
         setEmptyMessage("הקלד מילים לחיפוש", "חיפוש בתוך הטקסט זמין בארכיונים עם אינדקס מלא.");
       } else {
-        loadTitlePage(true, "");
+        browsePrefix("", "כל הערכים", [""]);
       }
       return;
     }
