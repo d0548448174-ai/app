@@ -30,12 +30,15 @@ jobs:
       - name: Enable full alphabetical title browsing
         run: python3 .github/scripts/patch-libzim-bindings.py /tmp/javascript-libzim/libzim_bindings.cpp
 
+      - name: Prepare upstream prebuilt libzim libraries
+        run: make -C /tmp/javascript-libzim libzim_release
+
       - name: Compile the WebAssembly reader
         shell: bash
         run: |
           set -euo pipefail
           docker build -t docker-emscripten-libzim:v3 --build-arg VERSION=3.1.41 /tmp/javascript-libzim/docker
-          docker run --rm -v /tmp/javascript-libzim:/src -u "$(id -u):$(id -g)" docker-emscripten-libzim:v3 make
+          docker run --rm -v /tmp/javascript-libzim:/src -u "$(id -u):$(id -g)" docker-emscripten-libzim:v3 make release
           test -s /tmp/javascript-libzim/libzim-wasm.js
           test -s /tmp/javascript-libzim/libzim-wasm.wasm
 
