@@ -139,6 +139,8 @@
     }
 
     const firstName = baseArchiveName(files[0].name);
+    state.searchSequence += 1;
+    state.pageBusy = false;
     state.ready = false;
     state.selectedPath = "";
     state.selectedTitle = "";
