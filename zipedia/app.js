@@ -712,4 +712,26 @@
   });
 
   setActiveNav();
+
+  // Android APK builds include the Hebrew Wikipedia "all mini" ZIM as a local asset.
+  // It contains introductory sections for all articles, not the complete text of each article.
+  const bundledZimName = "wikipedia_he_all_mini_2026-07a.zim";
+  async function loadBundledWikipedia() {
+    if (location.hostname !== "appassets.androidplatform.net") return;
+    busy(true, "פותח את ויקיפדיה העברית המובנית", "הקובץ כלול באפליקציה. בהפעלה הראשונה הדפדפן צריך להכין אותו לקריאה; אין צורך לבחור קובץ ידנית.");
+    try {
+      const response = await fetch(new URL("data/" + bundledZimName, document.baseURI).toString(), { cache: "force-cache" });
+      if (!response.ok) throw new Error("לא נמצאה ויקיפדיה המובנית באפליקציה (HTTP " + response.status + ").");
+      const blob = await response.blob();
+      if (blob.size < 700000000) throw new Error("קובץ ויקיפדיה המובנה קטן מהצפוי.");
+      busy(false);
+      const file = new File([blob], bundledZimName, { type: "application/x-zim", lastModified: 0 });
+      await loadArchive([file]);
+    } catch (error) {
+      busy(false);
+      status("לא הצלחנו לפתוח את ויקיפדיה המובנית. " + (error && error.message ? error.message : ""), true);
+      showToast("טעינת ויקיפדיה המובנית נכשלה. בדוק שההתקנה הושלמה, או ייבא קובץ ZIM ידנית.");
+    }
+  }
+  void loadBundledWikipedia();
 })();
