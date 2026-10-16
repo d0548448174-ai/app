@@ -5,7 +5,7 @@ on:
     branches: [main]
     paths:
       - "zipedia/**"
-      - ".github/scripts/patch-libzim-worker.py"
+      - ".github/scripts/**"
       - ".github/workflows/deploy-zipedia.yml"
   workflow_dispatch:
 
@@ -30,50 +30,44 @@ jobs:
         with:
           enablement: true
 
-      - name: Download libzim WebAssembly runtime
+      - name: Fetch matching upstream source
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p zipedia/vendor /tmp/libzim-release
-          curl --fail --location --silent --show-error --retry 3 \
-            https://download.openzim.org/release/javascript-libzim/libzim_wasm_0.95.zip \
-            --output /tmp/libzim-release/libzim_wasm.zip
-          unzip -q /tmp/libzim-release/libzim_wasm.zip -d /tmp/libzim-release/unpacked
+          git clone --depth 1 --branch v0.95 https://github.com/openzim/javascript-libzim.git /tmp/javascript-libzim
 
-          JS_PATH="$(find /tmp/libzim-release/unpacked -type f -name 'libzim-wasm.js' -print -quit)"
-          WASM_PATH="$(find /tmp/libzim-release/unpacked -type f -name 'libzim-wasm.wasm' -print -quit)"
-          test -n "$JS_PATH" || { echo 'libzim-wasm.js was not found in the official release archive'; exit 1; }
-          test -n "$WASM_PATH" || { echo 'libzim-wasm.wasm was not found in the official release archive'; exit 1; }
+      - name: Add explicit alphabetical-range API
+        run: python3 .github/scripts/patch-libzim-bindings.py /tmp/javascript-libzim/libzim_bindings.cpp
 
-          cp "$JS_PATH" zipedia/vendor/libzim-wasm.js
-          cp "$WASM_PATH" zipedia/vendor/libzim-wasm.wasm
-          test -s zipedia/vendor/libzim-wasm.js
+      - name: Build the WebAssembly reader from source
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker build -t docker-emscripten-libzim:v3 --build-arg VERSION=3.1.41 /tmp/javascript-libzim/docker
+          docker run --rm -v /tmp/javascript-libzim:/src -u "$(id -u):$(id -g)" docker-emscripten-libzim:v3 make
+
+      - name: Assemble the local reader
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p zipedia/vendor
+          cp /tmp/javascript-libzim/libzim-wasm.js zipedia/vendor/libzim-wasm.js
+          cp /tmp/javascript-libzim/libzim-wasm.wasm zipedia/vendor/libzim-wasm.wasm
+          python3 .github/scripts/patch-libzim-worker.py
+          grep -q "forceRangeSuggestion" zipedia/vendor/libzim-wasm.js
+          grep -q "listTitles" zipedia/vendor/libzim-wasm.js
           test -s zipedia/vendor/libzim-wasm.wasm
 
-      - name: Add paginated alphabetical title index
-        run: python3 .github/scripts/patch-libzim-worker.py
-
-      - name: Validate JavaScript and required files
+      - name: Validate JavaScript and app markup
         shell: bash
         run: |
           set -euo pipefail
           node --check zipedia/app.js
+          node --check zipedia/vendor/libzim-wasm.js
+          python3 .github/scripts/check-zipedia.py
           test -s zipedia/index.html
           test -s zipedia/styles.css
-          grep -q "listTitles" zipedia/vendor/libzim-wasm.js
-          python3 - <<'PY'
-          import re
-          from pathlib import Path
-
-          html = Path("zipedia/index.html").read_text(encoding="utf-8")
-          app = Path("zipedia/app.js").read_text(encoding="utf-8")
-          ids = set(re.findall(r'\bid=["\\x27]([^"\\x27]+)', html))
-          refs = set(re.findall(r'\$\(["\\x27]([^"\\x27]+)', app))
-          missing = sorted(refs - ids)
-          if missing:
-              raise SystemExit("Missing HTML element IDs: " + ", ".join(missing))
-          print("Static checks passed; all app element IDs exist.")
-          PY
+          test -s zipedia/README.md
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
@@ -83,7 +77,6 @@ jobs:
   deploy:
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     needs: build
     steps:
