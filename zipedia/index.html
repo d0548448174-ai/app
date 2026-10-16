@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="description" content="קורא ZIM מקומי עם חיפוש ותוכן עניינים אלפביתי בעיצוב בהשראת ויקיפדיה.">
+  <title>זימפדיה — הספרייה שלך</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%233366cc'/%3E%3Ctext x='32' y='45' font-size='43' text-anchor='middle' fill='white' font-family='serif'%3EW%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./" aria-label="זימפדיה — דף הבית">
+      <span class="brand-mark" aria-hidden="true">W</span>
+      <span class="brand-text"><strong>זימפדיה</strong><small>הידע שלך, מקומית</small></span>
+    </a>
+    <div class="top-actions">
+      <span class="privacy-pill"><span class="privacy-dot"></span> הקבצים נשארים במכשיר</span>
+      <button id="topImportBtn" class="button button-primary" type="button"><span aria-hidden="true">＋</span> ייבוא קובץ ZIM</button>
+      <input id="zimInput" type="file" accept=".zim,.zimaa,.zimab,.zimac,.zimad,.zimae,.zimaf,.zimag,.zimah,.zimai,.zimaj,.zimak,.zimal,.zimam,.ziman,.zimao,.zimap,.zimaq,.zimar,.zimas,.zimat,.zimau,.zimav,.zimaw,.zimax,.zimay,.zimaz" multiple hidden>
+    </div>
+  </header>
+
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-block">
+        <div class="sidebar-heading">הספרייה שלי</div>
+        <div id="archiveCard" class="archive-card">
+          <div class="archive-icon" aria-hidden="true">▤</div>
+          <div class="archive-copy">
+            <strong id="archiveName">לא נבחר ארכיון</strong>
+            <span id="archiveMeta">ייבא קובץ ‎.zim‎ כדי להתחיל</span>
+          </div>
+          <span id="archiveState" class="state-dot" title="מצב הארכיון"></span>
+        </div>
+      </div>
+
+      <div class="sidebar-block">
+        <div class="sidebar-heading">עיון בתוכן</div>
+        <button id="browseAllBtn" class="nav-button is-active" type="button"><span class="nav-icon" aria-hidden="true">☷</span> תוכן עניינים — כל הערכים</button>
+        <button id="searchTitlesBtn" class="nav-button" type="button"><span class="nav-icon" aria-hidden="true">⌕</span> חיפוש בכותרות</button>
+        <button id="searchTextBtn" class="nav-button" type="button"><span class="nav-icon" aria-hidden="true">≡</span> חיפוש בתוך הטקסט</button>
+      </div>
+
+      <div class="sidebar-block letters-block">
+        <div class="sidebar-heading">לפי סדר אלפביתי</div>
+        <div class="letter-group-label">עברית</div>
+        <div id="hebrewAlphabet" class="alphabet-grid" aria-label="אותיות בעברית"></div>
+        <div class="letter-group-label english-label">English</div>
+        <div id="latinAlphabet" class="alphabet-grid latin-grid" aria-label="אותיות באנגלית"></div>
+        <button id="numbersBtn" class="nav-button numbers-button" type="button">123 · מספרים וסימנים</button>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="footer-icon" aria-hidden="true">ⓘ</div>
+        <p>הארכיון נפתח בדפדפן שלך. אין צורך להעלות אותו לאתר.</p>
+        <a href="https://www.kiwix.org/" target="_blank" rel="noopener noreferrer">על פורמט ZIM ו־Kiwix ↗</a>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <section id="welcomeView" class="welcome-view">
+        <div class="hero-copy">
+          <div class="eyebrow"><span class="eyebrow-line"></span> ספריית ידע אישית</div>
+          <h1>כל הידע שבקובץ שלך.<br><span>מסודר, נגיש ומוכן לעיון.</span></h1>
+          <p class="hero-description">ייבא ארכיון ZIM, חפש נושאים או דפדף בתוכן העניינים המלא לפי סדר אלפביתי — בממשק נקי בהשראת ויקיפדיה.</p>
+          <div class="hero-actions">
+            <button id="heroImportBtn" class="button button-primary button-large" type="button">＋ ייבוא ארכיון ZIM</button>
+            <span class="file-note">‎.zim · כולל ארכיונים גדולים</span>
+          </div>
+        </div>
+        <button id="dropZone" class="drop-zone" type="button" aria-label="בחר קובץ ZIM לייבוא">
+          <span class="drop-art" aria-hidden="true">
+            <span class="drop-page page-back"></span>
+            <span class="drop-page page-front"><span>W</span></span>
+            <span class="drop-arrow">↑</span>
+          </span>
+          <strong>גרור לכאן קובץ ZIM</strong>
+          <span>או לחץ כדי לבחור מהמחשב</span>
+          <small>העיבוד נעשה מקומית בדפדפן</small>
+        </button>
+        <div class="feature-grid">
+          <article class="feature-card">
+            <span class="feature-symbol blue" aria-hidden="true">⌕</span>
+            <h2>חיפוש מהיר</h2>
+            <p>מצא ערכים לפי כותרת או חפש במלל כשהארכיון תומך בכך.</p>
+          </article>
+          <article class="feature-card">
+            <span class="feature-symbol teal" aria-hidden="true">☷</span>
+            <h2>תוכן עניינים אלפביתי</h2>
+            <p>עיין בערכים לפי אות בעברית, באנגלית או במספרים — בלי להקליד נושא.</p>
+          </article>
+          <article class="feature-card">
+            <span class="feature-symbol gold" aria-hidden="true">▣</span>
+            <h2>קריאה נוחה</h2>
+            <p>תצוגת קריאה ממוקדת, קישורים פנימיים ומדיה זמינה מתוך הארכיון.</p>
+          </article>
+        </div>
+        <div id="welcomeStatus" class="inline-status" role="status" aria-live="polite"></div>
+      </section>
+
+      <section id="workspaceView" class="workspace-view" hidden>
+        <div class="page-intro">
+          <div class="breadcrumbs"><span>ספרייה</span><span class="crumb-separator">/</span><strong id="breadcrumbLabel">תוכן עניינים</strong></div>
+          <div class="page-heading-row">
+            <div>
+              <h1 id="pageTitle">תוכן עניינים</h1>
+              <p id="pageSubtitle">עיין בכל הערכים לפי סדר אלפביתי.</p>
+            </div>
+            <button id="changeArchiveBtn" class="button button-secondary" type="button">החלפת ארכיון</button>
+          </div>
+        </div>
+
+        <div class="search-panel">
+          <span class="search-leading" aria-hidden="true">⌕</span>
+          <input id="searchInput" type="search" autocomplete="off" placeholder="חיפוש בכותרות..." aria-label="חיפוש בספרייה">
+          <button id="clearSearchBtn" class="clear-search" type="button" aria-label="נקה חיפוש" hidden>×</button>
+          <button id="searchSubmitBtn" class="button button-primary search-submit" type="button">חיפוש</button>
+        </div>
+        <div id="searchModeNote" class="search-mode-note">הקלד שם של ערך, או בחר אות כדי לעיין בתוכן.</div>
+
+        <div class="letter-toolbar">
+          <div id="activeBrowseLabel" class="active-browse-label">כל הערכים</div>
+          <div class="sort-label"><span aria-hidden="true">↕</span> סדר אלפביתי</div>
+        </div>
+
+        <div class="content-layout">
+          <section class="results-panel" aria-label="רשימת ערכים">
+            <div class="results-header">
+              <div><strong id="resultsHeading">תוכן עניינים</strong><span id="resultsCount" class="results-count"></span></div>
+              <span id="loadingSpinner" class="spinner" hidden aria-label="טוען"></span>
+            </div>
+            <div id="resultList" class="result-list">
+              <div class="empty-state"><span class="empty-symbol">☷</span><strong>בחר אות כדי להתחיל</strong><p>הערכים יוצגו כאן לפי סדר אלפביתי.</p></div>
+            </div>
+            <div id="resultsFooter" class="results-footer" hidden>
+              <span id="resultsProgress"></span>
+              <button id="loadMoreBtn" class="button button-secondary" type="button">טעינת ערכים נוספים</button>
+            </div>
+            <div id="resultsError" class="results-error" role="status" aria-live="polite" hidden></div>
+          </section>
+
+          <section class="reader-panel" aria-label="תצוגת קריאה">
+            <div id="readerPlaceholder" class="reader-placeholder">
+              <div class="reader-placeholder-mark" aria-hidden="true">W</div>
+              <h2>הערך שלך יופיע כאן</h2>
+              <p>בחר ערך מהרשימה כדי לפתוח אותו לקריאה.</p>
+            </div>
+            <div id="readerHeader" class="reader-header" hidden>
+              <div class="reader-breadcrumb">ערך מתוך הארכיון המקומי</div>
+              <h2 id="readerTitle"></h2>
+              <div class="reader-actions">
+                <button id="backToListBtn" class="text-button" type="button">← חזרה לרשימה</button>
+                <button id="copyLinkBtn" class="text-button" type="button">העתקת שם הערך</button>
+              </div>
+            </div>
+            <div id="readerLoading" class="reader-loading" hidden><span class="spinner"></span><span>פותח את הערך...</span></div>
+            <div id="readerError" class="reader-error" role="status" hidden></div>
+            <iframe id="articleFrame" title="תוכן הערך" sandbox="allow-same-origin" referrerpolicy="no-referrer" hidden></iframe>
+            <div class="reader-bottom-note"><span aria-hidden="true">ⓘ</span> התוכן מוצג מתוך קובץ ה־ZIM שבחרת.</div>
+          </section>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <div id="busyOverlay" class="busy-overlay" hidden>
+    <div class="busy-card">
+      <div class="large-spinner"></div>
+      <strong id="busyTitle">מכין את הארכיון...</strong>
+      <span id="busyText">הקובץ נשאר במכשיר שלך.</span>
+    </div>
+  </div>
+</body>
+</html>
