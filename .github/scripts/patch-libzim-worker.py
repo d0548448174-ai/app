@@ -1,17 +1,24 @@
 #!/usr/bin/env python3
-"""Add a paginated title-index endpoint to the libzim WebAssembly worker."""
+"""Add paginated title-index support to either the worker source or its built file."""
 from pathlib import Path
 import sys
 
 root = Path(__file__).resolve().parents[2]
-worker = root / "zipedia" / "vendor" / "libzim-wasm.js"
+if len(sys.argv) == 2:
+    worker = Path(sys.argv[1])
+elif len(sys.argv) == 1:
+    worker = root / "zipedia" / "vendor" / "libzim-wasm.js"
+else:
+    sys.exit("Usage: patch-libzim-worker.py [PATH_TO_PREJS_OR_BUILT_WORKER]")
+
 if not worker.is_file():
-    sys.exit(f"Could not find the libzim worker: {worker}")
+    sys.exit(f"Could not find the libzim worker file: {worker}")
 
 source = worker.read_text(encoding="utf-8")
 needle = "else if (action === 'init') {"
-if source.count(needle) != 1:
-    sys.exit("Unexpected libzim worker format: could not safely locate the init handler.")
+count = source.count(needle)
+if count != 1:
+    sys.exit(f"Unexpected worker source format: expected one init handler anchor, found {count} in {worker}.")
 
 handler = r"""
 else if (action === 'listTitles') {
@@ -34,4 +41,4 @@ else if (action === 'listTitles') {
 else if (action === 'init') {"""
 source = source.replace(needle, handler, 1)
 worker.write_text(source, encoding="utf-8")
-print("Added listTitles action backed by libzim's native title index.")
+print(f"Added listTitles action to {worker}")
