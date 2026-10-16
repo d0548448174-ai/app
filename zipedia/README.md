@@ -26,3 +26,12 @@
 4. בחר ערך מהרשימה כדי לקרוא אותו.
 
 הערה: ארכיוני ZIM גדולים יכולים לדרוש זמן וזיכרון משמעותיים בדפדפן. חיפוש בתוך הטקסט זמין רק בקבצים שכוללים אינדקס חיפוש מלא.
+
+
+## Open in your browser
+
+After the GitHub Pages deployment succeeds, open: https://d0548448174-ai.github.io/app/
+
+## Open-source reader
+
+The WebAssembly reader is built from the tagged OpenZIM source in `v0.95`. See [OPEN_SOURCE_NOTICES.md](OPEN_SOURCE_NOTICES.md) for the upstream license and the small build-time patches used for the alphabetical title index.
