@@ -1,0 +1,98 @@
+name: Build and publish Zipedia APK
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "android/**"
+      - "zipedia/**"
+      - ".github/scripts/**"
+      - ".github/workflows/build-zipedia-apk.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: zipedia-apk
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Download the upstream reader source
+        run: git clone --depth 1 --branch v0.95 https://github.com/openzim/javascript-libzim.git /tmp/javascript-libzim
+
+      - name: Enable full alphabetical title browsing
+        run: python3 .github/scripts/patch-libzim-bindings.py /tmp/javascript-libzim/libzim_bindings.cpp
+
+      - name: Compile the WebAssembly reader
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker build -t docker-emscripten-libzim:v3 --build-arg VERSION=3.1.41 /tmp/javascript-libzim/docker
+          docker run --rm -v /tmp/javascript-libzim:/src -u "$(id -u):$(id -g)" docker-emscripten-libzim:v3 make
+          test -s /tmp/javascript-libzim/libzim-wasm.js
+          test -s /tmp/javascript-libzim/libzim-wasm.wasm
+
+      - name: Package the web app inside Android assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p zipedia/vendor android/app/src/main/assets/www
+          cp /tmp/javascript-libzim/libzim-wasm.js zipedia/vendor/libzim-wasm.js
+          cp /tmp/javascript-libzim/libzim-wasm.wasm zipedia/vendor/libzim-wasm.wasm
+          python3 .github/scripts/patch-libzim-worker.py
+          cp -R zipedia/. android/app/src/main/assets/www/
+          test -s android/app/src/main/assets/www/index.html
+          test -s android/app/src/main/assets/www/vendor/libzim-wasm.js
+          test -s android/app/src/main/assets/www/vendor/libzim-wasm.wasm
+
+      - name: Validate JavaScript and HTML
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check android/app/src/main/assets/www/app.js
+          node --check android/app/src/main/assets/www/vendor/libzim-wasm.js
+          python3 .github/scripts/check-zipedia.py
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.9"
+
+      - name: Build APK
+        run: gradle --no-daemon --stacktrace -p android assembleDebug
+
+      - name: Publish installable APK as a GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: zipedia-build-${{ github.run_number }}
+          name: Zipedia Android APK — build ${{ github.run_number }}
+          body: |
+            Automatic debug-signed Android package for Zipedia.
+            The ZIM reader and web interface are bundled in the APK; selected ZIM files are read locally on the device.
+            Install on Android and allow installation from this source when prompted.
+          draft: false
+          prerelease: false
+          make_latest: true
+          files: android/app/build/outputs/apk/debug/app-debug.apk
+          fail_on_unmatched_files: true
+
+      - name: Upload APK build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: zipedia-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 30
