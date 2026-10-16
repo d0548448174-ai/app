@@ -18,6 +18,9 @@ else if (action === 'listTitles') {
     try {
         var searcher = new Module.SuggestionSearcher();
         var suggestionSearch = searcher.suggest(String(e.data.query || ''));
+        if (e.data.range === true) {
+            suggestionSearch.forceRangeSuggestion();
+        }
         var start = Math.max(0, Math.floor(Number(e.data.start) || 0));
         var count = Math.max(1, Math.min(500, Math.floor(Number(e.data.count) || 100)));
         var entries = suggestionSearch.getResults(start, count);
