@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Expose libzim's alphabetical title-range mode to the JavaScript worker."""
+"""Expose the archive's title-ordered range directly through libzim's JavaScript bindings."""
 from pathlib import Path
 import sys
 
@@ -10,28 +10,61 @@ def main() -> None:
     path = Path(sys.argv[1])
     source = path.read_text(encoding="utf-8")
 
-    method_anchor = "    unsigned int getEstimatedMatches() const {"
-    if source.count(method_anchor) != 1:
-        raise SystemExit("Could not safely find SuggestionSearchWrapper::getEstimatedMatches.")
-    if "void forceRangeSuggestion()" not in source:
-        source = source.replace(
-            method_anchor,
-            "    void forceRangeSuggestion() { search_.forceRangeSuggestion(); }\n\n" + method_anchor,
-            1,
-        )
+    anchor = "// SearchIterator wrapper - Clean version relying on the fixed libzim implementation"
+    if source.count(anchor) != 1:
+        raise SystemExit("Could not safely locate the end of EntryWrapper in libzim_bindings.cpp.")
 
-    binding_anchor = 'class_<SuggestionSearchWrapper>("SuggestionSearch")'
-    binding_replacement = (
-        binding_anchor
-        + '\n      .function("forceRangeSuggestion", &SuggestionSearchWrapper::forceRangeSuggestion)'
+    functions = r"""
+// List entries in the archive's native title order. Archive::findByTitle returns
+// a stable title-ordered range, so callers can browse the entire index by prefix
+// and request later pages without depending on an optional Xapian suggestions DB.
+std::vector<EntryWrapper> listTitles(std::string prefix, int start, int numResults) {
+    try {
+        if (!g_archive) {
+            return std::vector<EntryWrapper>();
+        }
+        auto range = g_archive->findByTitle(prefix);
+        auto page = range.offset(std::max(0, start), std::max(0, numResults));
+        std::vector<EntryWrapper> results;
+        for (auto entry : page) {
+            results.push_back(EntryWrapper(entry));
+        }
+        return results;
+    } catch (const std::exception& e) {
+        std::cout << "Title listing error: " << e.what() << std::endl;
+        return std::vector<EntryWrapper>();
+    }
+}
+
+int getTitleCount(std::string prefix) {
+    try {
+        if (!g_archive) {
+            return 0;
+        }
+        return g_archive->findByTitle(prefix).size();
+    } catch (const std::exception& e) {
+        std::cout << "Title count error: " << e.what() << std::endl;
+        return 0;
+    }
+}
+
+"""
+    if "std::vector<EntryWrapper> listTitles(" not in source:
+        source = source.replace(anchor, functions + anchor, 1)
+
+    source = source.replace(
+        '    emscripten::function("getArticleCount", &getArticleCount);',
+        '    emscripten::function("getArticleCount", &getArticleCount);\n'
+        '    emscripten::function("listTitles", &listTitles);\n'
+        '    emscripten::function("getTitleCount", &getTitleCount);',
+        1,
     )
-    if '.function("forceRangeSuggestion", &SuggestionSearchWrapper::forceRangeSuggestion)' not in source:
-        if source.count(binding_anchor) != 1:
-            raise SystemExit("Could not safely find the SuggestionSearch binding block.")
-        source = source.replace(binding_anchor, binding_replacement, 1)
-
+    if source.count('emscripten::function("listTitles", &listTitles);') != 1:
+        raise SystemExit("Could not add the listTitles binding exactly once.")
+    if source.count('emscripten::function("getTitleCount", &getTitleCount);') != 1:
+        raise SystemExit("Could not add the getTitleCount binding exactly once.")
     path.write_text(source, encoding="utf-8")
-    print("Added SuggestionSearchWrapper.forceRangeSuggestion() and its Embind binding.")
+    print("Added listTitles() and getTitleCount() using libzim's title-ordered range.")
 
 
 if __name__ == "__main__":
