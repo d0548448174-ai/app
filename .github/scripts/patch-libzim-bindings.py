@@ -9,6 +9,8 @@ def main() -> None:
         raise SystemExit("Usage: patch-libzim-bindings.py PATH_TO_LIBZIM_BINDINGS_CPP")
     path = Path(sys.argv[1])
     source = path.read_text(encoding="utf-8")
+    if "#include <algorithm>" not in source:
+        source = source.replace("#include <iostream>", "#include <iostream>\n#include <algorithm>", 1)
 
     anchor = "// SearchIterator wrapper - Clean version relying on the fixed libzim implementation"
     if source.count(anchor) != 1:
