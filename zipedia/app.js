@@ -202,6 +202,7 @@
       showToast("תחילה יש לייבא קובץ ZIM.");
       return;
     }
+    state.searchSequence += 1;
     state.mode = "browse";
     state.activeQueries = queries || [query || ""];
     state.browseLabel = label || "כל הערכים";
@@ -222,6 +223,7 @@
       showToast("ייבא תחילה קובץ ZIM כדי להתחיל.");
       return;
     }
+    state.searchSequence += 1;
     state.mode = mode;
     state.queryOffset = 0;
     state.activeQueries = [""];
@@ -313,6 +315,7 @@
   async function loadTitlePage(reset, forcedQuery, searchSeq) {
     if (!state.ready || (state.pageBusy && !reset)) return;
     const currentMode = state.mode;
+    const requestSequence = searchSeq !== undefined ? searchSeq : state.searchSequence;
     const query = forcedQuery !== undefined ? forcedQuery : (currentMode === "titles" ? $("searchInput").value.trim() : "");
     const queries = currentMode === "browse" ? state.activeQueries : [query];
     if (reset) {
@@ -328,7 +331,7 @@
     $("resultsError").hidden = true;
     try {
       const pages = await Promise.all(queries.map((q) => request("listTitles", { query: q, start: start, count: perQuery, range: currentMode === "browse" }, requestTimeout)));
-      if (searchSeq !== undefined && searchSeq !== state.searchSequence) return;
+      if (requestSequence !== state.searchSequence) return;
       const additions = [];
       let estimated = 0;
       let canContinue = false;
@@ -366,11 +369,13 @@
         $("activeBrowseLabel").textContent = query ? "חיפוש: " + query : "כל הערכים";
       }
     } catch (error) {
-      if (searchSeq !== undefined && searchSeq !== state.searchSequence) return;
+      if (requestSequence !== state.searchSequence) return;
       showResultsError(error.message || "לא הצלחנו לקרוא את רשימת הערכים.");
     } finally {
-      state.pageBusy = false;
-      setResultsLoading(false);
+      if (requestSequence === state.searchSequence) {
+        state.pageBusy = false;
+        setResultsLoading(false);
+      }
     }
   }
 
