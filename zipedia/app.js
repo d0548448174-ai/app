@@ -327,7 +327,7 @@
     setResultsLoading(true);
     $("resultsError").hidden = true;
     try {
-      const pages = await Promise.all(queries.map((q) => request("listTitles", { query: q, start: start, count: perQuery }, requestTimeout)));
+      const pages = await Promise.all(queries.map((q) => request("listTitles", { query: q, start: start, count: perQuery, range: currentMode === "browse" }, requestTimeout)));
       if (searchSeq !== undefined && searchSeq !== state.searchSequence) return;
       const additions = [];
       let estimated = 0;
