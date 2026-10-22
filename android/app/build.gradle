@@ -6,21 +6,32 @@ android {
     namespace "com.zipedia.app"
     compileSdk 35
 
+    signingConfigs {
+        zipedia {
+            storeFile rootProject.file("zipedia-signing.keystore")
+            storePassword "ZipediaPublicSideloadKey2026"
+            keyAlias "zipedia"
+            keyPassword "ZipediaPublicSideloadKey2026"
+        }
+    }
+
     defaultConfig {
         applicationId "com.zipedia.app"
         minSdk 23
         targetSdk 35
-        versionCode 2
-        versionName "1.1"
+        versionCode 3
+        versionName "1.2"
     }
 
     buildTypes {
         debug {
             applicationIdSuffix ".debug"
             versionNameSuffix "-debug"
+            signingConfig signingConfigs.zipedia
         }
         release {
             minifyEnabled false
+            signingConfig signingConfigs.zipedia
         }
     }
 
