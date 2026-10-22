@@ -24,6 +24,13 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
+      - name: Restore persistent signing key
+        shell: bash
+        run: |
+          set -euo pipefail
+          base64 --decode android/zipedia-signing.keystore.b64 > android/zipedia-signing.keystore
+          keytool -list -keystore android/zipedia-signing.keystore -storepass ZipediaPublicSideloadKey2026 -alias zipedia >/dev/null
+
       - name: Download the upstream reader source
         run: git clone --depth 1 --branch v0.95 https://github.com/openzim/javascript-libzim.git /tmp/javascript-libzim
 
@@ -110,11 +117,26 @@ jobs:
         with:
           gradle-version: "8.9"
 
-      - name: Build APK
-        run: gradle --no-daemon --stacktrace -p android assembleDebug
+      - name: Build installable release APK
+        run: gradle --no-daemon --stacktrace -p android assembleRelease
+
+      - name: Verify APK signature and package
+        shell: bash
+        run: |
+          set -euo pipefail
+          apk="android/app/build/outputs/apk/release/app-release.apk"
+          sdk="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+          test -n "$sdk"
+          tools="$(find "$sdk/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)"
+          "$tools/apksigner" verify --verbose --print-certs --min-sdk-version 23 "$apk"
+          "$tools/zipalign" -c -v 4 "$apk"
+          "$tools/aapt" dump badging "$apk" | grep -F "name='com.zipedia.app'"
+          test "$(stat -c '%s' "$apk")" -gt 700000000
+          unzip -l "$apk" | grep -F "assets/www/data/wikipedia_he_all_mini_2026-07a.zim"
+          sha256sum "$apk"
 
       - name: Prepare clearly named APK
-        run: cp android/app/build/outputs/apk/debug/app-debug.apk android/app/build/outputs/apk/debug/zipedia.apk
+        run: cp android/app/build/outputs/apk/release/app-release.apk android/app/build/outputs/apk/release/zipedia.apk
 
       - name: Publish installable APK as a GitHub release
         uses: softprops/action-gh-release@v2
@@ -122,19 +144,19 @@ jobs:
           tag_name: zipedia-build-${{ github.run_number }}
           name: Zipedia Android APK — build ${{ github.run_number }}
           body: |
-            Automatic debug-signed Android package for Zipedia.
-            The ZIM reader and web interface are bundled in the APK; selected ZIM files are read locally on the device.
-            Install on Android and allow installation from this source when prompted.
+            Installable release APK for Zipedia (package com.zipedia.app).
+            Signed with the persistent Zipedia sideload key and verified using apksigner and zipalign.
+            Hebrew Wikipedia all-mini is bundled inside the APK.
           draft: false
           prerelease: false
           make_latest: true
-          files: android/app/build/outputs/apk/debug/zipedia.apk
+          files: android/app/build/outputs/apk/release/zipedia.apk
           fail_on_unmatched_files: true
 
       - name: Upload APK build artifact
         uses: actions/upload-artifact@v4
         with:
           name: zipedia-apk
-          path: android/app/build/outputs/apk/debug/zipedia.apk
+          path: android/app/build/outputs/apk/release/zipedia.apk
           if-no-files-found: error
           retention-days: 30
