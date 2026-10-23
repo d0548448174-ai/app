@@ -100,7 +100,7 @@
     });
     startLoop();
   }
-  function restartCanvasGame() { initCanvasGame(currentGame); }
+  function restartCanvasGame() { clearFrame(); $('stage').innerHTML = ''; $('actions').innerHTML = ''; initCanvasGame(currentGame); }
   function startLoop() {
     clearFrame();
     let last = 0, shown = -1;
@@ -424,5 +424,5 @@
     else $("tttStatus").textContent="התור שלכם — ×";
   }
 
-  function restartCanvasGame(){initCanvasGame(currentGame);}
+  function restartCanvasGame(){clearFrame();$('stage').innerHTML='';$('actions').innerHTML='';initCanvasGame(currentGame);}
 })();
