@@ -441,6 +441,21 @@
   }
 
   /* 5 — זיכרון */
+  function memoryFaceSvg(type) {
+    const paths = {
+      star: '<path d="M32 5L39 23L58 24L43 37L48 56L32 45L16 56L21 37L6 24L25 23Z"/>',
+      moon: '<path d="M44 8A23 23 0 1 0 55 46A19 19 0 0 1 44 8Z"/>',
+      gem: '<path d="M15 10H49L61 25L32 58L3 25Z"/><path d="M15 10L22 25L32 58L42 25L49 10M3 25H61" fill="none" stroke="#fff" stroke-opacity=".45" stroke-width="2"/>',
+      leaf: '<path d="M55 7C27 7 8 17 8 37C8 52 24 59 37 48C49 38 55 20 55 7Z"/><path d="M12 53Q31 31 49 14" fill="none" stroke="#fff" stroke-opacity=".65" stroke-width="3"/>',
+      bolt: '<path d="M36 4L13 35H29L24 60L51 26H35Z"/>',
+      heart: '<path d="M32 55L8 32C-1 17 19 2 32 18C45 2 65 17 56 32Z"/>',
+      planet: '<circle cx="31" cy="31" r="17"/><ellipse cx="31" cy="31" rx="29" ry="9" fill="none" stroke="#fff" stroke-width="4" stroke-opacity=".7" transform="rotate(-28 31 31)"/>',
+      crown: '<path d="M7 18L21 29L31 8L42 29L57 18L51 50H13Z"/><path d="M14 56H50" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/>'
+    };
+    const colors = {star:"#f4d475",moon:"#b9c8ff",gem:"#8fe4ef",leaf:"#80dfad",bolt:"#ffc06b",heart:"#ff94b4",planet:"#b9adff",crown:"#f4cb7a"};
+    return '<svg viewBox="0 0 64 64" aria-hidden="true"><g fill="' + colors[type] + '" stroke="#ffffff4c" stroke-width="1.5" stroke-linejoin="round">' + paths[type] + '</g></svg>';
+  }
+
   function initMemory(){
     const faces=["star","moon","gem","leaf","bolt","heart","planet","crown"];
     const cards=faces.concat(faces).map((face,i)=>({face,key:i,open:false,matched:false}));
