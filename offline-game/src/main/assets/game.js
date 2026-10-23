@@ -6,7 +6,7 @@
     runner: { name: "חתול רץ", help: "געו במסך או לחצו על קפיצה כדי לדלג מעל המכשולים." },
     breakout: { name: "שובר לבנים", help: "גררו את המשטח ימינה ושמאלה כדי להחזיר את הכדור." },
     space: { name: "קפיצת חלל", help: "החזיקו ◀ או ▶ כדי לזוז. נחתו על הפלטפורמות ואל תיפלו!" },
-    bubbles: { name: "פוצץ בועות", help: "געו בקבוצה של לפחות שתי בועות מאותו צבע כדי לפוצץ אותן." },
+    bubbles: { name: "יורה הבועות", help: "כוונו עם נגיעה במסך, ירו בועה וחברו שלוש בועות מאותו צבע." },
     memory: { name: "זיכרון", help: "מצאו זוגות תואמים. נסו לסיים בכמה שפחות מהלכים." },
     sudoku: { name: "סודוקו", help: "בחרו משבצת ריקה ומספר. המספרים הכחולים הם רמזים קבועים." },
     racer: { name: "מרוץ מכוניות", help: "החליפו נתיב כדי להתחמק מהמכוניות. לחצו על החצים למטה." },
@@ -40,13 +40,29 @@
     return b;
   }
   function clearFrame() { if (rafId) cancelAnimationFrame(rafId); rafId = 0; }
+  function refreshLibraryRecords() {
+    document.querySelectorAll("[data-best]").forEach(function (node) {
+      const id = node.getAttribute("data-best"), value = bestFor(id);
+      node.textContent = id === "sudoku" ? (value ? "התקדמות " + value : "טרם נפתר") : (value ? "שיא " + value : "שיא —");
+    });
+  }
   function showHome() {
     clearFrame(); currentGame = ""; g = null; canvas = null; ctx = null;
-    $("play").hidden = true; $("home").hidden = false;
+    $("play").hidden = true; $("home").hidden = false; $("about").hidden = true;
     $("stage").innerHTML = ""; $("actions").innerHTML = ""; setHelp("");
+    refreshLibraryRecords();
+  }
+  function showAbout() {
+    clearFrame(); currentGame = ""; g = null; canvas = null; ctx = null;
+    $("home").hidden = true; $("play").hidden = true; $("about").hidden = false;
+    $("stage").innerHTML = ""; $("actions").innerHTML = "";
   }
   window.showHome = showHome;
   $("backHome").addEventListener("click", showHome);
+  $("aboutBack").addEventListener("click", showHome);
+  $("brandHome").addEventListener("click", showHome);
+  $("aboutButton").addEventListener("click", showAbout);
+  refreshLibraryRecords();
   document.querySelectorAll("[data-game]").forEach(function (button) {
     button.addEventListener("click", function () { startGame(button.dataset.game); });
   });
@@ -90,7 +106,7 @@
       if (g.over) { restartCanvasGame(); return; }
       if (id === "runner") jumpRunner();
       if (id === "breakout") { g.paddle.x = clamp(p.x - g.paddle.w / 2, 0, 360 - g.paddle.w); }
-      if (id === "bubbles") popBubble(p.x, p.y);
+      if (id === "bubbles") shootBubble(p.x, p.y);
       if (id === "racer") { if (p.x < 120) moveCar(-1); else if (p.x > 240) moveCar(1); }
     });
     canvas.addEventListener("pointermove", function (e) {
