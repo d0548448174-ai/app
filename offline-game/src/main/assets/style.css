@@ -86,7 +86,7 @@ h1 span{color:#81e8f3}
 .memory-board{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:12px}
 .memory-card{aspect-ratio:1/1.12;display:grid;place-items:center;border-radius:11px;border:1px solid #344e6a;background:linear-gradient(145deg,#223d60,#172945);box-shadow:0 5px 11px #0002;transition:transform .12s,background .15s;padding:6px}
 .memory-card svg{width:74%;height:74%;max-width:54px;max-height:54px}
-.memory-card.back{background:linear-gradient(145deg,#234565,#1a2e4c);color:#85dff1;font-weight:950;font-size:24px}
+.memory-question{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;border:1px solid #49758d;background:linear-gradient(145deg,#284963,#1a3049);color:#94e8f1;font-size:24px;font-weight:900;box-shadow:inset 0 1px 0 #ffffff20}.memory-card.back{background:linear-gradient(145deg,#234565,#1a2e4c);color:#85dff1;font-weight:950;font-size:24px}
 .memory-card.open,.memory-card.matched{background:linear-gradient(145deg,#254c65,#233958);border-color:#70c7d7}
 .memory-card.matched{opacity:.68}
 .memory-meta{padding:11px 13px;display:flex;justify-content:space-between;color:#bdd3ee;font-size:11px;border-top:1px solid #ffffff12}
