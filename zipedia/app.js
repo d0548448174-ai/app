@@ -196,7 +196,7 @@
       if (state.worker) state.worker.terminate();
       state.worker = new Worker(new URL("vendor/libzim-wasm.js", document.baseURI));
       state.worker.addEventListener("error", () => showToast("קורא ZIM נתקל בשגיאה. רענן את העמוד ונסה שוב."));
-      await request("init", { files: files }, 600000);
+      await request("init", { files: files }, 1800000);
       busy(true, "הארכיון נטען", "בודק כמה ערכים קיימים בקובץ...");
       const count = await request("getArticleCount", {}, 120000);
       state.articleCount = Number(count) || 0;
@@ -744,161 +744,48 @@
 
   setActiveNav();
 
-  // The bundled archive is kept as a File so WORKERFS can read it lazily.
-  // On first launch, stream it to OPFS in chunks; later launches reuse the saved File.
+  // The full Hebrew Wikipedia ZIM is packaged inside the APK.
+  // Open the packaged asset automatically. Do not make a second 782 MiB OPFS copy:
+  // WebView's Blob storage provides the File interface WORKERFS needs, while avoiding
+  // the extra origin-quota failure mode on Android devices with limited app storage.
   const bundledZimName = "wikipedia_he_all_mini_2026-07a.zim";
   const bundledZimMinBytes = 700000000;
-  const bundledZimEstimatedBytes = 820000000;
-  const bundledZimMarker = "zipedia-wikipedia-mini.ready";
-
-  function formatMiB(bytes) {
-    return Math.max(0, bytes / (1024 * 1024)).toLocaleString("he-IL", { maximumFractionDigits: 0 }) + " MiB";
-  }
-
-  async function readMarker(root) {
-    try {
-      const markerHandle = await root.getFileHandle(bundledZimMarker);
-      return await (await markerHandle.getFile()).text();
-    } catch (_) {
-      return "";
-    }
-  }
 
   async function getBundledWikipediaFile() {
     const assetUrl = new URL("data/" + bundledZimName, document.baseURI).toString();
-    const storage = navigator.storage;
-    let root = null;
-
-    if (storage && typeof storage.getDirectory === "function") {
-      try {
-        root = await storage.getDirectory();
-      } catch (_) {
-        root = null;
-      }
-    }
-
-    if (root) {
-      let archiveHandle = null;
-      try {
-        archiveHandle = await root.getFileHandle(bundledZimName);
-      } catch (_) {}
-
-      if (archiveHandle) {
-        const cachedFile = await archiveHandle.getFile();
-        const markerText = await readMarker(root);
-        if (cachedFile.size >= bundledZimMinBytes && markerText === String(cachedFile.size)) {
-          busy(true, "פותח את ויקיפדיה העברית", "מצאתי עותק מקומי מוכן. אין צורך להעתיק שוב את המאגר.");
-          return cachedFile;
-        }
-        try { await root.removeEntry(bundledZimMarker); } catch (_) {}
-        try { await root.removeEntry(bundledZimName); } catch (_) {}
-      }
-
-      let enoughSpaceForCache = true;
-      try {
-        if (typeof storage.estimate === "function") {
-          const estimate = await storage.estimate();
-          const available = Number(estimate.quota || 0) - Number(estimate.usage || 0);
-          if (available > 0 && available < bundledZimEstimatedBytes + 12000000) {
-            enoughSpaceForCache = false;
-          }
-        }
-      } catch (_) {}
-
-      if (enoughSpaceForCache) {
-        busy(true, "מכין מאגר לקריאה מהירה", "בהפעלה הראשונה נשמר עותק מקומי. מוצגת התקדמות כדי שלא ייראה שהאפליקציה נתקעה.");
-        const response = await fetch(assetUrl, { cache: "force-cache" });
-        if (!response.ok) {
-          throw new Error("לא נמצאה ויקיפדיה המובנית באפליקציה (HTTP " + response.status + ").");
-        }
-        if (response.body && typeof response.body.getReader === "function") {
-          const totalHeader = Number(response.headers.get("content-length")) || bundledZimEstimatedBytes;
-          archiveHandle = await root.getFileHandle(bundledZimName, { create: true });
-          const writable = await archiveHandle.createWritable({ keepExistingData: false });
-          const reader = response.body.getReader();
-          let chunks = [];
-          let chunkBytes = 0;
-          let written = 0;
-          let lastUiUpdate = 0;
-          let closed = false;
-
-          async function flushChunks() {
-            if (!chunkBytes) return;
-            const merged = new Uint8Array(chunkBytes);
-            let offset = 0;
-            for (const chunk of chunks) {
-              merged.set(chunk, offset);
-              offset += chunk.byteLength;
-            }
-            await writable.write(merged);
-            written += chunkBytes;
-            chunks = [];
-            chunkBytes = 0;
-            const now = Date.now();
-            if (now - lastUiUpdate > 450) {
-              const percent = Math.min(99, Math.floor((written / totalHeader) * 100));
-              busy(true, "מכין מאגר לקריאה מהירה", "נשמרו " + formatMiB(written) + " מתוך כ־" + formatMiB(totalHeader) + " (" + percent + "%). לאחר מכן הפתיחה תהיה מהירה יותר.");
-              lastUiUpdate = now;
-            }
-          }
-
-          try {
-            while (true) {
-              const part = await reader.read();
-              if (part.done) break;
-              if (!part.value || !part.value.byteLength) continue;
-              chunks.push(part.value);
-              chunkBytes += part.value.byteLength;
-              if (chunkBytes >= 8 * 1024 * 1024) await flushChunks();
-            }
-            await flushChunks();
-            await writable.close();
-            closed = true;
-            const file = await archiveHandle.getFile();
-            if (file.size < bundledZimMinBytes) {
-              throw new Error("עותק ויקיפדיה שהוכן קטן מהצפוי.");
-            }
-            const markerHandle = await root.getFileHandle(bundledZimMarker, { create: true });
-            const markerWriter = await markerHandle.createWritable();
-            await markerWriter.write(String(file.size));
-            await markerWriter.close();
-            busy(true, "המאגר מוכן", "העותק המקומי נשמר. פותח כעת את אינדקס הערכים...");
-            return file;
-          } catch (error) {
-            if (!closed) {
-              try { await writable.abort(); } catch (_) {}
-            }
-            try { await root.removeEntry(bundledZimMarker); } catch (_) {}
-            try { await root.removeEntry(bundledZimName); } catch (_) {}
-            throw new Error("לא הצלחתי להכין את העותק המקומי. בדוק שיש מספיק מקום פנוי במכשיר. " + (error && error.message ? error.message : ""));
-          }
-        }
-        // Very old WebView versions might not expose a response stream.
-        const blob = await response.blob();
-        if (blob.size < bundledZimMinBytes) throw new Error("קובץ ויקיפדיה המובנה קטן מהצפוי.");
-        return new File([blob], bundledZimName, { type: "application/x-zim", lastModified: 0 });
-      }
-    }
-
-    // Fallback for WebView versions without OPFS or with too little free origin storage.
-    busy(true, "פותח את ויקיפדיה העברית", "מכין את קובץ הקריאה מהמאגרים הכלולים באפליקציה. ההפעלה הראשונה עשויה לקחת יותר זמן.");
+    busy(true, "פותח את ויקיפדיה העברית המובנית", "המאגר כבר כלול באפליקציה. אין צורך לבחור או לייבא קובץ.");
     const response = await fetch(assetUrl, { cache: "force-cache" });
-    if (!response.ok) throw new Error("לא נמצאה ויקיפדיה המובנית באפליקציה (HTTP " + response.status + ").");
+    if (!response.ok) {
+      throw new Error("לא נמצאה ויקיפדיה המובנית בתוך האפליקציה (HTTP " + response.status + ").");
+    }
+
+    // Keep the large asset as a browser-managed Blob/File; do not copy it into OPFS.
     const blob = await response.blob();
-    if (blob.size < bundledZimMinBytes) throw new Error("קובץ ויקיפדיה המובנה קטן מהצפוי.");
-    return new File([blob], bundledZimName, { type: "application/x-zim", lastModified: 0 });
+    if (blob.size < bundledZimMinBytes) {
+      throw new Error("קובץ ויקיפדיה שבתוך האפליקציה קטן מהצפוי (" + formatMiB(blob.size) + ").");
+    }
+    const file = new File([blob], bundledZimName, {
+      type: "application/x-zim",
+      lastModified: 0
+    });
+    const magic = new Uint8Array(await file.slice(0, 4).arrayBuffer());
+    if (magic.length !== 4 || magic[0] !== 0x5a || magic[1] !== 0x49 ||
+        magic[2] !== 0x4d || magic[3] !== 0x04) {
+      throw new Error("קובץ ויקיפדיה המובנה אינו קובץ ZIM תקין.");
+    }
+    return file;
   }
 
   async function loadBundledWikipedia() {
     if (location.hostname !== "appassets.androidplatform.net") return;
-    busy(true, "פותח את ויקיפדיה העברית המובנית", "המאגר כלול באפליקציה. מכין אותו לקריאה...");
+    busy(true, "פותח את ויקיפדיה העברית המובנית", "האנציקלופדיה כבר נמצאת בתוך האפליקציה. מכין אותה לקריאה...");
     try {
       const file = await getBundledWikipediaFile();
       await loadArchive([file]);
     } catch (error) {
       busy(false);
       status("לא הצלחנו לפתוח את ויקיפדיה המובנית. " + (error && error.message ? error.message : ""), true);
-      showToast("טעינת ויקיפדיה המובנית נכשלה. בדוק שיש מקום פנוי במכשיר.");
+      showToast("פתיחת ויקיפדיה המובנית נכשלה. הפרטים מופיעים במסך.");
     }
   }
   void loadBundledWikipedia();
