@@ -244,7 +244,7 @@
     g.t += dt; g.speed = Math.min(7.4, 4 + g.score / 180);
     g.vy += 0.58 * dt; g.y += g.vy * dt;
     if (g.y >= 389) { g.y = 389; g.vy = 0; g.grounded = true; }
-    if (g.t > 56) { g.t = 0; g.obstacles.push({ x: 380, w: rand(24, 35), h: rand(35, 47), emoji: Math.random() < .5 ? "🌵" : "🪵" }); }
+    if (g.t > 56) { g.t = 0; g.obstacles.push({ x: 380, w: rand(24, 35), h: rand(35, 47), kind: "cactus" }); }
     g.obstacles.forEach(o => o.x -= g.speed * dt);
     g.obstacles = g.obstacles.filter(o => o.x > -50);
     g.score += 0.13 * dt;
@@ -253,20 +253,21 @@
     }
   }
   function drawRunner() {
-    background("#8fe6ff", "#d0f7ff");
-    ctx.fillStyle = "#ffffff9c";
-    [[55,80,25],[160,116,19],[278,69,24]].forEach(([x,y,r])=>{ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.arc(x+r,y-4,r*.7,0,Math.PI*2);ctx.arc(x+r*1.8,y,r*.8,0,Math.PI*2);ctx.fill();});
-    ctx.fillStyle = "#65d99a"; ctx.beginPath(); ctx.moveTo(0,361); ctx.quadraticCurveTo(90,270,175,356); ctx.quadraticCurveTo(273,290,360,345); ctx.lineTo(360,520);ctx.lineTo(0,520);ctx.fill();
-    ctx.fillStyle="#2eaa70";ctx.fillRect(0,422,360,98);ctx.fillStyle="#7eed9c";ctx.fillRect(0,422,360,7);
-    for(let x=0;x<360;x+=37){ctx.fillStyle="#218f69";ctx.fillRect(x,446,20,5);}
-    emoji("🐱",63,g.y+1,44); emoji("🪙",280,260,23);
-    g.obstacles.forEach(o=>{emoji(o.emoji,o.x+o.w/2,424-o.h/2+4,35);});
-    rounded(15,15,125,34,12,"#ffffffb8");
-    text("מרחק " + Math.floor(g.score),77,32,14,"#17456d",900);
-    if(g.over) drawOverlay("סוף הריצה!", "הצלחתם להגיע ל-" + Math.floor(g.score));
+    background("#9bdded", "#ddf6ef");
+    ctx.fillStyle="#f4fbf8";
+    [[54,84,19],[166,109,14],[269,72,21]].forEach(([x,y,r])=>{ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.arc(x+r*.8,y-5,r*.75,0,Math.PI*2);ctx.arc(x+r*1.5,y,r*.65,0,Math.PI*2);ctx.fill();});
+    ctx.fillStyle="#789aaf";ctx.beginPath();ctx.moveTo(0,333);ctx.lineTo(54,281);ctx.lineTo(105,333);ctx.lineTo(168,267);ctx.lineTo(236,333);ctx.lineTo(290,291);ctx.lineTo(360,330);ctx.lineTo(360,520);ctx.lineTo(0,520);ctx.closePath();ctx.fill();
+    ctx.fillStyle="#5ca28d";ctx.beginPath();ctx.moveTo(0,375);ctx.quadraticCurveTo(96,337,175,374);ctx.quadraticCurveTo(275,335,360,364);ctx.lineTo(360,520);ctx.lineTo(0,520);ctx.closePath();ctx.fill();
+    ctx.fillStyle="#c9b995";ctx.fillRect(0,424,360,96);ctx.fillStyle="#fff1ce";ctx.fillRect(0,424,360,5);ctx.fillStyle="#8a9b91";ctx.fillRect(0,431,360,2);
+    for(let x=0;x<400;x+=46){ctx.fillStyle="#f9e8be";ctx.fillRect(x-Math.floor(g.score*2)%46,467,22,3);}
+    g.obstacles.forEach(o=>drawCactus(o.x+o.w*.5,424,o.h));
+    drawCoin(284,268+Math.sin(g.t*.05)*3,10);
+    drawCat(63,g.y+20,0.88,Math.sin(g.t*.18));
+    rounded(15,15,128,33,9,"#eef9fa","#bad7d8");text("מרחק  "+Math.floor(g.score),79,32,13,"#234b60",850);
+    if(g.over)drawOverlay("הריצה הסתיימה", "מרחק: "+Math.floor(g.score));
   }
 
-  /* 2 — שובר לבנים */
+    /* 2 — שובר לבנים */
   function initBreakout() {
     const bricks=[];
     for(let r=0;r<5;r++) for(let c=0;c<7;c++) bricks.push({x:13+c*48,y:60+r*28,w:42,h:17,alive:true,color:["#ff668e","#ffad57","#ffe36c","#54e7a4","#48d9ff"][r]});
@@ -318,15 +319,15 @@
     g.t+=dt;if(g.y>525)finishGame("נפלתם מהחלל!", "נסו לקפוץ גבוה יותר");
   }
   function drawSpace(){
-    background("#121e55","#050d23");stars(54,Math.floor(g.score));
-    for(let i=0;i<4;i++){ctx.fillStyle="#b9caff15";ctx.beginPath();ctx.arc((i*107+30)%360,(i*139+55)%500,22+i%3*8,0,Math.PI*2);ctx.fill();}
-    g.platforms.forEach((p,i)=>{rounded(p.x,p.y,p.w,p.h,6,i%2?"#58ecc0":"#59cfff","#bafff3");ctx.fillStyle="#ffffff66";ctx.fillRect(p.x+9,p.y+2,p.w-18,2);});
-    emoji("👨‍🚀",g.x,g.y+1,34);
-    rounded(14,14,118,34,12,"#122b55cc","rgba(110,210,255,.5)");text("גובה "+Math.floor(g.score),73,31,13,"#bcf5ff",850);
-    if(g.over)drawOverlay("אופס, נפלתם!", "הגובה שלכם: "+Math.floor(g.score));
+    background("#1b275c","#070f20");stars(48,Math.floor(g.score));
+    for(let i=0;i<5;i++){ctx.strokeStyle="#8da4ec15";ctx.lineWidth=1;ctx.beginPath();ctx.arc((i*83+42)%360,(i*101+70)%480,30+i%3*12,0,Math.PI*2);ctx.stroke();}
+    g.platforms.forEach((p,i)=>{rounded(p.x,p.y,p.w,p.h,5,i%2?"#62d9bf":"#6cbde7","#dcfff7");ctx.fillStyle="#ffffff60";ctx.fillRect(p.x+9,p.y+2,p.w-18,2);ctx.fillStyle="#142c4b";ctx.fillRect(p.x+12,p.y+p.h-1,p.w-24,3);});
+    drawAstronaut(g.x,g.y,0.9);
+    rounded(14,14,123,32,9,"#1d3159","#566aa5");text("גובה  "+Math.floor(g.score),75,30,12,"#d5e8ff",850);
+    if(g.over)drawOverlay("המסע נעצר", "גובה שהושג: "+Math.floor(g.score));
   }
 
-  /* 4 — פוצץ בועות */
+    /* 4 — פוצץ בועות */
   const bubbleColors=["#ff6294","#ffc84e","#43e4be","#58c7ff","#bc87ff"];
   function initBubbles(){
     const grid=[];for(let r=0;r<8;r++){const row=[];for(let c=0;c<7;c++)row.push(Math.floor(Math.random()*bubbleColors.length));grid.push(row);}
@@ -361,29 +362,31 @@
   function moveCar(d){if(g&&!g.over)g.lane=clamp(g.lane+d,0,2);}
   function updateRacer(dt){
     g.tick+=dt;g.speed=Math.min(7.5,3.1+g.score/220);
-    if(g.tick>Math.max(32,66-g.score/12)){g.tick=0;let lane=Math.floor(Math.random()*3);g.obstacles.push({lane,y:-58,emoji:Math.random()<.5?"🚙":"🚕",hit:false});}
+    if(g.tick>Math.max(32,66-g.score/12)){g.tick=0;let lane=Math.floor(Math.random()*3);g.obstacles.push({lane,y:-58,color:["#58bed0","#e1b45e","#8c93d8","#e9eef2"][Math.floor(Math.random()*4)],hit:false});}
     g.obstacles.forEach(o=>{o.y+=g.speed*dt;if(!o.hit&&o.lane===g.lane&&o.y>405&&o.y<478){o.hit=true;g.lives--;if(g.lives<=0)finishGame("סוף המרוץ!", "הניקוד שלכם: "+Math.floor(g.score));else{setHelp("התנגשות! נשארו "+g.lives+" ניסיונות.");o.y=520;}}});
     g.obstacles=g.obstacles.filter(o=>o.y<560);g.score+=.12*dt;
   }
   function drawRacer(){
-    background("#84dfff","#e1f8ff");
-    ctx.fillStyle="#8dd3a2";ctx.fillRect(0,0,360,520);
-    ctx.fillStyle="#343b51";ctx.beginPath();ctx.moveTo(75,0);ctx.lineTo(285,0);ctx.lineTo(345,520);ctx.lineTo(15,520);ctx.closePath();ctx.fill();
-    ctx.fillStyle="#e4edf7";ctx.beginPath();ctx.moveTo(70,0);ctx.lineTo(77,0);ctx.lineTo(18,520);ctx.lineTo(8,520);ctx.fill();ctx.beginPath();ctx.moveTo(283,0);ctx.lineTo(290,0);ctx.lineTo(352,520);ctx.lineTo(342,520);ctx.fill();
-    for(let i=0;i<9;i++){let y=(i*75+(g.score*13)%75)-20;ctx.fillStyle="#ffffffbd";ctx.fillRect(148,y,5,34);ctx.fillRect(207,y,5,34);}
+    background("#94c7bf","#e6eee0");
+    ctx.fillStyle="#72998c";ctx.fillRect(0,0,360,520);
+    for(let i=0;i<7;i++){const y=(i*94+Math.floor(g.score*11)%94)-20;ctx.fillStyle="#466e60";ctx.beginPath();ctx.arc(22+(i%2)*22,y+15,17,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(326-(i%2)*24,y+34,19,0,Math.PI*2);ctx.fill();}
+    ctx.fillStyle="#343c4c";ctx.beginPath();ctx.moveTo(77,0);ctx.lineTo(283,0);ctx.lineTo(350,520);ctx.lineTo(10,520);ctx.closePath();ctx.fill();
+    ctx.fillStyle="#c6d4d9";ctx.beginPath();ctx.moveTo(72,0);ctx.lineTo(77,0);ctx.lineTo(17,520);ctx.lineTo(10,520);ctx.closePath();ctx.fill();ctx.beginPath();ctx.moveTo(283,0);ctx.lineTo(288,0);ctx.lineTo(350,520);ctx.lineTo(342,520);ctx.closePath();ctx.fill();
+    for(let i=0;i<11;i++){const y=(i*63+Math.floor(g.score*17)%63)-30;const xL=134-y*.035,xR=226+y*.035;ctx.fillStyle="#f0e7bc";ctx.fillRect(xL,y,4,24);ctx.fillRect(xR,y,4,24);}
     const xs=[105,180,255];
-    g.obstacles.forEach(o=>{emoji(o.emoji,xs[o.lane],o.y+5,34);});
-    emoji("🏎️",xs[g.lane],453,42);
-    rounded(12,14,135,38,12,"#142441dd");text("❤️".repeat(g.lives),80,33,17,"#fff",800);
-    rounded(235,14,113,38,12,"#142441dd");text("מרחק "+Math.floor(g.score),291,33,13,"#fff",800);
-    if(g.over)drawOverlay("מרוץ הסתיים!", "עברתם מרחק "+Math.floor(g.score));
+    g.obstacles.forEach(o=>drawCar(xs[o.lane],o.y,.82,o.color));
+    drawCar(xs[g.lane],453,1.06,"#e45167");
+    rounded(12,14,110,35,9,"#14283ced","#556b7c");text("חיים  "+g.lives,67,31,12,"#f5e4e2",850);
+    rounded(235,14,113,35,9,"#14283ced","#556b7c");text("מרחק "+Math.floor(g.score),291,31,12,"#e1f7ed",850);
+    if(g.over)drawOverlay("המרוץ הסתיים", "המרחק שלכם: "+Math.floor(g.score));
   }
 
-  function updateGame(dt){
+    function updateGame(dt){
     if(currentGame==="runner")updateRunner(dt);
     else if(currentGame==="breakout")updateBreakout(dt);
     else if(currentGame==="space")updateSpace(dt);
     else if(currentGame==="racer")updateRacer(dt);
+    else if(currentGame==="bubbles")updateBubbles(dt);
   }
   function drawGame(){
     if(currentGame==="runner")drawRunner();
