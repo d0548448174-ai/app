@@ -148,9 +148,61 @@
     ctx.font = (weight || 700) + " " + size + "px system-ui, sans-serif";
     ctx.fillStyle = color || "#fff"; ctx.fillText(t, x, y);
   }
-  function emoji(t, x, y, size) {
-    ctx.font = size + "px system-ui, 'Noto Color Emoji', sans-serif";
-    ctx.fillText(t, x, y);
+  function drawCat(x, baseY, scale, stride) {
+    ctx.save(); ctx.translate(x, baseY); ctx.scale(scale || 1, scale || 1);
+    const phase = stride || 0;
+    ctx.fillStyle = "#112c3a30"; ctx.beginPath(); ctx.ellipse(0, 3, 22, 5, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = "#cbd8e8"; ctx.lineWidth = 6; ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(11, -13); ctx.bezierCurveTo(28, -30, 23, -43, 13, -39); ctx.stroke();
+    ctx.fillStyle = "#dce5ef"; ctx.beginPath(); ctx.ellipse(0, -13, 15, 22, -.12, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#f2f6fb"; ctx.beginPath(); ctx.ellipse(-1, -11, 9, 15, -.15, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#dce5ef"; ctx.beginPath(); ctx.moveTo(-15,-31);ctx.lineTo(-17,-51);ctx.lineTo(-3,-39);ctx.closePath();ctx.fill();
+    ctx.beginPath();ctx.moveTo(3,-39);ctx.lineTo(18,-52);ctx.lineTo(16,-29);ctx.closePath();ctx.fill();
+    ctx.fillStyle = "#ef9ea9";ctx.beginPath();ctx.moveTo(-13,-36);ctx.lineTo(-14,-45);ctx.lineTo(-6,-38);ctx.closePath();ctx.fill();
+    ctx.beginPath();ctx.moveTo(7,-38);ctx.lineTo(14,-45);ctx.lineTo(13,-35);ctx.closePath();ctx.fill();
+    ctx.fillStyle = "#f0f4fa";ctx.beginPath();ctx.arc(0,-29,18,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle = "#23374d";ctx.beginPath();ctx.ellipse(-7,-31,2.5,4,0,0,Math.PI*2);ctx.ellipse(7,-31,2.5,4,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle = "#fff";ctx.beginPath();ctx.arc(-7.6,-32.5,1,0,Math.PI*2);ctx.arc(6.4,-32.5,1,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle = "#ec8d9c";ctx.beginPath();ctx.moveTo(-2,-24);ctx.lineTo(2,-24);ctx.lineTo(0,-21);ctx.closePath();ctx.fill();
+    ctx.strokeStyle="#566b80";ctx.lineWidth=1.3;ctx.beginPath();ctx.moveTo(0,-21);ctx.quadraticCurveTo(-4,-18,-7,-21);ctx.moveTo(0,-21);ctx.quadraticCurveTo(4,-18,7,-21);ctx.stroke();
+    ctx.strokeStyle="#eef4fa";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-9,-19);ctx.lineTo(-21,-17);ctx.moveTo(9,-19);ctx.lineTo(21,-17);ctx.stroke();
+    ctx.strokeStyle="#cbd8e8";ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(-8,2);ctx.lineTo(-10+Math.sin(phase)*4,8);ctx.moveTo(8,2);ctx.lineTo(10-Math.sin(phase)*4,8);ctx.stroke();
+    ctx.fillStyle="#55bfd4";ctx.beginPath();ctx.moveTo(-13,-10);ctx.lineTo(13,-10);ctx.lineTo(9,-4);ctx.lineTo(0,0);ctx.lineTo(-8,-4);ctx.closePath();ctx.fill();
+    ctx.restore();
+  }
+  function drawCactus(x, baseY, h) {
+    ctx.save(); ctx.translate(x, baseY); ctx.fillStyle="#245b50";
+    ctx.beginPath();ctx.moveTo(-7,0);ctx.lineTo(-7,-h+8);ctx.quadraticCurveTo(-6,-h,0,-h);ctx.quadraticCurveTo(7,-h,7,-h+8);ctx.lineTo(7,0);ctx.closePath();ctx.fill();
+    ctx.beginPath();ctx.moveTo(-6,-h*.5);ctx.lineTo(-15,-h*.5);ctx.lineTo(-15,-h*.72);ctx.quadraticCurveTo(-15,-h*.8,-10,-h*.8);ctx.lineTo(-9,-h*.68);ctx.lineTo(-6,-h*.68);ctx.closePath();ctx.fill();
+    ctx.beginPath();ctx.moveTo(6,-h*.36);ctx.lineTo(14,-h*.36);ctx.lineTo(14,-h*.55);ctx.quadraticCurveTo(14,-h*.63,9,-h*.63);ctx.lineTo(8,-h*.5);ctx.lineTo(6,-h*.5);ctx.closePath();ctx.fill();
+    ctx.strokeStyle="#6ce0a6";ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(-1,-h+7);ctx.lineTo(-1,-5);ctx.moveTo(4,-h*.7);ctx.lineTo(4,-h*.45);ctx.stroke();ctx.restore();
+  }
+  function drawCoin(x,y,r) {
+    ctx.save();const grad=ctx.createRadialGradient(x-r*.35,y-r*.4,1,x,y,r);grad.addColorStop(0,"#fff6c0");grad.addColorStop(.45,"#ffdb6e");grad.addColorStop(1,"#c78b2c");
+    ctx.fillStyle=grad;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();ctx.strokeStyle="#fff0a3";ctx.lineWidth=2;ctx.stroke();ctx.strokeStyle="#b97b21";ctx.lineWidth=1.4;ctx.beginPath();ctx.arc(x,y,r*.52,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.moveTo(x,y-r*.34);ctx.lineTo(x,y+r*.34);ctx.stroke();ctx.restore();
+  }
+  function drawAstronaut(x,y,scale) {
+    ctx.save();ctx.translate(x,y);ctx.scale(scale||1,scale||1);
+    ctx.fillStyle="#13224a55";ctx.beginPath();ctx.ellipse(0,18,21,7,0,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle="#d8efff";ctx.lineWidth=9;ctx.lineCap="round";ctx.beginPath();ctx.moveTo(-8,5);ctx.lineTo(-12,19);ctx.moveTo(8,5);ctx.lineTo(12,19);ctx.stroke();
+    ctx.strokeStyle="#5284c9";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-12,17);ctx.lineTo(-15,20);ctx.moveTo(12,17);ctx.lineTo(15,20);ctx.stroke();
+    rounded(-14,-9,28,25,8,"#e9f4ff","#91c6ef");rounded(-6,-4,12,13,3,"#4ba2e1","#b8e9ff");
+    ctx.strokeStyle="#e8f4ff";ctx.lineWidth=6;ctx.beginPath();ctx.moveTo(-13,-4);ctx.lineTo(-21,5);ctx.moveTo(13,-4);ctx.lineTo(21,5);ctx.stroke();
+    ctx.strokeStyle="#8fcaf7";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-20,5);ctx.lineTo(-22,8);ctx.moveTo(20,5);ctx.lineTo(22,8);ctx.stroke();
+    ctx.fillStyle="#eaf5ff";ctx.beginPath();ctx.arc(0,-18,17,0,Math.PI*2);ctx.fill();ctx.strokeStyle="#9ac9ee";ctx.lineWidth=2;ctx.stroke();
+    rounded(-12,-25,24,15,7,"#152a4a","#6fd9f7");ctx.strokeStyle="#6fd9f7";ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(-7,-19);ctx.lineTo(6,-19);ctx.stroke();
+    ctx.fillStyle="#ffe38b";ctx.beginPath();ctx.arc(0,-18,2,0,Math.PI*2);ctx.fill();ctx.restore();
+  }
+  function drawCar(x,y,scale,color) {
+    ctx.save();ctx.translate(x,y);ctx.scale(scale||1,scale||1);
+    ctx.fillStyle="#0004";ctx.beginPath();ctx.ellipse(0,14,19,6,0,0,Math.PI*2);ctx.fill();
+    rounded(-19,-2,8,20,3,"#131d2c");rounded(11,-2,8,20,3,"#131d2c");
+    ctx.fillStyle=color||"#e34f69";ctx.beginPath();ctx.moveTo(-15,7);ctx.lineTo(-12,-9);ctx.lineTo(-6,-18);ctx.quadraticCurveTo(0,-21,6,-18);ctx.lineTo(12,-9);ctx.lineTo(15,7);ctx.quadraticCurveTo(0,13,-15,7);ctx.closePath();ctx.fill();
+    ctx.strokeStyle="#ffffff70";ctx.lineWidth=1.2;ctx.stroke();
+    ctx.fillStyle="#203c58";ctx.beginPath();ctx.moveTo(-9,-9);ctx.lineTo(-5,-16);ctx.quadraticCurveTo(0,-18,5,-16);ctx.lineTo(9,-9);ctx.closePath();ctx.fill();
+    ctx.strokeStyle="#9fe7ff";ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(-7,-9);ctx.lineTo(7,-9);ctx.stroke();
+    rounded(-11,3,5,3,1,"#fff0b8");rounded(6,3,5,3,1,"#fff0b8");
+    ctx.strokeStyle="#fff";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(-8,-1);ctx.lineTo(8,-1);ctx.stroke();ctx.restore();
   }
   function background(top, bottom) {
     const grad = ctx.createLinearGradient(0, 0, 0, 520);
