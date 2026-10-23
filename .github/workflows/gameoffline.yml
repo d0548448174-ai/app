@@ -6,7 +6,7 @@ on:
       - '.github/workflows/gameoffline.yml'
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -31,10 +31,23 @@ jobs:
       - name: Build debug APK
         working-directory: gameoffline
         run: gradle --no-daemon :app:assembleDebug
+      - name: Prepare APK
+        run: cp gameoffline/app/build/outputs/apk/debug/app-debug.apk GameOffline.apk
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: GameOffline-debug-apk
-          path: gameoffline/app/build/outputs/apk/debug/app-debug.apk
+          path: GameOffline.apk
           if-no-files-found: error
           retention-days: 90
+      - name: Publish direct APK download
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="gameoffline-v2"
+          APK="GameOffline.apk"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$APK" --clobber
+          else
+            gh release create "$TAG" "$APK" --target "$GITHUB_SHA" --title "GameOffline v2 — 10 Offline Games" --notes "Android APK with 10 offline mini-games. Built automatically with GitHub Actions."
+          fi
