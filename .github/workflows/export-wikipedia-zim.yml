@@ -46,10 +46,10 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p parts
-          split --bytes=300000000 --numeric-suffixes=0 --suffix-length=2 \
+          split --bytes=90000000 --numeric-suffixes=0 --suffix-length=2 \
             --additional-suffix=.part wikipedia_he_all_mini_2026-07a.zim parts/wikipedia-zim-
           ls -lh parts
-          test "$(find parts -type f | wc -l)" -eq 3
+          test "$(find parts -name "wikipedia-zim-*.part" -type f | wc -l)" -eq 10
           sha256sum parts/* > parts/SHA256SUMS.txt
 
       - name: Upload ZIM part 00
@@ -73,6 +73,62 @@ jobs:
         with:
           name: wikipedia-zim-part-02
           path: parts/wikipedia-zim-02.part
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload ZIM part 03
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-zim-part-03
+          path: parts/wikipedia-zim-03.part
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload ZIM part 04
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-zim-part-04
+          path: parts/wikipedia-zim-04.part
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload ZIM part 05
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-zim-part-05
+          path: parts/wikipedia-zim-05.part
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload ZIM part 06
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-zim-part-06
+          path: parts/wikipedia-zim-06.part
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload ZIM part 07
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-zim-part-07
+          path: parts/wikipedia-zim-07.part
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload ZIM part 08
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-zim-part-08
+          path: parts/wikipedia-zim-08.part
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload ZIM part 09
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-zim-part-09
+          path: parts/wikipedia-zim-09.part
           compression-level: 0
           retention-days: 3
 
