@@ -1,0 +1,68 @@
+name: Build Offline Game APK
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "offline-game/**"
+      - "settings.gradle"
+      - ".github/workflows/offline-game-apk.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Compile Android APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get source
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Gradle 8.9
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.9"
+
+      - name: Build the app
+        run: gradle :offline-game:assembleDebug --stacktrace
+
+      - name: Prepare download
+        run: |
+          mkdir -p release
+          cp offline-game/build/outputs/apk/debug/offline-game-debug.apk release/Offline-Game.apk
+          test -s release/Offline-Game.apk
+
+      - name: Keep APK as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Offline-Game-APK
+          path: release/Offline-Game.apk
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish direct APK download
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: offline-game-${{ github.run_number }}
+          name: "אופליין גיים — גרסה ${{ github.run_number }}"
+          body: |
+            אופליין גיים — מדוזה כחולה
+            שמונה משחקים שפועלים ללא חיבור לאינטרנט.
+            כל הזכויות שמורות למדוזה כחולה.
+          files: release/Offline-Game.apk
+          draft: false
+          prerelease: false
+          make_latest: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
