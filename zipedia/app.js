@@ -762,7 +762,7 @@
     // Keep the large asset as a browser-managed Blob/File; do not copy it into OPFS.
     const blob = await response.blob();
     if (blob.size < bundledZimMinBytes) {
-      throw new Error("קובץ ויקיפדיה שבתוך האפליקציה קטן מהצפוי (" + formatMiB(blob.size) + ").");
+      throw new Error("קובץ ויקיפדיה שבתוך האפליקציה קטן מהצפוי (" + (Math.round(blob.size / (1024 * 1024)) + " MiB") + ").");
     }
     const file = new File([blob], bundledZimName, {
       type: "application/x-zim",
