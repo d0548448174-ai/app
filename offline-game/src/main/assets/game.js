@@ -327,28 +327,72 @@
     if(g.over)drawOverlay("המסע נעצר", "גובה שהושג: "+Math.floor(g.score));
   }
 
-    /* 4 — פוצץ בועות */
+    /* 4 — יורה הבועות: כיוון, קליע, התנגשויות ופיצוץ קבוצות */
   const bubbleColors=["#ff6294","#ffc84e","#43e4be","#58c7ff","#bc87ff"];
+  function randomBubbleColor(){return Math.floor(Math.random()*bubbleColors.length);}
   function initBubbles(){
-    const grid=[];for(let r=0;r<8;r++){const row=[];for(let c=0;c<7;c++)row.push(Math.floor(Math.random()*bubbleColors.length));grid.push(row);}
-    g={grid,score:0,over:false};setHelp("לחצו על קבוצה של שתי בועות לפחות באותו צבע. קבוצה גדולה = יותר נקודות.");
-    actionButton("ערבוב חדש",restartCanvasGame,"primary");
+    const grid=[];for(let r=0;r<7;r++){const row=[];for(let c=0;c<7;c++)row.push(r<4?randomBubbleColor():null);grid.push(row);}
+    g={grid,score:0,over:false,shot:{x:180,y:465,vx:0,vy:0,color:randomBubbleColor(),flying:false},next:randomBubbleColor(),aim:{x:180,y:120},shots:0};
+    setHelp("געו בחלק העליון של הלוח כדי לכוון ולירות. חברו שלוש בועות מאותו צבע לפחות.");
+    actionButton("משחק חדש",restartCanvasGame,"primary");
   }
-  function popBubble(x,y){
-    const c=Math.round((x-24)/52),r=Math.round((y-70)/45);
-    if(r<0||r>=8||c<0||c>=7||g.grid[r][c]===null)return;
-    const color=g.grid[r][c],stack=[[r,c]],seen=new Set([r+","+c]),group=[];
-    while(stack.length){const [rr,cc]=stack.pop();group.push([rr,cc]);[[rr-1,cc],[rr+1,cc],[rr,cc-1],[rr,cc+1]].forEach(([nr,nc])=>{const k=nr+","+nc;if(nr>=0&&nr<8&&nc>=0&&nc<7&&!seen.has(k)&&g.grid[nr][nc]===color){seen.add(k);stack.push([nr,nc]);}});}
-    if(group.length<2){setHelp("כמעט! נסו ללחוץ על שתי בועות או יותר מאותו צבע.");return;}
-    group.forEach(([rr,cc])=>g.grid[rr][cc]=null);g.score+=group.length*10+Math.max(0,group.length-3)*5;setScore(g.score);
-    if(g.grid.every(row=>row.every(v=>v===null))){g.score+=100;finishGame("ניקוי מושלם!", "קיבלתם 100 נקודות בונוס!");}
-    else setHelp("פיצוץ של "+group.length+" בועות! המשיכו לחפש קבוצות.");
+  function shootBubble(x,y){
+    if(!g||g.over)return;
+    const s=g.shot;if(s.flying)return;
+    const dx=x-s.x,dy=y-s.y;
+    if(dy>0)return;
+    const length=Math.max(1,Math.sqrt(dx*dx+dy*dy));
+    s.vx=dx/length*7.3;s.vy=dy/length*7.3;s.flying=true;g.aim={x,y};
+  }
+  function attachShot(){
+    const s=g.shot;
+    let c=clamp(Math.round((s.x-36)/48),0,6),r=clamp(Math.round((s.y-62)/38),0,6);
+    if(g.grid[r][c]!==null){
+      let best=null,dist=Infinity;
+      for(let rr=0;rr<7;rr++)for(let cc=0;cc<7;cc++)if(g.grid[rr][cc]===null){const d=(rr-r)*(rr-r)+(cc-c)*(cc-c);if(d<dist){dist=d;best=[rr,cc];}}
+      if(best){r=best[0];c=best[1];}else{finishGame("הלוח מלא","הניקוד שלכם: "+g.score);return;}
+    }
+    g.grid[r][c]=s.color;g.shots++;
+    const stack=[[r,c]],seen=new Set([r+","+c]),group=[];
+    while(stack.length){const [rr,cc]=stack.pop();group.push([rr,cc]);[[rr-1,cc],[rr+1,cc],[rr,cc-1],[rr,cc+1]].forEach(([nr,nc])=>{const k=nr+","+nc;if(nr>=0&&nr<7&&nc>=0&&nc<7&&!seen.has(k)&&g.grid[nr][nc]===s.color){seen.add(k);stack.push([nr,nc]);}});}
+    if(group.length>=3){
+      group.forEach(([rr,cc])=>g.grid[rr][cc]=null);g.score+=group.length*15+Math.max(0,group.length-3)*10;
+      const connected=new Set(),queue=[];
+      for(let cc=0;cc<7;cc++)if(g.grid[0][cc]!==null){queue.push([0,cc]);connected.add("0,"+cc);}
+      while(queue.length){const [rr,cc]=queue.shift();[[rr+1,cc],[rr,cc-1],[rr,cc+1],[rr-1,cc]].forEach(([nr,nc])=>{const key=nr+","+nc;if(nr>=0&&nr<7&&nc>=0&&nc<7&&g.grid[nr][nc]!==null&&!connected.has(key)){connected.add(key);queue.push([nr,nc]);}});}
+      for(let rr=0;rr<7;rr++)for(let cc=0;cc<7;cc++)if(g.grid[rr][cc]!==null&&!connected.has(rr+","+cc)){g.grid[rr][cc]=null;g.score+=5;}
+      setHelp("פגיעה! "+group.length+" בועות התפוצצו.");
+    }else setHelp("הבועה נצמדה ללוח. נסו לתכנן את הירייה הבאה.");
+    s.flying=false;s.x=180;s.y=465;s.vx=0;s.vy=0;s.color=g.next;g.next=randomBubbleColor();
+    if(g.grid.every(row=>row.every(v=>v===null)))finishGame("ניקוי מושלם","הסרתם את כל הבועות!");
+    else if(g.grid.some(row=>row.some(v=>v!==null))&&g.grid[6].some(v=>v!==null))finishGame("הבועות הגיעו לתחתית","נסו שוב ולכוונו גבוה יותר");
+  }
+  function updateBubbles(dt){
+    const s=g.shot;if(!s.flying)return;
+    s.x+=s.vx*dt;s.y+=s.vy*dt;
+    if(s.x<20){s.x=20;s.vx=Math.abs(s.vx);}
+    if(s.x>340){s.x=340;s.vx=-Math.abs(s.vx);}
+    let hit=s.y<42;
+    for(let r=0;r<7&&!hit;r++)for(let c=0;c<7&&!hit;c++)if(g.grid[r][c]!==null){const bx=36+c*48,by=62+r*38;if(Math.hypot(s.x-bx,s.y-by)<29)hit=true;}
+    if(hit)attachShot();
+  }
+  function drawBubble(x,y,color,r){
+    const grad=ctx.createRadialGradient(x-r*.37,y-r*.42,1,x,y,r);
+    grad.addColorStop(0,"#ffffff");grad.addColorStop(.18,bubbleColors[color]);grad.addColorStop(1,bubbleColors[color]+"c0");
+    ctx.fillStyle=grad;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle="#f6ffffa0";ctx.lineWidth=1.2;ctx.stroke();
+    ctx.fillStyle="#ffffffa0";ctx.beginPath();ctx.ellipse(x-r*.28,y-r*.32,r*.16,r*.1,-.5,0,Math.PI*2);ctx.fill();
   }
   function drawBubbles(){
-    background("#121f59","#09132f");stars(25,Math.floor(g.score));
-    for(let r=0;r<8;r++)for(let c=0;c<7;c++){const val=g.grid[r][c];if(val===null)continue;const x=24+c*52,y=70+r*45;const grad=ctx.createRadialGradient(x-7,y-8,2,x,y,21);grad.addColorStop(0,"#ffffff");grad.addColorStop(.22,bubbleColors[val]);grad.addColorStop(1,bubbleColors[val]+"aa");ctx.fillStyle=grad;ctx.beginPath();ctx.arc(x,y,19,0,Math.PI*2);ctx.fill();ctx.strokeStyle="#ffffff70";ctx.lineWidth=1.7;ctx.stroke();ctx.fillStyle="#ffffff9c";ctx.beginPath();ctx.arc(x-6,y-7,4,0,Math.PI*2);ctx.fill();}
-    rounded(15,16,330,31,11,"#142a5c");text("לחצו על בועות תואמות",180,31,13,"#d4f8ff",800);
-    if(g.over)drawOverlay("וואו, ניקוי מושלם!", "בונוס הניקוי כבר בניקוד");
+    background("#192a57","#0a1529");
+    for(let i=0;i<22;i++){ctx.fillStyle="#d1eaff22";ctx.beginPath();ctx.arc((i*79+24)%360,(i*113+50)%520,1+(i%3),0,Math.PI*2);ctx.fill();}
+    rounded(12,12,336,31,9,"#162e4d","#2b4968");text("חברו לפחות 3 בועות",180,27,12,"#d5f7ff",800);
+    for(let r=0;r<7;r++)for(let c=0;c<7;c++){const v=g.grid[r][c];if(v!==null)drawBubble(36+c*48,62+r*38,v,15.8);}
+    const s=g.shot;
+    if(!s.flying){ctx.save();ctx.setLineDash([4,5]);ctx.strokeStyle="#c9e6ff88";ctx.lineWidth=1.5;const dx=g.aim.x-s.x,dy=g.aim.y-s.y,len=Math.max(1,Math.hypot(dx,dy));ctx.beginPath();ctx.moveTo(s.x,s.y);ctx.lineTo(s.x+dx/len*140,s.y+dy/len*140);ctx.stroke();ctx.restore();}
+    drawBubble(s.x,s.y,s.color,16.5);drawBubble(218,480,g.next,9);
+    rounded(18,500,324,1,1,"#42617d");text("הבא",245,480,9,"#95aac5",700);
+    if(g.over)drawOverlay("הסיבוב הסתיים", "ניקוד: "+g.score);
   }
 
   /* 7 — מרוץ מכוניות */
