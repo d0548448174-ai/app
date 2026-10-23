@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#07101f">
+<title>אופליין גיים — מדוזה כחולה</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="mini-logo" aria-hidden="true">
+        <svg viewBox="0 0 100 100"><path d="M16 48C11 25 30 14 43 19C56 5 76 18 81 29C98 38 89 60 73 66L75 82L63 73L53 88L43 72L29 83L29 66C15 61 11 55 16 48Z" fill="#24cff6"/><ellipse cx="37" cy="41" rx="5" ry="7" fill="#07101f"/><ellipse cx="63" cy="41" rx="5" ry="7" fill="#07101f"/><path d="M42 53Q50 62 59 53" fill="none" stroke="#07101f" stroke-width="4" stroke-linecap="round"/></svg>
+      </div>
+      <div><div class="brand-title">אופליין <span>גיים</span></div><div class="brand-sub">מדוזה כחולה מציגה</div></div>
+    </div>
+    <div class="offline-pill"><span class="online-dot"></span> עובד אופליין</div>
+  </header>
+
+  <main>
+    <section id="home">
+      <div class="hero">
+        <div class="hero-text">
+          <div class="eyebrow"><span>✦</span> אוסף המשחקים שלך</div>
+          <h1>משחקים קטנים,<br><span>כיף גדול.</span></h1>
+          <p>שמונה משחקים חמודים, אתגרים קטנים והמון כיף — בלי אינטרנט ובלי פרסומות.</p>
+          <div class="hero-tags"><span>✈️ ללא רשת</span><span>🏆 שיאים נשמרים</span></div>
+        </div>
+        <div class="hero-art" aria-label="מדוזה כחולה חמודה">
+          <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
+          <svg viewBox="0 0 220 220" role="img" aria-label="מדוזה כחולה עם שלט משחק">
+            <defs><linearGradient id="jelly" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#7df7ff"/><stop offset=".55" stop-color="#22c7ff"/><stop offset="1" stop-color="#3878ff"/></linearGradient><linearGradient id="pad" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#213b83"/><stop offset="1" stop-color="#101b40"/></linearGradient></defs>
+            <circle cx="110" cy="110" r="84" fill="#0e9bff" opacity=".1"/>
+            <path d="M50 110C31 61 58 31 92 39C117 19 155 39 165 62C191 85 170 116 151 125L160 160Q162 170 153 169L137 150L123 174Q118 181 112 171L103 150L84 171Q76 177 75 166L78 130C62 127 54 120 50 110Z" fill="#0875da" opacity=".7"/>
+            <path d="M48 103C38 68 59 40 91 45C116 27 150 43 161 65C180 83 165 111 147 121L153 150L136 138L122 159L109 138L88 158L84 120C63 120 52 113 48 103Z" fill="url(#jelly)" stroke="#9af7ff" stroke-width="3"/>
+            <ellipse cx="84" cy="82" rx="9" ry="13" fill="#06132d"/><ellipse cx="128" cy="82" rx="9" ry="13" fill="#06132d"/>
+            <circle cx="81" cy="78" r="3.5" fill="#fff"/><circle cx="125" cy="78" r="3.5" fill="#fff"/>
+            <path d="M91 100Q106 114 121 100" fill="none" stroke="#06132d" stroke-width="4.5" stroke-linecap="round"/>
+            <path d="M67 124Q105 144 143 124" fill="none" stroke="#96f7ff" stroke-width="3" opacity=".85"/>
+            <g transform="translate(67 135) rotate(-7 42 20)"><rect x="0" y="0" width="87" height="39" rx="16" fill="url(#pad)" stroke="#5dafff" stroke-width="3"/><path d="M18 12V26M11 19H25" stroke="#fff" stroke-width="4" stroke-linecap="round"/><circle cx="65" cy="14" r="4" fill="#ffda61"/><circle cx="73" cy="23" r="4" fill="#fa6897"/><circle cx="57" cy="24" r="4" fill="#7af3ce"/></g>
+            <path d="M40 48l3 9 9 3-9 3-3 9-3-9-9-3 9-3zM174 46l2 6 6 2-6 2-2 6-2-6-6-2 6-2zM169 145l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" fill="#fff0a6"/>
+          </svg>
+          <span class="spark spark-a">✦</span><span class="spark spark-b">✧</span>
+        </div>
+      </div>
+
+      <div class="section-heading"><div><h2>מה משחקים היום?</h2><p>בחרו משחק והתחילו לשחק</p></div><div class="count-bubble">8 משחקים</div></div>
+      <div class="game-grid">
+        <button class="game-card" data-game="runner"><div class="card-art art-runner"><span class="art-emoji">🐱</span><span class="art-spark">✦</span></div><div class="card-info"><div class="game-name">חתול רץ</div><div class="game-desc">קפצו מעל המכשולים!</div><div class="card-bottom"><span class="tag tag-cyan">זריזות</span><span class="play-circle">←</span></div></div></button>
+        <button class="game-card" data-game="breakout"><div class="card-art art-breakout"><span class="art-emoji">🧱</span><span class="art-ball">●</span></div><div class="card-info"><div class="game-name">שובר לבנים</div><div class="game-desc">שברו את כל הלבנים</div><div class="card-bottom"><span class="tag tag-orange">ארקייד</span><span class="play-circle">←</span></div></div></button>
+        <button class="game-card" data-game="space"><div class="card-art art-space"><span class="art-emoji">👨‍🚀</span><span class="art-star">★</span></div><div class="card-info"><div class="game-name">קפיצת חלל</div><div class="game-desc">קפצו בין הכוכבים</div><div class="card-bottom"><span class="tag tag-purple">הרפתקה</span><span class="play-circle">←</span></div></div></button>
+        <button class="game-card" data-game="bubbles"><div class="card-art art-bubbles"><span>🔵 🟣 🟡</span><span>🟢 🔴 🔵</span></div><div class="card-info"><div class="game-name">פוצץ בועות</div><div class="game-desc">חברו בועות מאותו צבע</div><div class="card-bottom"><span class="tag tag-pink">חשיבה</span><span class="play-circle">←</span></div></div></button>
+        <button class="game-card" data-game="memory"><div class="card-art art-memory"><span class="memory-mini">★</span><span class="memory-mini">?</span><span class="memory-mini">★</span></div><div class="card-info"><div class="game-name">זיכרון</div><div class="game-desc">מצאו את כל הזוגות</div><div class="card-bottom"><span class="tag tag-yellow">ריכוז</span><span class="play-circle">←</span></div></div></button>
+        <button class="game-card" data-game="sudoku"><div class="card-art art-sudoku"><span>5 3  ·</span><span>6 · 9</span><span>· 8 2</span></div><div class="card-info"><div class="game-name">סודוקו</div><div class="game-desc">השלימו את המספרים</div><div class="card-bottom"><span class="tag tag-cyan">היגיון</span><span class="play-circle">←</span></div></div></button>
+        <button class="game-card" data-game="racer"><div class="card-art art-racer"><span class="art-car">🏎️</span><span class="road-line"></span></div><div class="card-info"><div class="game-name">מרוץ מכוניות</div><div class="game-desc">התחמקו מהמכוניות</div><div class="card-bottom"><span class="tag tag-orange">מרוץ</span><span class="play-circle">←</span></div></div></button>
+        <button class="game-card" data-game="ttt"><div class="card-art art-ttt"><span>×</span><span>○</span><span>×</span><span>○</span><span>×</span><span>○</span><span>×</span><span>○</span><span>×</span></div><div class="card-info"><div class="game-name">איקס עיגול</div><div class="game-desc">תנצחו את המחשב</div><div class="card-bottom"><span class="tag tag-purple">אסטרטגיה</span><span class="play-circle">←</span></div></div></button>
+      </div>
+      <footer class="copyright"><span class="copyright-mark">✦</span> כל הזכויות שמורות למדוזה כחולה <span class="copyright-year">©</span></footer>
+    </section>
+
+    <section id="play" hidden>
+      <div class="play-toolbar"><button id="backHome" class="back-button" aria-label="חזרה לרשימת המשחקים">→</button><div class="playing-title"><div class="playing-kicker">עכשיו משחקים</div><h2 id="playingName">משחק</h2></div><div class="score-pill" id="scorePill">ניקוד 0</div></div>
+      <div id="stage" class="stage"></div>
+      <div id="help" class="help-text"></div>
+      <div id="actions" class="actions"></div>
+      <footer class="copyright play-copyright">כל הזכויות שמורות למדוזה כחולה ©</footer>
+    </section>
+  </main>
+</div>
+<script src="game.js"></script>
+</body>
+</html>
