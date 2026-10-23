@@ -1,0 +1,84 @@
+name: Export Hebrew Wikipedia ZIM in transferable parts
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/export-wikipedia-zim.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  export-zim:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download and validate the Hebrew Wikipedia mini archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          file="wikipedia_he_all_mini_2026-07a.zim"
+          success=0
+          for base in \
+            "https://download.kiwix.org/zim/wikipedia" \
+            "https://ftpmirror.your.org/pub/kiwix/zim/wikipedia" \
+            "https://thuli.pics/kiwix/zim/wikipedia"; do
+            echo "Trying $base/$file"
+            rm -f "$file"
+            if curl --fail --location --silent --show-error --retry 2 --retry-delay 2 \
+              --connect-timeout 30 --max-time 1800 "$base/$file" --output "$file"; then
+              size="$(stat -c '%s' "$file")"
+              magic="$(head -c 4 "$file" | od -An -tx1 | tr -d ' \n')"
+              echo "Downloaded $size bytes; ZIM magic=$magic"
+              if [ "$size" -gt 700000000 ] && [ "$magic" = "5a494d04" ]; then
+                success=1
+                break
+              fi
+            fi
+          done
+          if [ "$success" -ne 1 ]; then
+            echo "Could not download and validate the ZIM archive." >&2
+            exit 1
+          fi
+
+      - name: Split archive into uploadable parts
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p parts
+          split --bytes=300000000 --numeric-suffixes=0 --suffix-length=2 \
+            --additional-suffix=.part wikipedia_he_all_mini_2026-07a.zim parts/wikipedia-zim-
+          ls -lh parts
+          test "$(find parts -type f | wc -l)" -eq 3
+          sha256sum parts/* > parts/SHA256SUMS.txt
+
+      - name: Upload ZIM part 00
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-zim-part-00
+          path: parts/wikipedia-zim-00.part
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload ZIM part 01
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-zim-part-01
+          path: parts/wikipedia-zim-01.part
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload ZIM part 02
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-zim-part-02
+          path: parts/wikipedia-zim-02.part
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload SHA-256 part manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-zim-checksums
+          path: parts/SHA256SUMS.txt
+          retention-days: 3
