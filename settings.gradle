@@ -3,3 +3,4 @@ dependencyResolutionManagement { repositoriesMode.set(RepositoriesMode.FAIL_ON_P
 rootProject.name = "M36MusicTools"
 include(":app")
 include(":music-ai-android")
+include(":offline-game")
