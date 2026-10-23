@@ -442,7 +442,7 @@
 
   /* 5 — זיכרון */
   function initMemory(){
-    const faces=["🐱","🐸","🦊","🐼","🐵","🐧","🦄","🐙"];
+    const faces=["star","moon","gem","leaf","bolt","heart","planet","crown"];
     const cards=faces.concat(faces).map((face,i)=>({face,key:i,open:false,matched:false}));
     for(let i=cards.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[cards[i],cards[j]]=[cards[j],cards[i]];}
     memoryState={cards,opened:[],moves:0,matches:0,locked:false};
@@ -457,7 +457,7 @@
     memoryState.cards.forEach((card,index)=>{
       const b=document.createElement("button");b.type="button";
       b.className="memory-card"+(card.open?" open":"")+(card.matched?" matched":"")+(card.open||card.matched?"":" back");
-      b.textContent=card.open||card.matched?card.face:"?";
+      b.innerHTML=card.open||card.matched?memoryFaceSvg(card.face):'<span class="memory-question">?</span>';
       b.setAttribute("aria-label",card.open||card.matched?card.face:"קלף מוסתר");
       b.addEventListener("click",()=>flipMemory(index));board.appendChild(b);
     });
@@ -506,7 +506,7 @@
     const s=sudokuState;if(!s)return;const r=Math.floor(s.selected/9),c=s.selected%9;if(sudokuPuzzle[r][c]){setHelp("זוהי משבצת רמז קבועה. בחרו משבצת ריקה.");return;}
     s.values[r][c]=n;if(n===0||n===sudokuSolution[r][c])s.wrong.delete(s.selected);else s.wrong.add(s.selected);
     renderSudoku();
-    if(s.values.every((row,rr)=>row.every((v,cc)=>v===sudokuSolution[rr][cc]))){setHelp("🎉 פתרתם את הסודוקו! כל הכבוד!");setScore(100);}
+    if(s.values.every((row,rr)=>row.every((v,cc)=>v===sudokuSolution[rr][cc]))){setHelp("פתרתם את הסודוקו! כל הכבוד!");setScore(100);}
     else if(n&&n!==sudokuSolution[r][c])setHelp("המספר לא מתאים למשבצת הזו. אפשר לתקן אותו.");
     else setHelp("יפה! המשיכו למלא את הלוח.");
   }
@@ -538,7 +538,7 @@
   function renderTtt(){
     const s=tttState;if(!s||currentGame!=="ttt")return;const board=$("tttBoard");if(!board)return;board.innerHTML="";
     s.board.forEach((v,i)=>{const b=document.createElement("button");b.type="button";b.className="ttt-cell"+(v==="O"?" o":"")+(s.win.includes(i)?" win":"");b.textContent=v==="X"?"×":v==="O"?"○":"";b.setAttribute("aria-label",v||"משבצת ריקה");b.addEventListener("click",()=>playHuman(i));board.appendChild(b);});
-    const res=tttWinner(s.board);if(res){s.done=true;s.win=res.line;$("tttStatus").textContent=res.winner==="X"?"🎉 ניצחתם!":res.winner==="O"?"הפעם המחשב ניצח":"תיקו — משחקים שוב?";setHelp($("tttStatus").textContent);}
+    const res=tttWinner(s.board);if(res){s.done=true;s.win=res.line;$("tttStatus").textContent=res.winner==="X"?"ניצחתם!":res.winner==="O"?"הפעם המחשב ניצח":"תיקו — משחקים שוב?";setHelp($("tttStatus").textContent);}
     else if(s.board.filter(Boolean).length===0)$("tttStatus").textContent="התור שלכם — ×";
     else if(s.board.filter(Boolean).length%2===1)$("tttStatus").textContent="תור המחשב — ○";
     else $("tttStatus").textContent="התור שלכם — ×";
