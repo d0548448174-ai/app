@@ -26,7 +26,8 @@ else if (action === 'listTitles') {
         var prefix = String(e.data.query || '');
         var start = Math.max(0, Math.floor(Number(e.data.start) || 0));
         var count = Math.max(1, Math.min(500, Math.floor(Number(e.data.count) || 100)));
-        var total = Module.getTitleCount(prefix);
+        // An empty prefix is the full catalogue. Avoid counting every entry synchronously at startup.
+        var total = prefix ? Module.getTitleCount(prefix) : Module.getArticleCount();
         var entries = Module.listTitles(prefix, start, count);
         var results = [];
         for (var i = 0; i < entries.size(); i++) {
