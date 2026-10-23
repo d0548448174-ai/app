@@ -334,7 +334,7 @@
     const board=document.createElement("div");board.className="memory-board";board.id="memoryBoard";
     const meta=document.createElement("div");meta.className="memory-meta";meta.innerHTML='<span id="memoryMoves">מהלכים: 0</span><span id="memoryPairs">זוגות: 0 / 8</span>';
     $("stage").append(board,meta);renderMemory();
-    actionButton("משחק חדש",initMemory,"primary");
+    actionButton("משחק חדש",()=>startGame("memory"),"primary");
   }
   function renderMemory(){
     if(currentGame!=="memory"||!memoryState)return;
@@ -372,7 +372,7 @@
     const wrap=document.createElement("div");wrap.className="sudoku-wrap";wrap.innerHTML='<div class="sudoku-board" id="sudokuBoard"></div><div class="sudoku-numbers" id="sudokuNumbers"></div>';
     $("stage").appendChild(wrap);renderSudoku();
     actionButton("מחיקת מספר",()=>sudokuInput(0),"");
-    actionButton("התחלה מחדש",initSudoku,"primary");
+    actionButton("התחלה מחדש",()=>startGame("sudoku"),"primary");
   }
   function renderSudoku(){
     if(currentGame!=="sudoku"||!sudokuState)return;
@@ -402,7 +402,7 @@
     tttState={board:Array(9).fill(""),done:false,win:[]};
     const wrap=document.createElement("div");wrap.className="ttt-wrap";wrap.innerHTML='<div class="ttt-status" id="tttStatus">התור שלכם — ×</div><div class="ttt-board" id="tttBoard"></div>';
     $("stage").appendChild(wrap);renderTtt();
-    actionButton("משחק חדש",initTicTacToe,"primary");
+    actionButton("משחק חדש",()=>startGame("ttt"),"primary");
   }
   function tttWinner(board){
     for(const line of winLines){const [a,b,c]=line;if(board[a]&&board[a]===board[b]&&board[b]===board[c])return {winner:board[a],line};}
