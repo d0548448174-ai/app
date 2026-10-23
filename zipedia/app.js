@@ -3,7 +3,8 @@
 
   const $ = (id) => document.getElementById(id);
   const state = {
-    worker: null, ready: false, archiveName: "", articleCount: 0,\n    busyTimer: null, busyStart: 0, busyDetail: "",
+    worker: null, ready: false, archiveName: "", articleCount: 0,
+    busyTimer: null, busyStart: 0, busyDetail: "",
     mode: "browse", activeQueries: [""], browseLabel: "כל הערכים",
     queryOffset: 0, total: 0, results: [], selectedPath: "",
     selectedTitle: "", pageBusy: false, searchSequence: 0,
