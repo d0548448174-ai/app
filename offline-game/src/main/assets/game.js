@@ -428,6 +428,4 @@
     else if(s.board.filter(Boolean).length%2===1)$("tttStatus").textContent="תור המחשב — ○";
     else $("tttStatus").textContent="התור שלכם — ×";
   }
-
-  function restartCanvasGame(){clearFrame();$('stage').innerHTML='';$('actions').innerHTML='';initCanvasGame(currentGame);}
 })();
