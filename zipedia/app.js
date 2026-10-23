@@ -3,7 +3,7 @@
 
   const $ = (id) => document.getElementById(id);
   const state = {
-    worker: null, ready: false, archiveName: "", articleCount: 0,
+    worker: null, ready: false, archiveName: "", articleCount: 0,\n    busyTimer: null, busyStart: 0, busyDetail: "",
     mode: "browse", activeQueries: [""], browseLabel: "כל הערכים",
     queryOffset: 0, total: 0, results: [], selectedPath: "",
     selectedTitle: "", pageBusy: false, searchSequence: 0,
@@ -23,10 +23,40 @@
     state.toastTimer = setTimeout(() => toast.classList.remove("show"), 3600);
   }
 
+  function formatElapsed(milliseconds) {
+    const totalSeconds = Math.max(0, Math.floor(milliseconds / 1000));
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    if (hours > 0) return hours + " שע׳ " + String(minutes).padStart(2, "0") + " דק׳";
+    if (minutes > 0) return minutes + " דק׳ " + String(seconds).padStart(2, "0") + " שנ׳";
+    return seconds + " שניות";
+  }
+
+  function updateBusyElapsed() {
+    if (!state.busyStart || $("busyOverlay").hidden) return;
+    const elapsed = Date.now() - state.busyStart;
+    const elapsedText = "זמן שחלף: " + formatElapsed(elapsed) + ".";
+    const hint = elapsed >= 600000
+      ? " אם המסך לא משתנה במשך זמן רב, ייתכן שהפתיחה נתקעה."
+      : "";
+    $("busyText").textContent = (state.busyDetail ? state.busyDetail + " " : "") + elapsedText + hint;
+  }
+
   function busy(show, title, detail) {
     $("busyOverlay").hidden = !show;
     if (title) $("busyTitle").textContent = title;
-    if (detail) $("busyText").textContent = detail;
+    if (detail !== undefined && detail !== null) state.busyDetail = detail;
+    if (!show) {
+      if (state.busyTimer) clearInterval(state.busyTimer);
+      state.busyTimer = null;
+      state.busyStart = 0;
+      state.busyDetail = "";
+      return;
+    }
+    if (!state.busyStart) state.busyStart = Date.now();
+    updateBusyElapsed();
+    if (!state.busyTimer) state.busyTimer = setInterval(updateBusyElapsed, 1000);
   }
 
   function status(message, isError) {
