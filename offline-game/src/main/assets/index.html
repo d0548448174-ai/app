@@ -3,69 +3,127 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<meta name="theme-color" content="#07101f">
-<title>אופליין גיים — מדוזה כחולה</title>
+<meta name="theme-color" content="#0a1020">
+<title>ספריית משחקי אופליין — מדוזה כחולה</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div id="app">
   <header class="topbar">
-    <div class="brand">
-      <div class="mini-logo" aria-hidden="true">
-        <svg viewBox="0 0 100 100"><path d="M16 48C11 25 30 14 43 19C56 5 76 18 81 29C98 38 89 60 73 66L75 82L63 73L53 88L43 72L29 83L29 66C15 61 11 55 16 48Z" fill="#24cff6"/><ellipse cx="37" cy="41" rx="5" ry="7" fill="#07101f"/><ellipse cx="63" cy="41" rx="5" ry="7" fill="#07101f"/><path d="M42 53Q50 62 59 53" fill="none" stroke="#07101f" stroke-width="4" stroke-linecap="round"/></svg>
-      </div>
-      <div><div class="brand-title">אופליין <span>גיים</span></div><div class="brand-sub">מדוזה כחולה מציגה</div></div>
+    <button class="brand" id="brandHome" type="button" aria-label="חזרה לספרייה">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 64 64"><path d="M10 30C10 17 20 9 32 9S54 17 54 30C54 39 48 44 41 47L43 55L34 50L27 57L25 48C16 44 10 39 10 30Z" fill="#42d9ff" stroke="#a6f6ff" stroke-width="1.5"/><path d="M21 27v5m-2.5-2.5h5m15-2.5v5m-2.5-2.5h5" stroke="#082038" stroke-width="3" stroke-linecap="round"/><path d="M26 38q6 5 12 0" fill="none" stroke="#082038" stroke-width="2.6" stroke-linecap="round"/></svg>
+      </span>
+      <span class="brand-copy"><strong>אופליין <em>גיים</em></strong><small>ספריית משחקים</small></span>
+    </button>
+    <div class="header-actions">
+      <span class="offline-status"><span class="status-dot"></span> לא מקוון</span>
+      <button id="aboutButton" class="icon-button" type="button" aria-label="מידע על הגרסה" title="מידע על הגרסה">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M12 11v5m0-8h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
     </div>
-    <div class="offline-pill"><span class="online-dot"></span> עובד אופליין</div>
   </header>
 
   <main>
     <section id="home">
       <div class="hero">
-        <div class="hero-text">
-          <div class="eyebrow"><span>✦</span> אוסף המשחקים שלך</div>
-          <h1>משחקים קטנים,<br><span>כיף גדול.</span></h1>
-          <p>שמונה משחקים חמודים, אתגרים קטנים והמון כיף — בלי אינטרנט ובלי פרסומות.</p>
-          <div class="hero-tags"><span>✈️ ללא רשת</span><span>🏆 שיאים נשמרים</span></div>
+        <div class="hero-copy">
+          <div class="overline"><span class="overline-line"></span> מנותק מהרשת. מחובר לכיף.</div>
+          <h1>המשחק הבא<br><span>מחכה לך.</span></h1>
+          <p>אוסף משחקים קטן ומדויק, עם אתגרים שונים — והכול פועל ישירות מהמכשיר, גם בלי אינטרנט.</p>
+          <div class="hero-meta"><span><i class="meta-icon">01</i> משחקים ללא רשת</span><span><i class="meta-icon">02</i> שיאים נשמרים במכשיר</span></div>
         </div>
-        <div class="hero-art" aria-label="מדוזה כחולה חמודה">
-          <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
-          <svg viewBox="0 0 220 220" role="img" aria-label="מדוזה כחולה עם שלט משחק">
-            <defs><linearGradient id="jelly" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#7df7ff"/><stop offset=".55" stop-color="#22c7ff"/><stop offset="1" stop-color="#3878ff"/></linearGradient><linearGradient id="pad" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#213b83"/><stop offset="1" stop-color="#101b40"/></linearGradient></defs>
-            <circle cx="110" cy="110" r="84" fill="#0e9bff" opacity=".1"/>
-            <path d="M50 110C31 61 58 31 92 39C117 19 155 39 165 62C191 85 170 116 151 125L160 160Q162 170 153 169L137 150L123 174Q118 181 112 171L103 150L84 171Q76 177 75 166L78 130C62 127 54 120 50 110Z" fill="#0875da" opacity=".7"/>
-            <path d="M48 103C38 68 59 40 91 45C116 27 150 43 161 65C180 83 165 111 147 121L153 150L136 138L122 159L109 138L88 158L84 120C63 120 52 113 48 103Z" fill="url(#jelly)" stroke="#9af7ff" stroke-width="3"/>
-            <ellipse cx="84" cy="82" rx="9" ry="13" fill="#06132d"/><ellipse cx="128" cy="82" rx="9" ry="13" fill="#06132d"/>
-            <circle cx="81" cy="78" r="3.5" fill="#fff"/><circle cx="125" cy="78" r="3.5" fill="#fff"/>
-            <path d="M91 100Q106 114 121 100" fill="none" stroke="#06132d" stroke-width="4.5" stroke-linecap="round"/>
-            <path d="M67 124Q105 144 143 124" fill="none" stroke="#96f7ff" stroke-width="3" opacity=".85"/>
-            <g transform="translate(67 135) rotate(-7 42 20)"><rect x="0" y="0" width="87" height="39" rx="16" fill="url(#pad)" stroke="#5dafff" stroke-width="3"/><path d="M18 12V26M11 19H25" stroke="#fff" stroke-width="4" stroke-linecap="round"/><circle cx="65" cy="14" r="4" fill="#ffda61"/><circle cx="73" cy="23" r="4" fill="#fa6897"/><circle cx="57" cy="24" r="4" fill="#7af3ce"/></g>
-            <path d="M40 48l3 9 9 3-9 3-3 9-3-9-9-3 9-3zM174 46l2 6 6 2-6 2-2 6-2-6-6-2 6-2zM169 145l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" fill="#fff0a6"/>
+        <div class="hero-visual" aria-hidden="true">
+          <div class="visual-grid"></div><div class="visual-ring ring-a"></div><div class="visual-ring ring-b"></div>
+          <svg class="hero-controller" viewBox="0 0 260 220">
+            <defs><linearGradient id="body" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#324d7c"/><stop offset="1" stop-color="#121e3d"/></linearGradient><linearGradient id="shine" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#61edff"/><stop offset="1" stop-color="#368cff"/></linearGradient></defs>
+            <path d="M50 73Q63 58 83 64L173 64Q194 59 207 79L232 145Q239 172 218 177Q204 181 190 164L169 142H91L70 164Q54 182 38 175Q21 168 29 145Z" fill="#050b18" opacity=".48" transform="translate(0 8)"/>
+            <path d="M51 67Q64 52 83 58L173 58Q194 53 207 73L232 139Q239 166 218 171Q204 175 190 158L169 136H91L70 158Q54 176 38 169Q21 162 29 139Z" fill="url(#body)" stroke="#6389c1" stroke-width="2"/>
+            <path d="M50 89Q59 68 77 70L183 70Q200 69 208 91L225 139Q231 157 216 160Q205 162 191 146L166 120H94L69 146Q55 162 42 157Q29 151 35 136Z" fill="#182949"/>
+            <path d="M70 94V120M57 107H83" stroke="#93eaff" stroke-width="8" stroke-linecap="round"/>
+            <circle cx="187" cy="95" r="8" fill="#f4d36a"/><circle cx="202" cy="109" r="8" fill="#ff6e9e"/><circle cx="172" cy="110" r="8" fill="#65f1c7"/><circle cx="187" cy="124" r="8" fill="#6fa6ff"/>
+            <path d="M98 86Q130 72 162 86" fill="none" stroke="#5274a9" stroke-width="3" stroke-linecap="round"/>
+            <circle cx="130" cy="103" r="20" fill="#0b1830" stroke="#48dfff" stroke-width="2"/><path d="M120 103h20M130 93v20" stroke="url(#shine)" stroke-width="4" stroke-linecap="round"/>
+            <path d="M106 33l5 12 13 5-13 4-5 13-5-13-13-4 13-5z" fill="#fff0a1"/><circle cx="213" cy="42" r="4" fill="#65e5ff"/><circle cx="45" cy="47" r="3" fill="#c7a4ff"/>
           </svg>
-          <span class="spark spark-a">✦</span><span class="spark spark-b">✧</span>
         </div>
+        <div class="hero-caption"><span class="caption-dot"></span> 100% משחק מקומי</div>
       </div>
 
-      <div class="section-heading"><div><h2>מה משחקים היום?</h2><p>בחרו משחק והתחילו לשחק</p></div><div class="count-bubble">8 משחקים</div></div>
-      <div class="game-grid">
-        <button class="game-card" data-game="runner"><div class="card-art art-runner"><span class="art-emoji">🐱</span><span class="art-spark">✦</span></div><div class="card-info"><div class="game-name">חתול רץ</div><div class="game-desc">קפצו מעל המכשולים!</div><div class="card-bottom"><span class="tag tag-cyan">זריזות</span><span class="play-circle">←</span></div></div></button>
-        <button class="game-card" data-game="breakout"><div class="card-art art-breakout"><span class="art-emoji">🧱</span><span class="art-ball">●</span></div><div class="card-info"><div class="game-name">שובר לבנים</div><div class="game-desc">שברו את כל הלבנים</div><div class="card-bottom"><span class="tag tag-orange">ארקייד</span><span class="play-circle">←</span></div></div></button>
-        <button class="game-card" data-game="space"><div class="card-art art-space"><span class="art-emoji">👨‍🚀</span><span class="art-star">★</span></div><div class="card-info"><div class="game-name">קפיצת חלל</div><div class="game-desc">קפצו בין הכוכבים</div><div class="card-bottom"><span class="tag tag-purple">הרפתקה</span><span class="play-circle">←</span></div></div></button>
-        <button class="game-card" data-game="bubbles"><div class="card-art art-bubbles"><span>🔵 🟣 🟡</span><span>🟢 🔴 🔵</span></div><div class="card-info"><div class="game-name">פוצץ בועות</div><div class="game-desc">חברו בועות מאותו צבע</div><div class="card-bottom"><span class="tag tag-pink">חשיבה</span><span class="play-circle">←</span></div></div></button>
-        <button class="game-card" data-game="memory"><div class="card-art art-memory"><span class="memory-mini">★</span><span class="memory-mini">?</span><span class="memory-mini">★</span></div><div class="card-info"><div class="game-name">זיכרון</div><div class="game-desc">מצאו את כל הזוגות</div><div class="card-bottom"><span class="tag tag-yellow">ריכוז</span><span class="play-circle">←</span></div></div></button>
-        <button class="game-card" data-game="sudoku"><div class="card-art art-sudoku"><span>5 3  ·</span><span>6 · 9</span><span>· 8 2</span></div><div class="card-info"><div class="game-name">סודוקו</div><div class="game-desc">השלימו את המספרים</div><div class="card-bottom"><span class="tag tag-cyan">היגיון</span><span class="play-circle">←</span></div></div></button>
-        <button class="game-card" data-game="racer"><div class="card-art art-racer"><span class="art-car">🏎️</span><span class="road-line"></span></div><div class="card-info"><div class="game-name">מרוץ מכוניות</div><div class="game-desc">התחמקו מהמכוניות</div><div class="card-bottom"><span class="tag tag-orange">מרוץ</span><span class="play-circle">←</span></div></div></button>
-        <button class="game-card" data-game="ttt"><div class="card-art art-ttt"><span>×</span><span>○</span><span>×</span><span>○</span><span>×</span><span>○</span><span>×</span><span>○</span><span>×</span></div><div class="card-info"><div class="game-name">איקס עיגול</div><div class="game-desc">תנצחו את המחשב</div><div class="card-bottom"><span class="tag tag-purple">אסטרטגיה</span><span class="play-circle">←</span></div></div></button>
+      <div class="library-heading">
+        <div><div class="heading-kicker">האוסף שלך</div><h2>ספריית משחקי אופליין</h2><p>בחרו כותר כדי להתחיל לשחק</p></div>
+        <div class="library-count"><strong>08</strong><span>משחקים</span></div>
       </div>
-      <footer class="copyright"><span class="copyright-mark">✦</span> כל הזכויות שמורות למדוזה כחולה <span class="copyright-year">©</span></footer>
+
+      <div class="game-grid">
+        <button class="game-card" data-game="runner" type="button">
+          <div class="card-art art-runner">
+            <span class="level-tag">ARCADE <b>01</b></span>
+            <svg viewBox="0 0 240 135" role="img" aria-label="חתול רץ במסלול"><defs><linearGradient id="runSky" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#1c8d9b"/><stop offset="1" stop-color="#1c315b"/></linearGradient></defs><rect width="240" height="135" fill="url(#runSky)"/><circle cx="185" cy="33" r="18" fill="#a8efff" opacity=".72"/><path d="M0 87L44 48L87 90L127 54L186 91L216 65L240 83V135H0Z" fill="#23426a"/><path d="M0 101Q72 83 130 103T240 99V135H0Z" fill="#183249"/><path d="M0 120H240" stroke="#70cbb4" stroke-width="2"/><path d="M10 124h36m25 0h36m25 0h36m25 0h36" stroke="#c1ffce" stroke-width="2" stroke-dasharray="16 8"/><g transform="translate(60 53)"><path d="M10 34L8 7L28 20L47 6L49 34Q51 51 31 52Q9 52 10 34Z" fill="#e9eff8" stroke="#647e9e" stroke-width="2"/><path d="M9 15L9 2L24 14M35 13L48 2L48 19" fill="#e9eff8" stroke="#647e9e" stroke-width="2" stroke-linejoin="round"/><path d="M17 31q5-5 10 0m7 0q5-5 9 0" fill="none" stroke="#21344f" stroke-width="3" stroke-linecap="round"/><path d="M26 39q5 5 10 0" fill="none" stroke="#21344f" stroke-width="2" stroke-linecap="round"/><path d="M17 49l-3 9m27-9l4 8" stroke="#e9eff8" stroke-width="5" stroke-linecap="round"/></g><path d="M188 88v-23m-9 12h18m-13-6v14m9-14v14" stroke="#fa987d" stroke-width="7" stroke-linecap="round"/></svg>
+          </div>
+          <div class="card-info"><div class="card-title-row"><strong>חתול רץ</strong><span class="open-arrow">↗</span></div><p>ריצה, קפיצות ואיסוף נקודות</p><div class="card-foot"><span class="genre genre-teal">זריזות</span><span class="best-record" data-best="runner">שיא —</span></div></div>
+        </button>
+
+        <button class="game-card" data-game="breakout" type="button">
+          <div class="card-art art-breakout"><span class="level-tag">ARCADE <b>02</b></span><svg viewBox="0 0 240 135" role="img" aria-label="לבנים וכדור"><defs><linearGradient id="brBg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#6e2d55"/><stop offset="1" stop-color="#1b2149"/></linearGradient></defs><rect width="240" height="135" fill="url(#brBg)"/><g stroke="#ffffff5e" stroke-width="1.5"><rect x="26" y="20" width="48" height="15" rx="4" fill="#fa668e"/><rect x="79" y="20" width="48" height="15" rx="4" fill="#ffbd66"/><rect x="132" y="20" width="48" height="15" rx="4" fill="#f4e078"/><rect x="185" y="20" width="29" height="15" rx="4" fill="#9f9aff"/><rect x="26" y="40" width="48" height="15" rx="4" fill="#ffbd66"/><rect x="79" y="40" width="48" height="15" rx="4" fill="#75e7cb"/><rect x="132" y="40" width="48" height="15" rx="4" fill="#7ddcff"/><rect x="185" y="40" width="29" height="15" rx="4" fill="#fa668e"/></g><path d="M120 59L151 79" stroke="#a2efff" stroke-width="2" stroke-dasharray="3 4"/><circle cx="152" cy="80" r="7" fill="#fff" stroke="#72e7ff" stroke-width="3"/><path d="M84 111h73" stroke="#69cfff" stroke-width="11" stroke-linecap="round"/><path d="M89 108h62" stroke="#c6f5ff" stroke-width="2" stroke-linecap="round"/></svg></div>
+          <div class="card-info"><div class="card-title-row"><strong>שובר לבנים</strong><span class="open-arrow">↗</span></div><p>דיוק ושליטה בכדור קופץ</p><div class="card-foot"><span class="genre genre-orange">ארקייד</span><span class="best-record" data-best="breakout">שיא —</span></div></div>
+        </button>
+
+        <button class="game-card" data-game="space" type="button">
+          <div class="card-art art-space"><span class="level-tag">JUMPER <b>03</b></span><svg viewBox="0 0 240 135" role="img" aria-label="אסטרונאוט ופלטפורמות"><defs><linearGradient id="spBg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#313d83"/><stop offset="1" stop-color="#17182f"/></linearGradient></defs><rect width="240" height="135" fill="url(#spBg)"/><g fill="#d7dfff"><circle cx="29" cy="22" r="2"/><circle cx="198" cy="17" r="2"/><circle cx="216" cy="65" r="1.5"/><circle cx="44" cy="75" r="1.8"/><path d="M170 37l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" fill="#ffe59b"/></g><path d="M14 115h82l12 6h-84zM137 82h76l10 7h-82zM17 57h55l9 6H24z" fill="#51e3c6" stroke="#d0fff6" stroke-width="1.5"/><g transform="translate(103 26) rotate(-14 24 28)"><path d="M20 42L12 62L5 60L9 39M34 41L44 59L37 64L27 45" fill="#6d99ff" stroke="#bddaff" stroke-width="2"/><rect x="12" y="22" width="28" height="27" rx="9" fill="#ebf6ff" stroke="#94c8ff" stroke-width="2"/><circle cx="26" cy="18" r="17" fill="#ebf6ff" stroke="#94c8ff" stroke-width="2"/><rect x="13" y="10" width="27" height="16" rx="8" fill="#162c53" stroke="#6edcf9" stroke-width="2"/><path d="M19 16h15" stroke="#85ddff" stroke-width="2"/><rect x="18" y="30" width="15" height="8" rx="3" fill="#4ca6ed"/><path d="M12 29l-8 11m36-11l9 10" stroke="#ebf6ff" stroke-width="6" stroke-linecap="round"/></g></svg></div>
+          <div class="card-info"><div class="card-title-row"><strong>קפיצת חלל</strong><span class="open-arrow">↗</span></div><p>טפסו גבוה על פלטפורמות צפות</p><div class="card-foot"><span class="genre genre-violet">מיומנות</span><span class="best-record" data-best="space">שיא —</span></div></div>
+        </button>
+
+        <button class="game-card" data-game="bubbles" type="button">
+          <div class="card-art art-bubbles"><span class="level-tag">PUZZLE <b>04</b></span><svg viewBox="0 0 240 135" role="img" aria-label="בועות צבעוניות"><defs><radialGradient id="bu1" cx=".3" cy=".22" r=".8"><stop stop-color="#fff"/><stop offset=".18" stop-color="#7ce9ff"/><stop offset="1" stop-color="#2586e8"/></radialGradient><radialGradient id="bu2" cx=".3" cy=".22" r=".8"><stop stop-color="#fff"/><stop offset=".18" stop-color="#ffb5d0"/><stop offset="1" stop-color="#ea497c"/></radialGradient><radialGradient id="bu3" cx=".3" cy=".22" r=".8"><stop stop-color="#fff"/><stop offset=".18" stop-color="#fff2a6"/><stop offset="1" stop-color="#e3a33a"/></radialGradient></defs><rect width="240" height="135" fill="#1a2e62"/><g stroke="#ffffff8a" stroke-width="1.5"><circle cx="76" cy="31" r="18" fill="url(#bu1)"/><circle cx="115" cy="31" r="18" fill="url(#bu2)"/><circle cx="154" cy="31" r="18" fill="url(#bu3)"/><circle cx="193" cy="31" r="18" fill="url(#bu1)"/><circle cx="56" cy="65" r="18" fill="url(#bu2)"/><circle cx="95" cy="65" r="18" fill="url(#bu1)"/><circle cx="134" cy="65" r="18" fill="url(#bu2)"/><circle cx="173" cy="65" r="18" fill="url(#bu3)"/><circle cx="212" cy="65" r="18" fill="url(#bu1)"/></g><path d="M120 132L120 108" stroke="#d9edff" stroke-width="2" stroke-dasharray="4 4"/><circle cx="120" cy="102" r="14" fill="url(#bu3)" stroke="#fff" stroke-width="2"/></svg></div>
+          <div class="card-info"><div class="card-title-row"><strong>יורה הבועות</strong><span class="open-arrow">↗</span></div><p>כוונו, ירו וחברו צבעים</p><div class="card-foot"><span class="genre genre-pink">פאזל</span><span class="best-record" data-best="bubbles">שיא —</span></div></div>
+        </button>
+
+        <button class="game-card" data-game="memory" type="button">
+          <div class="card-art art-memory"><span class="level-tag">MEMORY <b>05</b></span><svg viewBox="0 0 240 135" role="img" aria-label="קלפי זיכרון"><rect width="240" height="135" fill="#452d6c"/><g transform="translate(49 24) rotate(-12 30 42)"><rect width="54" height="77" rx="8" fill="#1a3159" stroke="#b2d8ff" stroke-width="2"/><rect x="5" y="5" width="44" height="67" rx="5" fill="none" stroke="#77b7ed" stroke-width="1"/><path d="M27 22l6 13 14 2-10 10 2 14-12-7-12 7 2-14-10-10 14-2z" fill="#ffda73"/></g><g transform="translate(91 26) rotate(4 30 42)"><rect width="54" height="77" rx="8" fill="#81447e" stroke="#ffc5df" stroke-width="2"/><rect x="5" y="5" width="44" height="67" rx="5" fill="none" stroke="#ffa9d2" stroke-width="1"/><circle cx="27" cy="33" r="13" fill="#ffdfeb"/><path d="M15 54q12-10 24 0" fill="none" stroke="#ffdfeb" stroke-width="5" stroke-linecap="round"/></g><g transform="translate(137 24) rotate(13 30 42)"><rect width="54" height="77" rx="8" fill="#1a3159" stroke="#b2d8ff" stroke-width="2"/><rect x="5" y="5" width="44" height="67" rx="5" fill="none" stroke="#77b7ed" stroke-width="1"/><path d="M27 20l17 17-17 17-17-17z" fill="#80f0cc"/></g></svg></div>
+          <div class="card-info"><div class="card-title-row"><strong>זיכרון</strong><span class="open-arrow">↗</span></div><p>מצאו זוגות ואמנו את הזיכרון</p><div class="card-foot"><span class="genre genre-gold">ריכוז</span><span class="best-record" data-best="memory">שיא —</span></div></div>
+        </button>
+
+        <button class="game-card" data-game="sudoku" type="button">
+          <div class="card-art art-sudoku"><span class="level-tag">LOGIC <b>06</b></span><svg viewBox="0 0 240 135" role="img" aria-label="לוח סודוקו"><rect width="240" height="135" fill="#123e59"/><g transform="translate(81 10)"><rect width="80" height="112" rx="3" fill="#ddebff"/><g stroke="#7193ba" stroke-width=".7"><path d="M8 0v112m9-112v112m9-112v112m9-112v112m9-112v112m9-112v112m9-112v112m9-112v112M0 12h80M0 24h80M0 36h80M0 48h80M0 60h80M0 72h80M0 84h80M0 96h80"/></g><path d="M27 0v112M54 0v112M0 37h80M0 74h80" stroke="#385d8a" stroke-width="1.8"/><g fill="#1a3d67" font-size="11" font-family="Arial" font-weight="700" text-anchor="middle"><text x="13" y="9">5</text><text x="39" y="21">3</text><text x="66" y="33">8</text><text x="13" y="47">6</text><text x="50" y="59">9</text><text x="39" y="83">2</text><text x="66" y="95">7</text><text x="13" y="107">4</text></g></g><circle cx="38" cy="41" r="11" fill="#73e7cb" opacity=".7"/><path d="M32 41l4 4 8-9" fill="none" stroke="#123e59" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="card-info"><div class="card-title-row"><strong>סודוקו</strong><span class="open-arrow">↗</span></div><p>פתרו את הלוח בעזרת היגיון</p><div class="card-foot"><span class="genre genre-teal">חשיבה</span><span class="best-record" data-best="sudoku">התקדמות —</span></div></div>
+        </button>
+
+        <button class="game-card" data-game="racer" type="button">
+          <div class="card-art art-racer"><span class="level-tag">RACING <b>07</b></span><svg viewBox="0 0 240 135" role="img" aria-label="מכונית מרוץ במסלול"><defs><linearGradient id="roadBg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#1b7d8c"/><stop offset="1" stop-color="#24355e"/></linearGradient><linearGradient id="carRed" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ff9c9d"/><stop offset="1" stop-color="#db375e"/></linearGradient></defs><rect width="240" height="135" fill="url(#roadBg)"/><path d="M70 0h100l47 135H23z" fill="#303c52"/><path d="M76 0h4L36 135h-5zM160 0h4l46 135h-5z" fill="#dbe7ef"/><path d="M119 0h4v20h-4zm0 34h4v20h-4zm0 34h4v20h-4zm0 34h4v20h-4z" fill="#f4f4da"/><g transform="translate(89 52)"><path d="M6 16L13 3Q16 0 25 0H39Q46 1 49 7L56 16L59 37H0Z" fill="url(#carRed)" stroke="#ffccd4" stroke-width="1.5"/><path d="M16 5H38L44 15H10Z" fill="#203b5f" stroke="#93d7f1" stroke-width="1.4"/><path d="M4 21H55M12 31H47" stroke="#ffdada" stroke-width="2"/><rect x="-3" y="12" width="8" height="15" rx="3" fill="#121c2d"/><rect x="54" y="12" width="8" height="15" rx="3" fill="#121c2d"/><rect x="7" y="33" width="8" height="7" rx="2" fill="#121c2d"/><rect x="44" y="33" width="8" height="7" rx="2" fill="#121c2d"/></g></svg></div>
+          <div class="card-info"><div class="card-title-row"><strong>מרוץ מכוניות</strong><span class="open-arrow">↗</span></div><p>התחמקו מתנועה וצברו מרחק</p><div class="card-foot"><span class="genre genre-orange">מרוץ</span><span class="best-record" data-best="racer">שיא —</span></div></div>
+        </button>
+
+        <button class="game-card" data-game="ttt" type="button">
+          <div class="card-art art-ttt"><span class="level-tag">TACTICS <b>08</b></span><svg viewBox="0 0 240 135" role="img" aria-label="לוח איקס ועיגול"><defs><linearGradient id="ttBg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#29295b"/><stop offset="1" stop-color="#522f72"/></linearGradient></defs><rect width="240" height="135" fill="url(#ttBg)"/><g transform="translate(73 12)" stroke="#a0a2f7" stroke-width="4" stroke-linecap="round"><path d="M29 0v108M66 0v108M0 35h94M0 72h94"/></g><g stroke="#66e6ff" stroke-width="4" stroke-linecap="round"><path d="M82 22l17 17m0-17L82 39M156 95l17 17m0-17l-17 17"/></g><g fill="none" stroke="#ff99c6" stroke-width="4"><circle cx="119" cy="65" r="11"/><circle cx="82" cy="104" r="11"/><circle cx="156" cy="28" r="11"/></g></svg></div>
+          <div class="card-info"><div class="card-title-row"><strong>איקס עיגול</strong><span class="open-arrow">↗</span></div><p>משחק טקטי נגד המחשב</p><div class="card-foot"><span class="genre genre-violet">אסטרטגיה</span><span class="best-record">2 שחקנים בתורנות</span></div></div>
+        </button>
+      </div>
+
+      <footer class="library-footer"><span class="footer-rule"></span><span>פותח על ידי <b>מדוזה כחולה</b></span><span class="footer-rule"></span><small>כל הזכויות שמורות למדוזה כחולה ©</small></footer>
     </section>
 
     <section id="play" hidden>
-      <div class="play-toolbar"><button id="backHome" class="back-button" aria-label="חזרה לרשימת המשחקים">→</button><div class="playing-title"><div class="playing-kicker">עכשיו משחקים</div><h2 id="playingName">משחק</h2></div><div class="score-pill" id="scorePill">ניקוד 0</div></div>
+      <div class="play-toolbar"><button id="backHome" class="back-button" aria-label="חזרה לספרייה">→</button><div class="playing-title"><div class="playing-kicker">ספריית משחקי אופליין</div><h2 id="playingName">משחק</h2></div><div class="score-pill" id="scorePill">ניקוד 0</div></div>
       <div id="stage" class="stage"></div>
       <div id="help" class="help-text"></div>
       <div id="actions" class="actions"></div>
-      <footer class="copyright play-copyright">כל הזכויות שמורות למדוזה כחולה ©</footer>
+      <footer class="game-footer">פותח על ידי מדוזה כחולה · כל הזכויות שמורות ©</footer>
+    </section>
+
+    <section id="about" hidden>
+      <div class="about-toolbar"><button id="aboutBack" class="back-button" aria-label="חזרה לספרייה">→</button><div><div class="heading-kicker">אודות</div><h2>מידע על הגרסה</h2></div></div>
+      <div class="about-hero">
+        <div class="about-logo"><svg viewBox="0 0 64 64"><path d="M10 30C10 17 20 9 32 9S54 17 54 30C54 39 48 44 41 47L43 55L34 50L27 57L25 48C16 44 10 39 10 30Z" fill="#42d9ff" stroke="#a6f6ff" stroke-width="1.5"/><path d="M21 27v5m-2.5-2.5h5m15-2.5v5m-2.5-2.5h5" stroke="#082038" stroke-width="3" stroke-linecap="round"/><path d="M26 38q6 5 12 0" fill="none" stroke="#082038" stroke-width="2.6" stroke-linecap="round"/></svg></div>
+        <div class="about-name">אופליין <span>גיים</span></div><p>ספריית משחקים לשימוש מקומי</p><div class="version-label">גרסה 2.0.0</div>
+      </div>
+      <div class="about-details">
+        <div class="about-row"><span class="about-row-icon">✦</span><div><small>פותח על ידי</small><strong>מדוזה כחולה</strong></div></div>
+        <div class="about-row"><span class="about-row-icon">©</span><div><small>זכויות יוצרים</small><strong>כל הזכויות שמורות למדוזה כחולה</strong></div></div>
+        <div class="about-row"><span class="about-row-icon">↯</span><div><small>מצב הפעלה</small><strong>אופליין — ללא חיבור לרשת</strong></div></div>
+        <div class="about-row"><span class="about-row-icon">▦</span><div><small>כלול באפליקציה</small><strong>8 משחקים, בלי התקנות נוספות</strong></div></div>
+      </div>
+      <footer class="game-footer">מדוזה כחולה · אופליין גיים · 2026</footer>
     </section>
   </main>
 </div>
