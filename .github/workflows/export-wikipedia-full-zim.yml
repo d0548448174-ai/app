@@ -1,0 +1,516 @@
+name: Export full Hebrew Wikipedia ZIM in transferable parts
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/export-wikipedia-full-zim.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export-full-zim:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - name: Download and validate full Hebrew Wikipedia without pictures
+        shell: bash
+        run: |
+          set -euo pipefail
+          file="wikipedia_he_all_nopic_2026-07a.zim"
+          success=0
+          for base in \
+            "https://download.kiwix.org/zim/wikipedia" \
+            "https://ftpmirror.your.org/pub/kiwix/zim/wikipedia" \
+            "https://thuli.pics/kiwix/zim/wikipedia"; do
+            echo "Trying $base/$file"
+            rm -f "$file"
+            if curl --fail --location --silent --show-error --retry 2 --retry-delay 2 \
+              --connect-timeout 30 --max-time 2400 "$base/$file" --output "$file"; then
+              size="$(stat -c '%s' "$file")"
+              magic="$(head -c 4 "$file" | od -An -tx1 | tr -d ' \\n')"
+              echo "Downloaded $size bytes; ZIM magic=$magic"
+              if [ "$size" -gt 2500000000 ] && [ "$magic" = "5a494d04" ]; then
+                success=1
+                break
+              fi
+              echo "Downloaded file failed size or ZIM-header validation." >&2
+            fi
+          done
+          if [ "$success" -ne 1 ]; then
+            echo "Could not download and validate full Hebrew Wikipedia ZIM." >&2
+            exit 1
+          fi
+          echo "Full archive size: $(du -h "$file" | cut -f1)"
+      - name: Split archive into 75 MB transfer parts
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p parts
+          split --bytes=75000000 --numeric-suffixes=0 --suffix-length=2 \
+            --additional-suffix=.part wikipedia_he_all_nopic_2026-07a.zim parts/wikipedia-he-nopic-
+          count="$(find parts -name 'wikipedia-he-nopic-*.part' -type f | wc -l)"
+          echo "Created $count parts"
+          test "$count" -ge 30
+          test "$count" -le 50
+          sha256sum parts/wikipedia-he-nopic-*.part > parts/SHA256SUMS.txt
+          cat parts/SHA256SUMS.txt
+      - name: Upload full ZIM part 00
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-part-00
+          path: parts/wikipedia-he-nopic-00.part
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload full ZIM part 01
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-part-01
+          path: parts/wikipedia-he-nopic-01.part
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload full ZIM part 02
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-part-02
+          path: parts/wikipedia-he-nopic-02.part
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload full ZIM part 03
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-part-03
+          path: parts/wikipedia-he-nopic-03.part
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload full ZIM part 04
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-part-04
+          path: parts/wikipedia-he-nopic-04.part
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload full ZIM part 05
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-part-05
+          path: parts/wikipedia-he-nopic-05.part
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload full ZIM part 06
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-part-06
+          path: parts/wikipedia-he-nopic-06.part
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload full ZIM part 07
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-part-07
+          path: parts/wikipedia-he-nopic-07.part
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload full ZIM part 08
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-part-08
+          path: parts/wikipedia-he-nopic-08.part
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload full ZIM part 09
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-part-09
+          path: parts/wikipedia-he-nopic-09.part
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload full ZIM part 10
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-part-10
+          path: parts/wikipedia-he-nopic-10.part
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload full ZIM part 11
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-part-11
+          path: parts/wikipedia-he-nopic-11.part
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload full ZIM part 12
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-part-12
+          path: parts/wikipedia-he-nopic-12.part
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload full ZIM part 13
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-part-13
+          path: parts/wikipedia-he-nopic-13.part
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload full ZIM part 14
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-part-14
+          path: parts/wikipedia-he-nopic-14.part
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload full ZIM part 15
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-part-15
+          path: parts/wikipedia-he-nopic-15.part
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload full ZIM part 16
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-part-16
+          path: parts/wikipedia-he-nopic-16.part
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload full ZIM part 17
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-part-17
+          path: parts/wikipedia-he-nopic-17.part
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload full ZIM part 18
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-part-18
+          path: parts/wikipedia-he-nopic-18.part
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload full ZIM part 19
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-part-19
+          path: parts/wikipedia-he-nopic-19.part
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload full ZIM part 20
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-part-20
+          path: parts/wikipedia-he-nopic-20.part
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload full ZIM part 21
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-part-21
+          path: parts/wikipedia-he-nopic-21.part
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload full ZIM part 22
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-part-22
+          path: parts/wikipedia-he-nopic-22.part
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload full ZIM part 23
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-part-23
+          path: parts/wikipedia-he-nopic-23.part
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload full ZIM part 24
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-part-24
+          path: parts/wikipedia-he-nopic-24.part
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload full ZIM part 25
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-part-25
+          path: parts/wikipedia-he-nopic-25.part
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload full ZIM part 26
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-part-26
+          path: parts/wikipedia-he-nopic-26.part
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload full ZIM part 27
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-part-27
+          path: parts/wikipedia-he-nopic-27.part
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload full ZIM part 28
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-part-28
+          path: parts/wikipedia-he-nopic-28.part
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload full ZIM part 29
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-part-29
+          path: parts/wikipedia-he-nopic-29.part
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload full ZIM part 30
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-part-30
+          path: parts/wikipedia-he-nopic-30.part
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload full ZIM part 31
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-part-31
+          path: parts/wikipedia-he-nopic-31.part
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload full ZIM part 32
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-part-32
+          path: parts/wikipedia-he-nopic-32.part
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload full ZIM part 33
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-part-33
+          path: parts/wikipedia-he-nopic-33.part
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload full ZIM part 34
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-part-34
+          path: parts/wikipedia-he-nopic-34.part
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload full ZIM part 35
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-part-35
+          path: parts/wikipedia-he-nopic-35.part
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload full ZIM part 36
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-part-36
+          path: parts/wikipedia-he-nopic-36.part
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload full ZIM part 37
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-part-37
+          path: parts/wikipedia-he-nopic-37.part
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload full ZIM part 38
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-part-38
+          path: parts/wikipedia-he-nopic-38.part
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload full ZIM part 39
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-part-39
+          path: parts/wikipedia-he-nopic-39.part
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload full ZIM part 40
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-part-40
+          path: parts/wikipedia-he-nopic-40.part
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload full ZIM part 41
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-part-41
+          path: parts/wikipedia-he-nopic-41.part
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload full ZIM part 42
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-part-42
+          path: parts/wikipedia-he-nopic-42.part
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload full ZIM part 43
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-part-43
+          path: parts/wikipedia-he-nopic-43.part
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload full ZIM part 44
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-part-44
+          path: parts/wikipedia-he-nopic-44.part
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload full ZIM part 45
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-part-45
+          path: parts/wikipedia-he-nopic-45.part
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload full ZIM part 46
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-part-46
+          path: parts/wikipedia-he-nopic-46.part
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload full ZIM part 47
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-part-47
+          path: parts/wikipedia-he-nopic-47.part
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload full ZIM part 48
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-part-48
+          path: parts/wikipedia-he-nopic-48.part
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload full ZIM part 49
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-part-49
+          path: parts/wikipedia-he-nopic-49.part
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload SHA-256 checksum list
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikipedia-he-nopic-checksums
+          path: parts/SHA256SUMS.txt
+          compression-level: 0
+          retention-days: 3
