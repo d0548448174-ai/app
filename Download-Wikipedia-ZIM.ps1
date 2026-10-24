@@ -1,7 +1,11 @@
 # Download and join the 45 verified Hebrew Wikipedia ZIM parts from GitHub Actions.
 # No GitHub token is needed: the repository is public.
 $ErrorActionPreference = 'Stop'
-$ProgressPreference = 'SilentlyContinue'
+$ProgressPreference = 'Continue'
+$logPath = Join-Path $PSScriptRoot 'wikipedia-zim-download.log'
+try { Start-Transcript -Path $logPath -Force | Out-Null } catch {}
+Write-Host ("תיקיית העבודה: {0}" -f $PSScriptRoot) -ForegroundColor Gray
+Write-Host ("יומן פעולות: {0}" -f $logPath) -ForegroundColor Gray
 try { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 } catch {}
 Add-Type -AssemblyName System.IO.Compression
 Add-Type -AssemblyName System.IO.Compression.FileSystem
@@ -30,6 +34,7 @@ function Download-File([string]$Url, [string]$Path) {
     }
 }
 
+$scriptFailed = $false
 try {
     Write-Host 'בודק את קובצי GitHub...' -ForegroundColor Cyan
     if (Test-Path $finalPath) { throw "כבר קיים קובץ בשם $finalPath. שנה את שמו או העבר אותו לפני ההרצה." }
@@ -116,10 +121,14 @@ try {
     Write-Host $finalPath -ForegroundColor Green
     Write-Host 'כעת אפשר לפתוח את Kiwix ולבחור את קובץ ה-ZIM הזה.' -ForegroundColor Green
 } catch {
+    $scriptFailed = $true
     Write-Host ''
     Write-Host "הפעולה נעצרה: $($_.Exception.Message)" -ForegroundColor Red
-    Write-Host 'אם מדובר בחסימה של נטפרי או ברשת, אל תכבה את הגנת Chrome; נסה שוב ברשת שמאפשרת גישה ל-GitHub.' -ForegroundColor Yellow
+    Write-Host 'פרטי השגיאה נשמרים בקובץ wikipedia-zim-download.log שבתיקייה הזו.' -ForegroundColor Yellow
+    Write-Host 'אם זו חסימת רשת/NetFree, אל תכבה את הגנת Chrome; בדוק אם הגישה ל-GitHub מותרת.' -ForegroundColor Yellow
 } finally {
+    try { Stop-Transcript | Out-Null } catch {}
     Write-Host ''
     Read-Host 'לחץ Enter לסגירה'
 }
+if ($scriptFailed) { exit 1 }
