@@ -1,0 +1,41 @@
+name: Publish Hebrew Wikipedia ZIM download files
+
+on:
+  push:
+    paths:
+      - ".github/workflows/publish-hebrew-wikipedia-zim.yml"
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Download verified parts from the completed build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 40120005126 --repo "$GITHUB_REPOSITORY" --dir "$RUNNER_TEMP/zim-artifacts"
+          mkdir -p "$RUNNER_TEMP/zim-release-assets"
+          find "$RUNNER_TEMP/zim-artifacts" -type f -name 'wikipedia-he-nopic-??.part' -exec cp {} "$RUNNER_TEMP/zim-release-assets/" \;
+          find "$RUNNER_TEMP/zim-artifacts" -type f -name 'SHA256SUMS.txt' -exec cp {} "$RUNNER_TEMP/zim-release-assets/" \;
+          test "$(find "$RUNNER_TEMP/zim-release-assets" -maxdepth 1 -type f -name 'wikipedia-he-nopic-??.part' | wc -l)" -eq 45
+          test -f "$RUNNER_TEMP/zim-release-assets/SHA256SUMS.txt"
+          cd "$RUNNER_TEMP/zim-release-assets"
+          sha256sum -c SHA256SUMS.txt
+
+      - name: Publish direct-download release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create wikipedia-he-nopic-2026-07a "$RUNNER_TEMP/zim-release-assets"/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "Hebrew Wikipedia ZIM — no images" \
+            --notes "Public direct-download parts for the complete Hebrew Wikipedia ZIM file without pictures. Downloading each part manually is not required: use Download-Wikipedia-ZIM.bat in the repository to download, verify, and join all parts automatically. SHA256SUMS.txt contains the checksums."
