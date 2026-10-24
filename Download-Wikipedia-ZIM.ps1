@@ -128,7 +128,5 @@ try {
     Write-Host 'אם זו חסימת רשת/NetFree, אל תכבה את הגנת Chrome; בדוק אם הגישה ל-GitHub מותרת.' -ForegroundColor Yellow
 } finally {
     try { Stop-Transcript | Out-Null } catch {}
-    Write-Host ''
-    Read-Host 'לחץ Enter לסגירה'
 }
 if ($scriptFailed) { exit 1 }
