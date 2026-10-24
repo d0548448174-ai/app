@@ -10,6 +10,11 @@ on:
 permissions:
   contents: read
 
+# Keep one exporter active at a time; a newer run replaces a stalled run.
+concurrency:
+  group: full-hebrew-wikipedia-zim-export
+  cancel-in-progress: true
+
 jobs:
   export-full-zim:
     runs-on: ubuntu-latest
@@ -26,9 +31,14 @@ jobs:
             "https://ftpmirror.your.org/pub/kiwix/zim/wikipedia" \
             "https://thuli.pics/kiwix/zim/wikipedia"; do
             echo "Trying $base/$file"
-            rm -f "$file"
-            if curl --fail --location --silent --show-error --retry 2 --retry-delay 2 \
-              --connect-timeout 30 --max-time 2400 "$base/$file" --output "$file"; then
+            # Preserve the partial download when moving between mirrors.
+            # A stalled mirror gets at most 15 minutes; low throughput for
+            # 2 minutes causes an early failover instead of hours of waiting.
+            if curl --fail --location --silent --show-error \
+              --retry 1 --retry-delay 2 \
+              --connect-timeout 20 --max-time 900 \
+              --speed-limit 65536 --speed-time 120 \
+              --continue-at - "$base/$file" --output "$file"; then
               size="$(stat -c '%s' "$file")"
               magic="$(head -c 4 "$file" | od -An -tx1 | tr -d ' \\n')"
               echo "Downloaded $size bytes; ZIM magic=$magic"
@@ -36,11 +46,14 @@ jobs:
                 success=1
                 break
               fi
-              echo "Downloaded file failed size or ZIM-header validation." >&2
+              echo "Archive failed size/header validation; restarting from zero on the next source." >&2
+              rm -f "$file"
+            else
+              echo "This source failed or stalled; switching to the next mirror." >&2
             fi
           done
           if [ "$success" -ne 1 ]; then
-            echo "Could not download and validate full Hebrew Wikipedia ZIM." >&2
+            echo "Could not download and validate full Hebrew Wikipedia from configured mirrors." >&2
             exit 1
           fi
           echo "Full archive size: $(du -h "$file" | cut -f1)"
