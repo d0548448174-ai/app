@@ -38,7 +38,7 @@ try {
     New-Item -ItemType Directory -Path $tempDir | Out-Null
 
     $driveRoot = [System.IO.Path]::GetPathRoot($PSScriptRoot)
-    $drive = New-Object System.IO.DriveInfo($driveRoot)
+    $drive = [System.IO.DriveInfo]::new($driveRoot)
     if ($drive.AvailableFreeSpace -lt 4GB) { throw 'צריך לפחות 4 GB פנויים בכונן שבו נמצא הקובץ.' }
 
     $apiUrl = "https://api.github.com/repos/$repo/actions/runs/$runId/artifacts?per_page=100"
