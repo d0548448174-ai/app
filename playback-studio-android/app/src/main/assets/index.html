@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#0f1220">
+<title>פלייבק סטודיו</title>
+<style>
+:root{--bg:#0f1220;--panel:#191e31;--panel2:#202740;--line:#303953;--text:#f4f6ff;--muted:#a5aec7;--purple:#9b7bff;--cyan:#48d9d0;--pink:#ff81b5;--gold:#ffc66e;--green:#72e0a4;--danger:#ff7184}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(ellipse at 8% 0%,#26234a 0,transparent 38%),radial-gradient(ellipse at 100% 15%,#153b47 0,transparent 32%),var(--bg);color:var(--text);font-family:Arial,"Noto Sans Hebrew",sans-serif;min-height:100vh}
+button,input{font:inherit}button{cursor:pointer;border:0} .app{max-width:1120px;margin:auto;padding:24px 22px 60px}
+header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:34px}.brand{display:flex;align-items:center;gap:12px}.logo{width:46px;height:46px;border-radius:15px;background:linear-gradient(145deg,#a78bfa,#4edbd3);display:grid;place-items:center;box-shadow:0 9px 30px #7461db55}.logo svg{width:26px}.brand-name{font-weight:800;font-size:20px;letter-spacing:.2px}.brand-sub{color:var(--muted);font-size:11px;margin-top:4px}.offline{color:#9fe8c4;border:1px solid #326d61;background:#16342f;padding:8px 12px;border-radius:99px;font-size:12px;display:flex;align-items:center;gap:7px}.dot{width:7px;height:7px;background:#6fe2a8;border-radius:50%;box-shadow:0 0 10px #6fe2a8}
+.hero{display:flex;align-items:center;justify-content:space-between;gap:30px;margin:0 0 25px}.hero h1{font-size:clamp(28px,4vw,43px);line-height:1.12;margin:0 0 12px;letter-spacing:-1px}.hero h1 span{background:linear-gradient(90deg,#b8a1ff,#58e3d5);-webkit-background-clip:text;background-clip:text;color:transparent}.hero p{color:var(--muted);line-height:1.7;margin:0;max-width:580px;font-size:15px}.hero-art{width:180px;min-width:140px;height:125px;position:relative;display:grid;place-items:center}.disc{width:118px;height:118px;border:1px solid #9580ff66;border-radius:50%;background:repeating-radial-gradient(circle,#252746 0 8px,#30365a 9px 10px);box-shadow:0 0 50px #927aff25;display:grid;place-items:center;transform:rotate(-18deg)}.disc:after{content:"";width:25px;height:25px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--cyan));border:5px solid #171b2c}.eq{position:absolute;bottom:3px;right:8px;display:flex;align-items:center;gap:4px;height:38px}.eq i{display:block;width:5px;border-radius:5px;background:linear-gradient(var(--cyan),var(--purple));animation:wave 1s ease-in-out infinite alternate}.eq i:nth-child(1){height:15px}.eq i:nth-child(2){height:31px;animation-delay:.1s}.eq i:nth-child(3){height:21px;animation-delay:.2s}.eq i:nth-child(4){height:36px;animation-delay:.3s}.eq i:nth-child(5){height:17px;animation-delay:.4s}@keyframes wave{to{transform:scaleY(.45);opacity:.65}}
+.panel{background:linear-gradient(145deg,#1c2237ee,#171c2eee);border:1px solid #35405e;border-radius:22px;padding:22px;box-shadow:0 15px 55px #05081360;margin-bottom:18px}.panel-head{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:17px}.step{display:flex;align-items:center;gap:11px}.step-num{width:30px;height:30px;border-radius:10px;background:#30294f;color:#c8baff;display:grid;place-items:center;font-size:13px;font-weight:bold}.panel h2{font-size:18px;margin:0}.hint{font-size:12px;color:var(--muted)}
+.input-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.action-card{min-height:148px;border:1px dashed #596588;background:linear-gradient(135deg,#242b45,#1c2338);border-radius:17px;padding:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:9px;transition:.2s}.action-card:hover{border-color:var(--purple);transform:translateY(-2px);background:#282c4a}.action-card.recording{border-color:var(--pink);background:#39243b}.action-icon{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;background:#35305b;color:#c4b3ff}.action-icon svg{width:22px;height:22px}.action-title{font-weight:700;font-size:15px}.action-desc{font-size:12px;color:var(--muted)}.record-btn .action-icon{background:#542c4a;color:#ff9dc1}.file-btn .action-icon{background:#174748;color:#69e4db}
+.file-name{font-size:12px;color:var(--cyan);margin-top:5px;max-width:95%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.source-preview{display:none;margin-top:15px;border:1px solid var(--line);border-radius:14px;padding:12px;background:#11182a}.source-preview.visible{display:block}.source-top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:9px;font-size:12px;color:var(--muted)}audio{width:100%;height:36px;filter:invert(.88) hue-rotate(190deg) saturate(.75)}
+.wave-wrap{height:65px;margin-top:13px;background:#12182a;border:1px solid #28334d;border-radius:12px;overflow:hidden}.wave-wrap canvas{width:100%;height:100%;display:block}
+.instruments{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.instrument{border:1px solid #394461;background:#1e263b;border-radius:16px;padding:16px 13px;display:flex;gap:12px;align-items:center;position:relative;cursor:pointer;transition:.18s;min-height:85px}.instrument.active{border-color:#9b7bff;background:linear-gradient(135deg,#332d57,#202b43);box-shadow:inset 0 0 0 1px #9b7bff2b}.instrument input{position:absolute;opacity:0;pointer-events:none}.instrument .ico{width:42px;height:42px;flex:0 0 42px;border-radius:13px;display:grid;place-items:center;font-size:21px;background:#343c55}.instrument[data-type=piano] .ico{background:#493c32}.instrument[data-type=violin] .ico{background:#3f3153}.instrument[data-type=drums] .ico{background:#31434d}.instrument strong{display:block;font-size:14px}.instrument small{display:block;color:var(--muted);font-size:11px;margin-top:5px}.check{margin-right:auto;width:20px;height:20px;border:1px solid #68728f;border-radius:7px;display:grid;place-items:center;color:#101626;font-size:13px}.instrument.active .check{background:var(--purple);border-color:var(--purple)}.check:after{content:"✓";opacity:0}.instrument.active .check:after{opacity:1}
+.mix-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:15px;color:var(--muted);font-size:12px}.mix-row label{display:flex;align-items:center;gap:8px}.mix-row input{accent-color:var(--purple);width:100px}
+.settings{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px}.setting{background:#141b2e;border:1px solid #303a55;border-radius:14px;padding:14px}.setting label{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:10px}.setting strong{color:var(--text)}.setting input{width:100%;accent-color:var(--cyan)}.setting .subtext{font-size:10px;color:#7985a2;margin-top:7px}
+.primary{width:100%;margin-top:19px;border-radius:14px;padding:15px 20px;background:linear-gradient(100deg,#9a7bff,#45d5ce);color:#101426;font-weight:800;font-size:15px;box-shadow:0 9px 27px #7867e544;transition:.2s}.primary:hover{filter:brightness(1.08);transform:translateY(-1px)}.primary:disabled{opacity:.45;cursor:not-allowed;transform:none}.status{display:none;margin-top:14px;padding:12px 14px;border-radius:12px;background:#172c34;border:1px solid #2d716b;color:#a4f0dc;font-size:12px;line-height:1.55}.status.show{display:block}.status.error{background:#38232f;border-color:#8e435b;color:#ffc1cd}
+.result-panel{display:none}.result-panel.show{display:block}.result-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:15px}.stat{background:#131a2d;border:1px solid #2f3954;padding:13px;border-radius:13px}.stat small{color:var(--muted);font-size:11px}.stat strong{display:block;font-size:19px;margin-top:7px}.roll{background:#11182a;border:1px solid #303a55;border-radius:14px;padding:10px;overflow:hidden}.roll canvas{width:100%;height:190px;display:block}.roll-label{font-size:11px;color:var(--muted);display:flex;justify-content:space-between;margin:0 3px 8px}
+.preview-title{display:flex;justify-content:space-between;align-items:center;margin:17px 0 10px}.preview-title h3{font-size:14px;margin:0}.ready{font-size:11px;color:#8ce7b8}.players{display:flex;align-items:center;gap:12px;padding:13px;background:#12192b;border:1px solid #303a55;border-radius:14px}.play-main{width:44px;height:44px;flex:0 0 44px;border-radius:50%;background:linear-gradient(135deg,#a88bff,#54ded3);display:grid;place-items:center;color:#101426;font-size:19px}.play-main:disabled{opacity:.4}.track-info{flex:1;min-width:0}.track-info strong{font-size:13px;display:block}.track-info small{font-size:11px;color:var(--muted)}.track-bars{height:22px;display:flex;align-items:center;gap:3px;margin-top:7px}.track-bars i{height:var(--h);width:3px;border-radius:4px;background:#66d9d1;opacity:.9}.download{border:1px solid #5b527f;background:#2a2644;color:#d7cbff;padding:10px 12px;border-radius:11px;font-size:12px;font-weight:bold}.download:disabled{opacity:.35;cursor:not-allowed}.notes{display:flex;flex-wrap:wrap;gap:6px;margin-top:13px}.note-pill{background:#252b46;border:1px solid #384363;color:#bbc8ed;border-radius:9px;padding:6px 9px;font-size:11px}
+footer{text-align:center;color:#78839f;font-size:11px;padding:18px 0 4px}.footer-brand{color:#b9a5ff}
+@media(max-width:650px){.app{padding:17px 13px 40px}.hero{margin-bottom:18px}.hero-art{width:115px;min-width:100px}.disc{width:95px;height:95px}.hero p{font-size:13px}.panel{padding:16px;border-radius:18px}.input-grid{grid-template-columns:1fr 1fr;gap:9px}.action-card{min-height:135px;padding:13px 7px}.action-title{font-size:13px}.action-desc{font-size:10px}.instruments{grid-template-columns:1fr;gap:8px}.instrument{min-height:68px;padding:10px}.settings{gap:9px}.result-stats{gap:7px}.stat{padding:10px}.stat strong{font-size:16px}.players{gap:8px;padding:10px}.download{padding:9px;font-size:11px}}
+@media(max-width:390px){.hero-art{display:none}.input-grid{grid-template-columns:1fr 1fr}.settings{grid-template-columns:1fr}.mix-row input{width:75px}.offline{font-size:10px;padding:7px 9px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+ <div class="brand"><div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="#111629" stroke-width="2.5" stroke-linecap="round"><path d="M4 10v4M8 6v12M12 3v18M16 7v10M20 10v4"/></svg></div><div><div class="brand-name">PLAYBACK STUDIO</div><div class="brand-sub">הקול שלך. המנגינה שלך.</div></div></div>
+ <div class="offline"><span class="dot"></span> עיבוד מקומי • ללא העלאה לשרת</div>
+</header>
+<section class="hero">
+ <div><h1>הופכים קול ליצירה <span>מוזיקלית</span></h1><p>מקליטים מנגינה או מעלים הקלטה מהמכשיר, והסטודיו מזהה את הצלילים ומנגן אותם מחדש בכינורות, פסנתר ותופים — או בכולם יחד.</p></div>
+ <div class="hero-art"><div class="disc"></div><div class="eq"><i></i><i></i><i></i><i></i><i></i></div></div>
+</section>
+
+<section class="panel">
+ <div class="panel-head"><div class="step"><span class="step-num">01</span><h2>מכניסים הקלטה</h2></div><span class="hint">הקלטה נקייה של מנגינה תיתן תוצאה מדויקת יותר</span></div>
+ <div class="input-grid">
+  <button class="action-card record-btn" id="recordBtn" type="button">
+   <span class="action-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="2" width="6" height="13" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8"/></svg></span>
+   <span class="action-title" id="recordTitle">הקלט את עצמך</span><span class="action-desc" id="recordDesc">לחץ והתחל לשיר או לזמזם</span><span class="file-name" id="recordTimer"></span>
+  </button>
+  <label class="action-card file-btn" for="audioFile">
+   <span class="action-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V3m0 0L7 8m5-5 5 5"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg></span>
+   <span class="action-title">העלה קובץ מהמכשיר</span><span class="action-desc">MP3 · WAV · M4A · ועוד</span><span class="file-name" id="fileName">בחירת קובץ שמע</span>
+  </label>
+  <input type="file" id="audioFile" accept="audio/*" hidden>
+ </div>
+ <div class="source-preview" id="sourcePreview">
+  <div class="source-top"><span id="sourceLabel">הקלטה מוכנה לניתוח</span><span id="sourceDuration"></span></div>
+  <audio id="sourceAudio" controls></audio>
+  <div class="wave-wrap"><canvas id="waveCanvas"></canvas></div>
+ </div>
+ <div class="status" id="inputStatus"></div>
+</section>
+
+<section class="panel">
+ <div class="panel-head"><div class="step"><span class="step-num">02</span><h2>בוחרים את הכלים</h2></div><span class="hint">אפשר לבחור כלי אחד או שילוב</span></div>
+ <div class="instruments">
+  <label class="instrument active" data-type="violin"><input type="checkbox" id="violin" checked><span class="ico">🎻</span><span><strong>כינורות</strong><small>מנגינה עשירה ומרגשת</small></span><span class="check"></span></label>
+  <label class="instrument" data-type="drums"><input type="checkbox" id="drums"><span class="ico">🥁</span><span><strong>תופים</strong><small>קצב ובסיס לשיר</small></span><span class="check"></span></label>
+  <label class="instrument active" data-type="piano"><input type="checkbox" id="piano" checked><span class="ico">🎹</span><span><strong>פסנתר</strong><small>מלודיה ואקורדים</small></span><span class="check"></span></label>
+ </div>
+ <div class="mix-row"><label><input type="checkbox" id="allTogether"> שילוב מלא — כל הכלים ביחד</label><span>אפשר לשנות גם אחרי הניתוח</span></div>
+ <div class="settings">
+  <div class="setting"><label><span>קצב הפלייבק</span><strong><span id="bpmValue">אוטומטי</span></strong></label><input id="bpm" type="range" min="65" max="160" value="110"><div class="subtext">הקצב יזוהה מההקלטה, ואפשר לכוונן אותו</div></div>
+  <div class="setting"><label><span>גובה המנגינה</span><strong><span id="transposeValue">0</span> חצאי טונים</strong></label><input id="transpose" type="range" min="-6" max="6" value="0"><div class="subtext">להתאים את המנגינה לגובה שנוח לך</div></div>
+ </div>
+ <button class="primary" id="analyzeBtn" type="button" disabled>✦ נתח את ההקלטה והפק פלייבק</button>
+ <div class="status" id="analysisStatus"></div>
+</section>
+
+<section class="panel result-panel" id="resultPanel">
+ <div class="panel-head"><div class="step"><span class="step-num">03</span><h2>הפלייבק שלך מוכן</h2></div><span class="ready">● ניתוח הושלם</span></div>
+ <div class="result-stats">
+  <div class="stat"><small>סולם משוער</small><strong id="keyResult">—</strong></div>
+  <div class="stat"><small>קצב משוער</small><strong id="tempoResult">—</strong></div>
+  <div class="stat"><small>צלילים שזוהו</small><strong id="notesResult">—</strong></div>
+ </div>
+ <div class="roll"><div class="roll-label"><span>מפת המנגינה שזוהתה</span><span id="rollDuration"></span></div><canvas id="rollCanvas"></canvas></div>
+ <div class="preview-title"><h3>האזנה לפלייבק המעובד</h3><span class="hint">גרסה אינסטרומנטלית</span></div>
+ <div class="players">
+  <button class="play-main" id="playBtn" type="button" aria-label="נגן" disabled>▶</button>
+  <div class="track-info"><strong>הפלייבק שלי</strong><small id="trackSummary">כינורות + פסנתר</small><div class="track-bars" aria-hidden="true"><i style="--h:8px"></i><i style="--h:14px"></i><i style="--h:19px"></i><i style="--h:12px"></i><i style="--h:22px"></i><i style="--h:15px"></i><i style="--h:9px"></i><i style="--h:18px"></i><i style="--h:12px"></i><i style="--h:21px"></i><i style="--h:8px"></i><i style="--h:16px"></i><i style="--h:11px"></i><i style="--h:20px"></i><i style="--h:9px"></i><i style="--h:15px"></i><i style="--h:22px"></i><i style="--h:12px"></i></div></div>
+  <button class="download" id="downloadBtn" type="button" disabled>⬇ הורד WAV</button>
+ </div>
+ <div class="notes" id="notesList"></div>
+</section>
+
+<footer>PLAYBACK STUDIO <span class="footer-brand">•</span> גרסה 1.0 <span class="footer-brand">•</span> פותח על ידי מדוזה כחולה</footer>
+</div>
+
+<script>
+(function(){
+"use strict";
+var audioBuffer=null, sourceObjectUrl=null, recorder=null, recordStream=null, recordedParts=[], timerHandle=null, recordStarted=0;
+var events=[], analysis=null, playContext=null, playTimer=null, exportUrl=null, isRecording=false;
+var $=function(id){return document.getElementById(id);};
+var recordBtn=$("recordBtn"), audioFile=$("audioFile"), analyzeBtn=$("analyzeBtn"), inputStatus=$("inputStatus"), analysisStatus=$("analysisStatus");
+var instrumentIds=["violin","drums","piano"];
+var noteNames=["דו","דו♯","רה","רה♯","מי","פה","פה♯","סול","סול♯","לה","לה♯","סי"];
+function showStatus(el,msg,error){el.textContent=msg;el.className="status show"+(error?" error":"");}
+function clearStatus(el){el.className="status";el.textContent="";}
+function fmtTime(s){var m=Math.floor(s/60),r=Math.floor(s%60);return m+":"+String(r).padStart(2,"0");}
+function setReady(buffer,name){
+ audioBuffer=buffer;
+ if(sourceObjectUrl)URL.revokeObjectURL(sourceObjectUrl);
+ sourceObjectUrl=URL.createObjectURL(new Blob([bufferToOriginalBlobFallback()],{type:"audio/wav"}));
+ $("sourceAudio").src=sourceObjectUrl;
+ $("sourcePreview").classList.add("visible");
+ $("sourceLabel").textContent=name;
+ $("sourceDuration").textContent=fmtTime(buffer.duration);
+ $("fileName").textContent=name;
+ analyzeBtn.disabled=false;
+ drawWaveform(buffer);
+ clearStatus(inputStatus);
+ showStatus(inputStatus,"ההקלטה נטענה בהצלחה. עכשיו בחר את הכלים ולחץ על ניתוח והפקת פלייבק.");
+ $("resultPanel").classList.remove("show");
+ $("playBtn").disabled=true;$("downloadBtn").disabled=true;
+ clearStatus(analysisStatus);
+}
+function bufferToOriginalBlobFallback(){return new ArrayBuffer(0);}
+async function loadFile(file){
+ if(!file)return;
+ showStatus(inputStatus,"טוען ומכין את קובץ השמע…");
+ try{
+  var bytes=await file.arrayBuffer(), Ctx=window.AudioContext||window.webkitAudioContext, c=new Ctx();
+  var decoded=await c.decodeAudioData(bytes.slice(0));await c.close();
+  audioBuffer=decoded;
+  if(sourceObjectUrl)URL.revokeObjectURL(sourceObjectUrl);
+  sourceObjectUrl=URL.createObjectURL(file);
+  $("sourceAudio").src=sourceObjectUrl;$("sourcePreview").classList.add("visible");
+  $("sourceLabel").textContent=file.name;$("sourceDuration").textContent=fmtTime(decoded.duration);
+  $("fileName").textContent=file.name;analyzeBtn.disabled=false;drawWaveform(decoded);
+  clearStatus(inputStatus);showStatus(inputStatus,"הקובץ נטען בהצלחה. העיבוד מתבצע בתוך המכשיר בלבד.");
+  $("resultPanel").classList.remove("show");$("playBtn").disabled=true;$("downloadBtn").disabled=true;
+ }catch(e){showStatus(inputStatus,"לא הצלחתי לפתוח את הקובץ. נסה MP3 או WAV תקין.",true);}
+}
+audioFile.addEventListener("change",function(e){loadFile(e.target.files&&e.target.files[0]);});
+function drawWaveform(buffer){
+ var canvas=$("waveCanvas"),rect=canvas.getBoundingClientRect(),dpr=window.devicePixelRatio||1;
+ canvas.width=Math.max(300,Math.floor(rect.width*dpr));canvas.height=Math.floor(65*dpr);
+ var ctx=canvas.getContext("2d"),data=buffer.getChannelData(0),w=canvas.width,h=canvas.height;
+ ctx.clearRect(0,0,w,h);ctx.strokeStyle="#5b6a94";ctx.lineWidth=1*dpr;ctx.beginPath();ctx.moveTo(0,h/2);ctx.lineTo(w,h/2);ctx.stroke();
+ var step=Math.max(1,Math.floor(data.length/w));
+ for(var x=0;x<w;x++){var peak=0,start=x*step;for(var j=0;j<step&&start+j<data.length;j+=4)peak=Math.max(peak,Math.abs(data[start+j]));var bar=Math.max(2,peak*h*.82);var grad=ctx.createLinearGradient(0,(h-bar)/2,0,(h+bar)/2);grad.addColorStop(0,"#a98bff");grad.addColorStop(1,"#45d7cf");ctx.fillStyle=grad;ctx.fillRect(x,(h-bar)/2,Math.max(1,dpr),bar);}
+}
+window.addEventListener("resize",function(){if(audioBuffer)drawWaveform(audioBuffer);if(analysis)drawRoll();});
+
+recordBtn.addEventListener("click",async function(){
+ if(isRecording){if(recorder&&recorder.state!=="inactive")recorder.stop();return;}
+ try{
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw new Error("no-mic");
+  recordStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
+  recordedParts=[];var mime=MediaRecorder.isTypeSupported("audio/webm;codecs=opus")?"audio/webm;codecs=opus":"audio/webm";
+  recorder=new MediaRecorder(recordStream,{mimeType:mime});
+  recorder.ondataavailable=function(e){if(e.data&&e.data.size)recordedParts.push(e.data);};
+  recorder.onstop=async function(){
+   clearInterval(timerHandle);recordStream.getTracks().forEach(function(t){t.stop();});recordStream=null;
+   $("recordTitle").textContent="הקלט את עצמך";$("recordDesc").textContent="לחץ והתחל לשיר או לזמזם";$("recordTimer").textContent="";
+   recordBtn.classList.remove("recording");isRecording=false;
+   try{var blob=new Blob(recordedParts,{type:recorder.mimeType||"audio/webm"}),bytes=await blob.arrayBuffer(),Ctx=window.AudioContext||window.webkitAudioContext,c=new Ctx(),decoded=await c.decodeAudioData(bytes.slice(0));await c.close();
+    audioBuffer=decoded;if(sourceObjectUrl)URL.revokeObjectURL(sourceObjectUrl);sourceObjectUrl=URL.createObjectURL(blob);
+    $("sourceAudio").src=sourceObjectUrl;$("sourcePreview").classList.add("visible");$("sourceLabel").textContent="הקלטה מהמיקרופון";$("sourceDuration").textContent=fmtTime(decoded.duration);$("fileName").textContent="הקלטה חדשה";
+    analyzeBtn.disabled=false;drawWaveform(decoded);clearStatus(inputStatus);showStatus(inputStatus,"ההקלטה נשמרה ומוכנה ליצירת פלייבק.");$("resultPanel").classList.remove("show");
+   }catch(err){showStatus(inputStatus,"ההקלטה נשמרה, אך לא ניתן היה לקרוא אותה. נסה להקליט שוב או להעלות קובץ.",true);}
+  };
+  recorder.start();isRecording=true;recordBtn.classList.add("recording");$("recordTitle").textContent="עצור הקלטה";$("recordDesc").textContent="ההקלטה מתבצעת עכשיו";recordStarted=Date.now();
+  timerHandle=setInterval(function(){$("recordTimer").textContent="● "+fmtTime((Date.now()-recordStarted)/1000);},250);
+ }catch(e){showStatus(inputStatus,"אין גישה למיקרופון. אשר הרשאת הקלטה בהגדרות המכשיר או העלה קובץ שמע.",true);}
+});
+
+instrumentIds.forEach(function(id){
+ $(id).addEventListener("change",function(){updateInstrumentCards();});
+});
+function updateInstrumentCards(){
+ instrumentIds.forEach(function(id){var card=document.querySelector('[data-type="'+id+'"]');card.classList.toggle("active",$(id).checked);});
+ var all=instrumentIds.every(function(id){return $(id).checked;});
+ $("allTogether").checked=all;
+}
+$("allTogether").addEventListener("change",function(){var v=$("allTogether").checked;instrumentIds.forEach(function(id){$(id).checked=v;});updateInstrumentCards();});
+$("bpm").addEventListener("input",function(){$("bpmValue").textContent=this.value+" BPM";});
+$("transpose").addEventListener("input",function(){$("transposeValue").textContent=(Number(this.value)>0?"+":"")+this.value;});
+function median(values){if(!values.length)return null;values.sort(function(a,b){return a-b;});return values[Math.floor(values.length/2)];}
+function detectPitchFrame(samples,start,fs){
+ var N=2048, x=new Float32Array(N),sum=0,energy=0;
+ for(var i=0;i<N;i++){var v=samples[start+i*2]||0;var win=.5-.5*Math.cos(2*Math.PI*i/(N-1));x[i]=v*win;energy+=v*v;}
+ var rms=Math.sqrt(energy/N);if(rms<.008)return {note:null,rms:rms,confidence:0};
+ for(var k=0;k<N;k++)sum+=x[k]*x[k];
+ var minLag=Math.max(22,Math.floor((fs/2)/1000)),maxLag=Math.min(300,Math.floor((fs/2)/65)),bestLag=-1,best=1;
+ var diff=new Float32Array(maxLag+1),running=0,cmnd=new Float32Array(maxLag+1);
+ for(var lag=minLag;lag<=maxLag;lag++){
+  var d=0;for(var j=0;j<N-lag;j+=2){var delta=x[j]-x[j+lag];d+=delta*delta;}
+  diff[lag]=d;running+=d;cmnd[lag]=running>0?d*lag/running:1;
+ }
+ var threshold=.18;
+ for(var lag2=minLag;lag2<=maxLag;lag2++){if(cmnd[lag2]<threshold){while(lag2+1<=maxLag&&cmnd[lag2+1]<cmnd[lag2])lag2++;bestLag=lag2;break;}if(cmnd[lag2]<best){best=cmnd[lag2];bestLag=lag2;}}
+ if(bestLag<0||cmnd[bestLag]>.34)return {note:null,rms:rms,confidence:0};
+ var freq=(fs/2)/bestLag;if(freq<65||freq>1100)return {note:null,rms:rms,confidence:0};
+ var midi=Math.round(69+12*Math.log2(freq/440));
+ return {note:midi,rms:rms,confidence:Math.max(0,1-cmnd[bestLag])};
+}
+function estimateKey(list){
+ var hist=new Array(12).fill(0),major=[6.35,2.23,3.48,2.33,4.38,4.09,2.52,5.19,2.39,3.66,2.29,2.88],minor=[6.33,2.68,3.52,5.38,2.60,3.53,2.54,4.75,3.98,2.69,3.34,3.17];
+ list.forEach(function(e){hist[((e.note%12)+12)%12]+=e.dur;});
+ var best={score:-1,name:"דו מז'ור",root:0,quality:"major"};
+ for(var root=0;root<12;root++){var sm=0,si=0;for(var p=0;p<12;p++){sm+=hist[(p+root)%12]*major[p];si+=hist[(p+root)%12]*minor[p];}
+  if(sm>best.score)best={score:sm,name:noteNames[root]+" מז'ור",root:root,quality:"major"};
+  if(si>best.score)best={score:si,name:noteNames[root]+" מינור",root:root,quality:"minor"};
+ }
+ return best;
+}
+function estimateTempo(frames,stepSec){
+ var flux=frames.map(function(f,i){return i?Math.max(0,f.rms-frames[i-1].rms):0;});
+ var bestBpm=110,bestScore=-1;
+ for(var bpm=65;bpm<=160;bpm++){var lag=Math.round((60/bpm)/stepSec);if(lag<2)continue;var score=0;for(var i=lag;i<flux.length;i++)score+=flux[i]*flux[i-lag];if(score>bestScore){bestScore=score;bestBpm=bpm;}}
+ return Math.max(65,Math.min(160,bestBpm));
+}
+function buildEvents(frames,stepSec){
+ var values=frames.map(function(f){return f.note;});
+ for(var i=1;i<values.length-1;i++){if(values[i]===null&&values[i-1]!==null&&values[i+1]!==null&&Math.abs(values[i-1]-values[i+1])<=1)values[i]=values[i-1];}
+ for(var j=1;j<values.length-1;j++){var around=[values[j-1],values[j],values[j+1]].filter(function(v){return v!==null;});if(around.length>=2)values[j]=median(around);}
+ var out=[],current=null,start=0;
+ for(var k=0;k<values.length;k++){
+  var v=values[k];
+  if(v!==current){
+   if(current!==null){var dur=(k-start)*stepSec;if(dur>=.12)out.push({note:current,t:start*stepSec,dur:dur});}
+   current=v;start=k;
+  }
+ }
+ if(current!==null){var d=(values.length-start)*stepSec;if(d>=.12)out.push({note:current,t:start*stepSec,dur:d});}
+ return out;
+}
+function analyze(buffer){
+ var channels=buffer.numberOfChannels,len=buffer.length,mono=new Float32Array(len);
+ for(var ch=0;ch<channels;ch++){var data=buffer.getChannelData(ch);for(var i=0;i<len;i++)mono[i]+=data[i]/channels;}
+ var frames=[],windowSamples=4096,hopSamples=3072,stepSec=hopSamples/buffer.sampleRate;
+ for(var pos=0;pos+windowSamples<len;pos+=hopSamples){var f=detectPitchFrame(mono,pos,buffer.sampleRate);frames.push(f);}
+ var notes=buildEvents(frames,stepSec);
+ if(notes.length<3)throw new Error("לא זוהתה מנגינה ברורה. נסה הקלטה של זמזום או שירה סולו, בלי מוזיקת רקע חזקה.");
+ var key=estimateKey(notes),tempo=estimateTempo(frames,stepSec);
+ return {events:notes,key:key,tempo:tempo,duration:buffer.duration,frames:frames};
+}
+analyzeBtn.addEventListener("click",function(){
+ if(!audioBuffer)return;
+ var selected=getSelected();if(!selected.length){showStatus(analysisStatus,"בחר לפחות כלי נגינה אחד.",true);return;}
+ analyzeBtn.disabled=true;showStatus(analysisStatus,"מנתח את גובה הצלילים ובונה מפת מנגינה…");
+ setTimeout(function(){
+  try{analysis=analyze(audioBuffer);events=analysis.events;
+   $("keyResult").textContent=analysis.key.name;$("tempoResult").textContent=analysis.tempo+" BPM";$("notesResult").textContent=events.length;
+   $("rollDuration").textContent=fmtTime(analysis.duration);$("resultPanel").classList.add("show");
+   $("playBtn").disabled=false;$("downloadBtn").disabled=false;
+   $("bpm").value=analysis.tempo;$("bpmValue").textContent="אוטומטי · "+analysis.tempo+" BPM";
+   drawRoll();renderNotes();updateTrackSummary();clearStatus(analysisStatus);
+   showStatus(analysisStatus,"זיהינו "+events.length+" צלילים. אפשר להאזין, לשנות כלים וגובה, ולהוריד קובץ WAV.");
+   $("resultPanel").scrollIntoView({behavior:"smooth",block:"start"});
+  }catch(e){showStatus(analysisStatus,e.message||"הניתוח נכשל. נסה הקלטה אחרת.",true);}
+  analyzeBtn.disabled=false;
+ },60);
+});
+function getSelected(){return instrumentIds.filter(function(id){return $(id).checked;});}
+function updateTrackSummary(){var a=getSelected().map(function(id){return id==="violin"?"כינורות":id==="drums"?"תופים":"פסנתר";});$("trackSummary").textContent=a.join(" + ")||"לא נבחרו כלים";}
+instrumentIds.forEach(function(id){$(id).addEventListener("change",function(){updateTrackSummary();});});
+function drawRoll(){
+ var canvas=$("rollCanvas"),rect=canvas.getBoundingClientRect(),dpr=window.devicePixelRatio||1,w=Math.max(400,Math.floor(rect.width*dpr)),h=Math.floor(190*dpr);canvas.width=w;canvas.height=h;
+ var c=canvas.getContext("2d"),low=Math.min.apply(null,events.map(function(e){return e.note;}))-2,high=Math.max.apply(null,events.map(function(e){return e.note;}))+2;
+ c.fillStyle="#11182a";c.fillRect(0,0,w,h);var row=h/(high-low+1),dur=analysis.duration||events[events.length-1].t+1;
+ for(var n=low;n<=high;n++){var y=h-(n-low+1)*row;c.strokeStyle=(n%12===0)?"#3b496a":"#263149";c.lineWidth=1;c.beginPath();c.moveTo(0,y);c.lineTo(w,y);c.stroke();}
+ for(var i=0;i<events.length;i++){var e=events[i],x=e.t/dur*w,bw=Math.max(3,e.dur/dur*w),y=h-(e.note-low+1)*row+2;c.fillStyle=i%2?"#50d7cf":"#aa91ff";c.globalAlpha=.88;c.beginPath();var r=Math.max(2,row*.22);c.roundRect(x,y,bw,Math.max(5,row-4),r);c.fill();}
+ c.globalAlpha=1;
+}
+function renderNotes(){
+ var box=$("notesList");box.innerHTML="";
+ events.slice(0,24).forEach(function(e){var el=document.createElement("span");el.className="note-pill";el.textContent=noteNames[((e.note%12)+12)%12]+" · "+fmtTime(e.t);box.appendChild(el);});
+ if(events.length>24){var more=document.createElement("span");more.className="note-pill";more.textContent="+"+(events.length-24)+" צלילים נוספים";box.appendChild(more);}
+}
+function transposeEvents(){var tr=Number($("transpose").value)||0;return events.map(function(e){return {note:e.note+tr,t:e.t,dur:e.dur};});}
+function getBpm(){return Number($("bpm").value)||110;}
+function getVolumes(){return {violin:.38,drums:.45,piano:.42};}
+function midiFreq(n){return 440*Math.pow(2,(n-69)/12);}
+function addTone(ac,dest,time,duration,midi,instrument,volume){
+ var f=midiFreq(midi),out=ac.createGain();out.gain.setValueAtTime(.0001,time);
+ var filter=ac.createBiquadFilter();filter.type="lowpass";filter.frequency.value=instrument==="violin"?2800:instrument==="piano"?4200:5000;filter.Q.value=.45;
+ filter.connect(out);out.connect(dest);
+ var osc=ac.createOscillator();osc.type=instrument==="violin"?"sawtooth":instrument==="piano"?"triangle":"sine";osc.frequency.setValueAtTime(f,time);
+ if(instrument==="violin"){
+  var vibrato=ac.createOscillator(),vg=ac.createGain();vibrato.frequency.value=5.2;vg.gain.value=7;vibrato.connect(vg);vg.connect(osc.detune);vibrato.start(time);vibrato.stop(time+duration+.25);
+  osc.connect(filter);osc.start(time);osc.stop(time+duration+.22);
+  out.gain.setValueAtTime(.0001,time);out.gain.linearRampToValueAtTime(volume,time+.10);out.gain.setValueAtTime(volume*.82,time+Math.max(.12,duration-.08));out.gain.linearRampToValueAtTime(.0001,time+duration+.2);
+ }else{
+  osc.connect(filter);osc.start(time);osc.stop(time+duration+.18);
+  out.gain.setValueAtTime(.0001,time);out.gain.linearRampToValueAtTime(volume,time+.008);out.gain.exponentialRampToValueAtTime(Math.max(.0001,volume*.24),time+Math.max(.06,duration*.35));out.gain.exponentialRampToValueAtTime(.0001,time+duration+.16);
+  if(instrument==="piano"){var o2=ac.createOscillator(),g2=ac.createGain();o2.type="sine";o2.frequency.value=f*2;g2.gain.setValueAtTime(.0001,time);g2.gain.linearRampToValueAtTime(volume*.17,time+.006);g2.gain.exponentialRampToValueAtTime(.0001,time+duration*.65);o2.connect(g2);g2.connect(dest);o2.start(time);o2.stop(time+duration+.1);}
+ }
+}
+function addKick(ac,dest,t,vol){
+ var osc=ac.createOscillator(),g=ac.createGain();osc.type="sine";osc.frequency.setValueAtTime(125,t);osc.frequency.exponentialRampToValueAtTime(43,t+.16);g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.0001,t+.28);osc.connect(g);g.connect(dest);osc.start(t);osc.stop(t+.3);
+}
+function addNoise(ac,dest,t,vol,kind){
+ var n=Math.floor(ac.sampleRate*(kind==="hat"?.055:.20)),buf=ac.createBuffer(1,n,ac.sampleRate),arr=buf.getChannelData(0);
+ for(var i=0;i<n;i++)arr[i]=Math.random()*2-1;
+ var src=ac.createBufferSource(),filter=ac.createBiquadFilter(),g=ac.createGain();src.buffer=buf;
+ filter.type="highpass";filter.frequency.value=kind==="hat"?6500:1300;g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.0001,t+(kind==="hat"?.05:.19));src.connect(filter);filter.connect(g);g.connect(dest);src.start(t);src.stop(t+(kind==="hat"?.06:.21));
+}
+function scheduleMusic(ac,dest,start,arr,duration,bpm,selected){
+ var beat=60/bpm,vols=getVolumes(),tr=Number($("transpose").value)||0;
+ if(selected.indexOf("piano")!==-1){
+  arr.forEach(function(e){addTone(ac,dest,start+e.t,Math.max(.16,Math.min(1.2,e.dur*.9)),e.note,"piano",vols.piano*.78);});
+  var step=beat*2;
+  for(var t=0;t<duration;t+=step){
+   var candidates=arr.filter(function(e){return e.t>=t&&e.t<t+step;});if(!candidates.length)continue;
+   var root=candidates[Math.floor(candidates.length/2)].note,minor=analysis&&analysis.key.quality==="minor",third=minor?3:4;
+   var base=root-12;addTone(ac,dest,start+t,Math.min(beat*1.7,duration-t),base,"piano",vols.piano*.18);
+   addTone(ac,dest,start+t,Math.min(beat*1.7,duration-t),base+third+12,"piano",vols.piano*.16);
+   addTone(ac,dest,start+t,Math.min(beat*1.7,duration-t),base+7+12,"piano",vols.piano*.15);
+  }
+ }
+ if(selected.indexOf("violin")!==-1){
+  arr.forEach(function(e,i){var d=Math.max(.14,Math.min(2.2,e.dur));addTone(ac,dest,start+e.t,d,e.note,"violin",vols.violin*.72);
+   if(i%3===1)addTone(ac,dest,start+e.t,d,e.note+12,"violin",vols.violin*.16);
+  });
+ }
+ if(selected.indexOf("drums")!==-1){
+  for(var bt=0,beatIndex=0;bt<duration;bt+=beat,beatIndex++){
+   addKick(ac,dest,start+bt,vols.drums*(beatIndex%4===0?.8:.57));
+   if(beatIndex%4===1||beatIndex%4===3)addNoise(ac,dest,start+bt,vols.drums*.38,"snare");
+   addNoise(ac,dest,start+bt,vols.drums*.12,"hat");
+   addNoise(ac,dest,start+bt+beat/2,vols.drums*.09,"hat");
+  }
+ }
+}
+$("playBtn").addEventListener("click",async function(){
+ if(!analysis)return;
+ if(playContext){stopPlayback();return;}
+ var selected=getSelected();if(!selected.length){showStatus(analysisStatus,"בחר לפחות כלי אחד כדי לנגן.",true);return;}
+ try{
+  var Ctx=window.AudioContext||window.webkitAudioContext;playContext=new Ctx();await playContext.resume();
+  var master=playContext.createGain();master.gain.value=.9;master.connect(playContext.destination);
+  var arr=transposeEvents(),bpm=getBpm(),duration=Math.min(240,analysis.duration);
+  scheduleMusic(playContext,master,playContext.currentTime+.08,arr,duration,bpm,selected);
+  $("playBtn").textContent="■";$("playBtn").setAttribute("aria-label","עצור");
+  playTimer=setTimeout(stopPlayback,(duration+1)*1000);
+ }catch(e){showStatus(analysisStatus,"לא ניתן להפעיל את הניגון במכשיר זה.",true);stopPlayback();}
+});
+function stopPlayback(){if(playTimer)clearTimeout(playTimer);playTimer=null;if(playContext){var c=playContext;playContext=null;c.close().catch(function(){});} $("playBtn").textContent="▶";$("playBtn").setAttribute("aria-label","נגן");}
+$("downloadBtn").addEventListener("click",async function(){
+ if(!analysis)return;var selected=getSelected();if(!selected.length){showStatus(analysisStatus,"בחר לפחות כלי אחד.",true);return;}
+ $("downloadBtn").disabled=true;$("downloadBtn").textContent="מכין WAV…";
+ try{
+  var sr=44100,duration=Math.min(240,analysis.duration)+1,Offline=window.OfflineAudioContext||window.webkitOfflineAudioContext;
+  var off=new Offline(2,Math.ceil(sr*duration),sr),master=off.createGain();master.gain.value=.92;master.connect(off.destination);
+  scheduleMusic(off,master,0,transposeEvents(),duration-1,getBpm(),selected);
+  var rendered=await off.startRendering(),blob=audioBufferToWav(rendered);
+  if(exportUrl)URL.revokeObjectURL(exportUrl);exportUrl=URL.createObjectURL(blob);
+  var a=document.createElement("a");a.href=exportUrl;a.download="my-playback-studio.wav";document.body.appendChild(a);a.click();a.remove();
+  showStatus(analysisStatus,"קובץ WAV נוצר וההורדה החלה.");
+ }catch(e){showStatus(analysisStatus,"ייצוא ה-WAV נכשל בדפדפן הזה. נסה להשמיע את הפלייבק או מכשיר אחר.",true);}
+ $("downloadBtn").disabled=false;$("downloadBtn").textContent="⬇ הורד WAV";
+});
+function audioBufferToWav(buffer){
+ var channels=2,samples=buffer.length,rate=buffer.sampleRate,bytes=44+samples*channels*2,ab=new ArrayBuffer(bytes),view=new DataView(ab),pos=0;
+ function str(s){for(var i=0;i<s.length;i++)view.setUint8(pos++,s.charCodeAt(i));}
+ str("RIFF");view.setUint32(pos,bytes-8,true);pos+=4;str("WAVE");str("fmt ");view.setUint32(pos,16,true);pos+=4;view.setUint16(pos,1,true);pos+=2;view.setUint16(pos,channels,true);pos+=2;view.setUint32(pos,rate,true);pos+=4;view.setUint32(pos,rate*channels*2,true);pos+=4;view.setUint16(pos,channels*2,true);pos+=2;view.setUint16(pos,16,true);pos+=2;str("data");view.setUint32(pos,samples*channels*2,true);pos+=4;
+ var left=buffer.getChannelData(0),right=buffer.numberOfChannels>1?buffer.getChannelData(1):left;
+ for(var i=0;i<samples;i++){var l=Math.max(-1,Math.min(1,left[i])),r=Math.max(-1,Math.min(1,right[i]));view.setInt16(pos,l<0?l*32768:l*32767,true);pos+=2;view.setInt16(pos,r<0?r*32768:r*32767,true);pos+=2;}
+ return new Blob([ab],{type:"audio/wav"});
+}
+})();
+</script>
+</body>
+</html>
