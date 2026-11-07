@@ -9,13 +9,11 @@ app.innerHTML = `
       <div class="brand"><span class="brand-icon">♫</span><span>SOUND SWITCH <small>STUDIO</small></span></div>
       <span class="local-tag"><i></i> עיבוד מקומי במכשיר</span>
     </header>
-
     <section class="hero">
       <div class="eyebrow">VIDEO AUDIO REPLACER</div>
       <h1>הסאונד החדש<br><span>מתחיל כאן.</span></h1>
       <p>מחליפים את פס הקול של הסרטון במוזיקה שבוחרים. פשוט, נקי ובשליטה מלאה.</p>
     </section>
-
     <section class="workspace">
       <div class="step-card">
         <div class="step-head"><span class="step-number">01</span><div><h2>הסרטון שלך</h2><p>בחר קובץ וידאו מהמחשב</p></div></div>
@@ -23,7 +21,6 @@ app.innerHTML = `
         <div id="videoName" class="file-name">עדיין לא נבחר סרטון</div>
         <video id="videoPreview" controls playsinline hidden></video>
       </div>
-
       <div class="step-card">
         <div class="step-head"><span class="step-number">02</span><div><h2>פס הקול החדש</h2><p>בחר את קובץ המוזיקה שיחליף את המקור</p></div></div>
         <label class="dropzone audio-drop" for="audioInput"><span class="upload-icon">♫</span><strong>בחירת קובץ שמע</strong><small>MP3, WAV, M4A ועוד</small><input id="audioInput" type="file" accept="audio/*"></label>
@@ -31,16 +28,14 @@ app.innerHTML = `
         <audio id="audioPreview" controls hidden></audio>
       </div>
     </section>
-
     <section class="options-card">
       <div><h2>הגדרות ייצוא</h2><p>הסאונד המקורי יוסר לחלוטין.</p></div>
       <label class="check-row"><input id="loopAudio" type="checkbox" checked><span><b>התאמת אורך אוטומטית</b><small>חזרה על המוזיקה אם היא קצרה מהסרטון</small></span></label>
-      <label class="check-row"><input id="fadeAudio" type="checkbox"><span><b>דעיכה בסיום</b><small>הנמכת המוזיקה בהדרגה בסוף הסרטון</small></span></label>
+      <label class="check-row"><input id="fadeAudio" type="checkbox"><span><b>דעיכה בסיום</b><small>הנמכת המוזיקה בשלוש השניות האחרונות</small></span></label>
       <button id="startBtn" class="primary" disabled><span>✦</span> החלף סאונד וצור סרטון</button>
       <div class="progress-wrap" id="progressWrap" hidden><div class="progress-meta"><span id="status">מכין מנוע עריכה…</span><b id="percent">0%</b></div><div class="progress-track"><div id="progressBar"></div></div></div>
       <p class="privacy-note">הקבצים מעובדים בדפדפן שלך ואינם מועלים לשרת.</p>
     </section>
-
     <section id="resultCard" class="result-card" hidden>
       <div class="result-title"><span class="success-mark">✓</span><div><h2>הסרטון מוכן!</h2><p>אפשר לצפות בתוצאה או לשמור אותה במחשב.</p></div></div>
       <video id="resultVideo" controls playsinline></video>
@@ -50,15 +45,16 @@ app.innerHTML = `
   </main>
 `;
 
-const $ = (id) => document.getElementById(id);
+const $ = id => document.getElementById(id);
 const videoInput = $('videoInput');
 const audioInput = $('audioInput');
 const startBtn = $('startBtn');
-let ffmpeg;
+let ffmpeg = null;
 let engineReady = false;
-let videoUrl;
-let audioUrl;
-let resultUrl;
+let videoUrl = null;
+let audioUrl = null;
+let resultUrl = null;
+let videoDuration = 0;
 
 function setStatus(message, percent = null) {
   $('status').textContent = message;
@@ -80,8 +76,10 @@ videoInput.addEventListener('change', () => {
   if (!file) return;
   if (videoUrl) URL.revokeObjectURL(videoUrl);
   videoUrl = URL.createObjectURL(file);
-  $('videoPreview').src = videoUrl;
-  $('videoPreview').hidden = false;
+  const preview = $('videoPreview');
+  preview.src = videoUrl;
+  preview.hidden = false;
+  preview.onloadedmetadata = () => { videoDuration = Number.isFinite(preview.duration) ? preview.duration : 0; };
   $('videoName').textContent = file.name;
   $('resultCard').hidden = true;
   selectedFilesReady();
@@ -99,14 +97,10 @@ audioInput.addEventListener('change', () => {
 
 async function loadEngine() {
   if (engineReady) return;
-  setStatus('טוען מנוע עריכה בפעם הראשונה…', 0);
+  setStatus('טוען מנוע עריכה מקומי בפעם הראשונה…', 0);
   ffmpeg = new FFmpeg();
-  ffmpeg.on('progress', ({ progress }) => {
-    setStatus('מעבד את הסרטון…', Math.min(99, progress * 100));
-  });
-  // FFmpeg's worker is bundled by Vite and served from this site, not from a CDN.
-  // Only the WASM core is fetched as data and passed to the local worker.
-  const coreBase = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd';
+  ffmpeg.on('progress', ({ progress }) => setStatus('מעבד את הסרטון…', Math.min(99, progress * 100)));
+  const coreBase = new URL('../ffmpeg/', import.meta.url).href.replace(/\/$/, '');
   const coreURL = await toBlobURL(coreBase + '/ffmpeg-core.js', 'text/javascript');
   const wasmURL = await toBlobURL(coreBase + '/ffmpeg-core.wasm', 'application/wasm');
   await ffmpeg.load({ coreURL, wasmURL });
@@ -133,12 +127,11 @@ startBtn.addEventListener('click', async () => {
 
     const args = ['-i', inputVideo];
     if ($('loopAudio').checked) args.push('-stream_loop', '-1');
-    args.push('-i', inputAudio, '-map', '0:v:0', '-map', '1:a:0', '-c:v', 'libx264',
-      '-preset', 'ultrafast', '-crf', '23', '-pix_fmt', 'yuv420p',
+    args.push('-i', inputAudio, '-map', '0:v:0', '-map', '1:a:0',
+      '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '23', '-pix_fmt', 'yuv420p',
       '-c:a', 'aac', '-b:a', '192k');
-    if ($('fadeAudio').checked) {
-      // Fade duration is based on a conservative 3-second tail; FFmpeg stops at video end.
-      args.push('-af', 'afade=t=out:st=0:d=3');
+    if ($('fadeAudio').checked && videoDuration > 3) {
+      args.push('-af', 'afade=t=out:st=' + (videoDuration - 3).toFixed(3) + ':d=3');
     }
     args.push('-shortest', '-movflags', '+faststart', 'finished.mp4');
     setStatus('מחליף את פס הקול ומייצא MP4…', 2);
@@ -156,8 +149,8 @@ startBtn.addEventListener('click', async () => {
     $('resultCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (error) {
     console.error(error);
-    setStatus('לא הצלחנו לייצא את הסרטון: ' + (error?.message || String(error)) +
-      '. בדוק שהחיבור מאפשר טעינת מנוע WASM ונסה קובץ MP4 רגיל.');
+    setStatus('הייצוא נכשל: ' + (error?.message || String(error)) +
+      '. ודא שקובצי מנוע העריכה נטענים ונסה סרטון MP4 רגיל.');
   } finally {
     startBtn.disabled = false;
   }
