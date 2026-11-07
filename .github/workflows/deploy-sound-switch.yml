@@ -27,14 +27,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
-          cache-dependency-path: sound-switch/package.json
       - name: Install dependencies
         working-directory: sound-switch
         run: npm install
       - name: Build site
         working-directory: sound-switch
         run: npm run build
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
