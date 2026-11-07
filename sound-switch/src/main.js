@@ -130,9 +130,12 @@ startBtn.addEventListener('click', async () => {
     args.push('-i', inputAudio, '-map', '0:v:0', '-map', '1:a:0',
       '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '23', '-pix_fmt', 'yuv420p',
       '-c:a', 'aac', '-b:a', '192k');
+    const audioFilters = [];
+    if (!$('loopAudio').checked) audioFilters.push('apad');
     if ($('fadeAudio').checked && videoDuration > 3) {
-      args.push('-af', 'afade=t=out:st=' + (videoDuration - 3).toFixed(3) + ':d=3');
+      audioFilters.push('afade=t=out:st=' + (videoDuration - 3).toFixed(3) + ':d=3');
     }
+    if (audioFilters.length) args.push('-af', audioFilters.join(','));
     args.push('-shortest', '-movflags', '+faststart', 'finished.mp4');
     setStatus('מחליף את פס הקול ומייצא MP4…', 2);
     const exitCode = await ffmpeg.exec(args);
