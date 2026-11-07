@@ -1,0 +1,25 @@
+@import url('https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap');
+:root{font-family:Heebo,Arial,sans-serif;color:#f6f7fb;background:#101522;font-synthesis:none}
+*{box-sizing:border-box}body{margin:0;min-width:320px;background:radial-gradient(ellipse at 50% -15%,#292b55 0,transparent 48%),#101522}
+button,input{font:inherit}.shell{width:min(900px,100% - 36px);margin:auto}
+.topbar{height:76px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #ffffff12}
+.brand{display:flex;align-items:center;gap:11px;font-weight:900;letter-spacing:1.5px;font-size:14px}.brand small{display:block;color:#929bb0;font-size:9px;letter-spacing:3px}
+.brand-icon{display:grid;place-items:center;width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#a78bfa,#6d5dfc);font-size:24px}
+.local-tag{font-size:12px;color:#b9c3d8}.local-tag i{display:inline-block;width:7px;height:7px;border-radius:50%;background:#5bd6a0;margin-left:7px}
+.hero{text-align:center;padding:65px 0 42px}.eyebrow{font-size:11px;letter-spacing:3px;color:#a99cff;font-weight:800}
+h1{font-size:clamp(40px,8vw,66px);line-height:1.08;margin:15px 0;font-weight:900;letter-spacing:-1.5px}h1 span{color:#a99cff}
+.hero p{max-width:520px;margin:0 auto;color:#aab3c6;line-height:1.8;font-size:15px}
+.workspace{display:grid;grid-template-columns:1fr 1fr;gap:16px}.step-card,.options-card,.result-card{background:#1a2131;border:1px solid #30394d;border-radius:20px;padding:22px;box-shadow:0 16px 45px #0002}
+.step-head{display:flex;align-items:center;gap:13px;margin-bottom:19px}.step-number{display:grid;place-items:center;width:39px;height:39px;border-radius:12px;background:#302d55;color:#b7aaff;font-weight:900;font-size:12px}
+h2{font-size:17px;margin:0 0 3px}.step-head p,.options-card>div>p,.result-title p{font-size:12px;color:#9ba7bd;margin:0}
+.dropzone{min-height:145px;border:1px dashed #626b85;border-radius:15px;background:#202a3d;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;cursor:pointer;transition:.2s}
+.dropzone:hover{border-color:#a99cff;background:#292d48}.dropzone input{display:none}.upload-icon{font-size:29px;color:#b3a7ff}.dropzone strong{font-size:14px}.dropzone small{font-size:11px;color:#9ca8bd}
+.file-name{font-size:11px;color:#aeb8ca;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:12px;min-height:16px}
+video,audio{width:100%;margin-top:13px;border-radius:12px}video{background:#070a10}audio{height:38px}
+.options-card{margin-top:17px}.options-card>div{margin-bottom:18px}.check-row{display:flex;align-items:center;gap:12px;padding:13px 0;border-top:1px solid #ffffff0d;cursor:pointer}
+.check-row input{width:17px;height:17px;accent-color:#8978ff}.check-row span{display:flex;flex-direction:column;gap:3px}.check-row b{font-size:13px}.check-row small{font-size:11px;color:#9ba7bd}
+.primary,.download-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;border:0;border-radius:13px;padding:16px;background:linear-gradient(100deg,#8b72ff,#6557e9);color:white;font-size:15px;font-weight:800;text-decoration:none;cursor:pointer;margin-top:17px;box-shadow:0 8px 25px #7465ef33}
+.primary:disabled{opacity:.4;cursor:not-allowed}.progress-wrap{margin-top:18px}.progress-meta{display:flex;justify-content:space-between;font-size:12px;color:#c5c9d8;margin-bottom:9px}.progress-meta b{color:#b8aaff}.progress-track{height:8px;background:#30394c;border-radius:20px;overflow:hidden}.progress-track div{height:100%;width:0;background:linear-gradient(90deg,#8c76ff,#b4a4ff);border-radius:20px;transition:width .25s}
+.privacy-note{text-align:center;color:#8995aa;font-size:11px;margin:14px 0 0}.result-card{margin-top:17px}.result-title{display:flex;gap:12px;align-items:center}.success-mark{display:grid;place-items:center;width:38px;height:38px;border-radius:50%;background:#173f36;color:#6ce0b1;font-weight:900}
+.result-card video{max-height:440px}.download-btn{background:#25334b;border:1px solid #455572;box-shadow:none}footer{text-align:center;color:#6e7a91;font-size:11px;padding:30px 0 24px}footer span{padding:0 7px;color:#a99cff}
+@media(max-width:650px){.workspace{grid-template-columns:1fr}.hero{padding:48px 0 32px}.step-card,.options-card,.result-card{padding:17px}.local-tag{font-size:10px}}
