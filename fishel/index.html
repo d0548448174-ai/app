@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#087e68"><title>פישל</title>
+<link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header><div class="brand"><div class="brand-icon">פ</div><div><b>פישל</b><small>הצ׳אטים שלך</small></div></div><span id="connection" class="status">מתחבר…</span></header>
+<main>
+<section id="home" class="screen">
+<div class="section-title">השיחות שלך</div>
+<button class="chat-row" id="openGroup"><div class="avatar group">👥</div><div class="chat-info"><b>קבוצת פישל</b><small id="groupPreview">הקבוצה הפתוחה לכולם</small></div><span class="chevron">‹</span></button>
+<div class="section-title private-title">שיחות פרטיות <span>🔒</span></div>
+<div id="privateList" class="private-list"><p class="empty">עדיין אין לך שיחות פרטיות</p></div>
+<button class="primary wide" id="createRoom">＋ יצירת שיחה פרטית</button>
+<button class="secondary wide" id="joinRoom">🔑 הצטרפות באמצעות קוד</button>
+</section>
+<section id="chat" class="screen hidden">
+<div class="chat-head"><button class="back" id="back">›</button><div class="avatar group" id="chatAvatar">👥</div><div><b id="chatTitle">קבוצת פישל</b><small id="chatSub">כולם מוזמנים</small></div><span class="spacer"></span><button id="shareCode" class="icon-btn hidden" title="הצגת קוד">⋮</button></div>
+<div id="messages" class="messages"><div class="loading">טוען הודעות…</div></div>
+<form id="sendForm" class="composer"><input id="messageInput" maxlength="2000" placeholder="כתוב הודעה…" autocomplete="off"><button class="send" type="submit">➤</button></form>
+</section>
+<section id="setup" class="screen hidden">
+<button class="back" id="setupBack">› חזרה</button><div class="setup-card"><div class="big-lock">🔐</div><h2 id="setupTitle">שיחה פרטית</h2><p id="setupText">הקלד את קוד ההזמנה שקיבלת מהחבר.</p><input id="codeInput" class="code-input" placeholder="קוד הצטרפות" maxlength="12" autocomplete="off"><button id="setupAction" class="primary wide">המשך</button><p id="setupError" class="error"></p></div>
+</section>
+<section id="created" class="screen hidden">
+<div class="setup-card"><div class="big-lock">🎉</div><h2>השיחה מוכנה!</h2><p>שלח את הקוד לחבר אחד. רק שני אנשים יכולים להשתתף בשיחה.</p><div class="invite-code" id="inviteCode"></div><button id="copyCode" class="primary wide">העתק קוד</button><button id="enterCreated" class="secondary wide">כניסה לשיחה</button></div>
+</section>
+</main>
+<div id="toast" class="toast"></div>
+<script type="module" src="app.js"></script>
+</body></html>
