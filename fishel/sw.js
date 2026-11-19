@@ -1,0 +1,1 @@
+const CACHE="fishel-v1";self.addEventListener("install",e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(["./","./index.html","./style.css","./app.js","./firebase-config.js","./manifest.webmanifest"]))));self.addEventListener("fetch",e=>{if(e.request.url.includes("gstatic.com"))return;e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)))})
