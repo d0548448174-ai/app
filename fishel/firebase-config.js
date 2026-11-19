@@ -1,10 +1,11 @@
-// הדבק כאן את פרטי אפליקציית Firebase שלך (Firebase Console > Project settings > Your apps).
-// המפתח apiKey אינו סיסמה, אך יש להגדיר כללי אבטחה ב-Firestore.
+// פרטי אפליקציית Firebase של פישל.
+// הגישה לנתונים מוגנת באמצעות Firebase Authentication וכללי Firestore.
 export const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyA9_Be9486wgTCV7x1T-UeHS2dpF-f4P1c",
+  authDomain: "fishel-eab32.firebaseapp.com",
+  projectId: "fishel-eab32",
+  storageBucket: "fishel-eab32.firebasestorage.app",
+  messagingSenderId: "794881647971",
+  appId: "1:794881647971:web:f10e9bc391b2457e169f56",
+  measurementId: "G-WKE6KWGFNM"
 };
