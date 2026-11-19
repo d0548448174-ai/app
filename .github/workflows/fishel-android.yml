@@ -1,35 +1,54 @@
 name: Build Fishel Android APK
+
 on:
   workflow_dispatch:
   push:
     paths:
       - 'fishel/**'
       - '.github/workflows/fishel-android.yml'
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 20
-      - uses: actions/setup-java@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
-      - name: Install Capacitor
+
+      - name: Prepare web assets
+        working-directory: fishel
+        run: |
+          mkdir -p www
+          cp index.html app.js style.css firebase-config.js manifest.webmanifest www/
+          if [ -f sw.js ]; then cp sw.js www/; fi
+
+      - name: Install Capacitor 6
         working-directory: fishel
         run: |
           npm init -y
-          npm install @capacitor/core @capacitor/cli @capacitor/android
-          npx cap init Fishel com.bluejelly.fishel --web-dir .
+          npm install @capacitor/core@6.2.1 @capacitor/cli@6.2.1 @capacitor/android@6.2.1
+          npx cap init Fishel com.bluejelly.fishel --web-dir www
           npx cap add android
           npx cap sync android
+
       - name: Build debug APK
         working-directory: fishel/android
         run: chmod +x gradlew && ./gradlew assembleDebug
-      - uses: actions/upload-artifact@v4
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
         with:
           name: fishel-debug-apk
           path: fishel/android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
           retention-days: 14
