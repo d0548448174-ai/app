@@ -2,41 +2,68 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() { return request.auth != null; }
-    function isMember(roomId) {
-      return signedIn() && request.auth.uid in get(/databases/$(database)/documents/rooms/$(roomId)).data.members;
-    }
-    match /rooms/group-main {
-      allow read: if signedIn();
-      allow create, update: if signedIn();
-      match /messages/{messageId} {
-        allow read: if signedIn();
-        allow create: if signedIn() && request.resource.data.uid == request.auth.uid
-          && request.resource.data.text is string && request.resource.data.text.size() > 0
-          && request.resource.data.text.size() <= 2000;
-      }
-    }
+
     match /rooms/{roomId} {
-      allow read: if signedIn() && (request.auth.uid in resource.data.members);
-      allow create: if signedIn() && request.resource.data.type == 'private'
+      allow read: if signedIn() &&
+        (roomId == 'group-main' || request.auth.uid in resource.data.members);
+
+      allow create: if signedIn()
+        && request.resource.data.type == 'private'
         && request.resource.data.members == [request.auth.uid];
-      allow update: if signedIn()
-        && request.auth.uid in resource.data.members
-        && request.resource.data.members.size() <= 2
-        && request.resource.data.members.hasAll(resource.data.members);
+
+      // A member may update an existing private room without adding participants.
+      // The second participant may join only through the matching, unused invite
+      // in the same atomic transaction.
+      allow update: if signedIn() && (
+        (
+          request.auth.uid in resource.data.members
+          && request.resource.data.members.size() <= 2
+          && request.resource.data.members.hasAll(resource.data.members)
+        )
+        ||
+        (
+          resource.data.type == 'private'
+          && resource.data.members.size() == 1
+          && request.resource.data.members.size() == 2
+          && request.resource.data.members.hasAll(resource.data.members)
+          && request.resource.data.members.hasAll([request.auth.uid])
+          && request.resource.data.joinedWithCode is string
+          && get(/databases/$(database)/documents/invites/$(request.resource.data.joinedWithCode)).data.used == false
+          && getAfter(/databases/$(database)/documents/invites/$(request.resource.data.joinedWithCode)).data.used == true
+          && getAfter(/databases/$(database)/documents/invites/$(request.resource.data.joinedWithCode)).data.roomId == roomId
+        )
+      );
+
       match /messages/{messageId} {
-        allow read: if isMember(roomId);
-        allow create: if isMember(roomId) && request.resource.data.uid == request.auth.uid
-          && request.resource.data.text is string && request.resource.data.text.size() > 0
+        allow read: if signedIn() &&
+          (roomId == 'group-main' ||
+           request.auth.uid in get(/databases/$(database)/documents/rooms/$(roomId)).data.members);
+
+        allow create: if signedIn()
+          && (roomId == 'group-main' ||
+              request.auth.uid in get(/databases/$(database)/documents/rooms/$(roomId)).data.members)
+          && request.resource.data.uid == request.auth.uid
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0
           && request.resource.data.text.size() <= 2000;
       }
     }
+
     match /invites/{code} {
       allow get: if signedIn();
       allow list: if false;
-      allow create: if signedIn() && request.resource.data.createdBy == request.auth.uid
+
+      allow create: if signedIn()
+        && request.resource.data.createdBy == request.auth.uid
         && request.resource.data.used == false;
-      allow update: if signedIn() && resource.data.used == false
-        && request.resource.data.used == true;
+
+      allow update: if signedIn()
+        && resource.data.used == false
+        && request.resource.data.used == true
+        && request.resource.data.roomId == resource.data.roomId
+        && getAfter(/databases/$(database)/documents/rooms/$(resource.data.roomId)).data.members.size() == 2
+        && request.auth.uid in getAfter(/databases/$(database)/documents/rooms/$(resource.data.roomId)).data.members
+        && getAfter(/databases/$(database)/documents/rooms/$(resource.data.roomId)).data.joinedWithCode == code;
     }
   }
 }
