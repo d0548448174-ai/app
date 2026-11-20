@@ -8,7 +8,7 @@ on:
       - '.github/workflows/shorts-music-android.yml'
 
 concurrency:
-  group: vybe-ai-chorus-apk
+  group: vybe-ai-chorus-apk-final
   cancel-in-progress: true
 
 permissions:
