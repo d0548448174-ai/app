@@ -26,6 +26,17 @@ jobs:
         with:
           node-version: '22'
 
+      - name: Build LinkSeg package from its upstream source
+        run: |
+          git clone https://github.com/elicwhite/LinkSeg-web.git /tmp/linkseg-web
+          cd /tmp/linkseg-web
+          git checkout 694d27356082712dc82a3e06dbf9c7d543c9e399
+          npm install --no-audit --no-fund
+          npm run build
+          mkdir -p "$GITHUB_WORKSPACE/shorts-music-android/vendor/linkseg-web"
+          cp package.json README.md LICENSE "$GITHUB_WORKSPACE/shorts-music-android/vendor/linkseg-web/"
+          cp -R dist "$GITHUB_WORKSPACE/shorts-music-android/vendor/linkseg-web/dist"
+
       - name: Install web dependencies and fetch the licensed AI model
         working-directory: shorts-music-android
         run: |
