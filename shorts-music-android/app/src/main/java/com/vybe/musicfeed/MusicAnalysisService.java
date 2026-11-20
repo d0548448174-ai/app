@@ -10,6 +10,7 @@ import android.content.pm.ServiceInfo;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.IBinder;
+import android.os.PowerManager;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -20,12 +21,18 @@ public final class MusicAnalysisService extends Service {
     private static final int NOTIFICATION_ID = 7301;
     private WebView analysisWebView;
     private WebViewAssetLoader assetLoader;
+    private PowerManager.WakeLock wakeLock;
 
     @Override
     public void onCreate() {
         super.onCreate();
         createChannel();
         startForegroundCompat(buildNotification("מכין את מנוע ניתוח המוזיקה", 0, 0));
+        PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
+        if (powerManager != null) {
+            wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "VYBE:MusicAnalysis");
+            wakeLock.acquire(4L * 60L * 60L * 1000L);
+        }
         getSharedPreferences("vybe_musicfeed_v2", MODE_PRIVATE).edit()
                 .putBoolean("background_running", true)
                 .putString("background_message", "מתחיל ניתוח AI")
@@ -134,6 +141,9 @@ public final class MusicAnalysisService extends Service {
 
     @Override
     public void onDestroy() {
+        if (wakeLock != null && wakeLock.isHeld()) {
+            try { wakeLock.release(); } catch (Exception ignored) { }
+        }
         if (analysisWebView != null) {
             try {
                 analysisWebView.stopLoading();
