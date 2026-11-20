@@ -24,11 +24,19 @@ jobs:
           cache: npm
           cache-dependency-path: shorts-music-android/package.json
 
-      - name: Bundle AI engine and web player
+      - name: Install web dependencies and fetch the licensed AI model
         working-directory: shorts-music-android
         run: |
           npm install --no-audit --no-fund
-          npm run build
+          mkdir -p web/public
+          curl --fail --location --retry 3 --retry-delay 2 \
+            https://huggingface.co/elicwhite/linkseg-7c-onnx/resolve/main/linkseg_7c.onnx \
+            --output web/public/linkseg_7c.onnx
+          test "$(stat -c%s web/public/linkseg_7c.onnx)" -gt 1000000
+
+      - name: Bundle AI engine and web player
+        working-directory: shorts-music-android
+        run: npm run build
 
       - name: Set up Java 17
         uses: actions/setup-java@v4
