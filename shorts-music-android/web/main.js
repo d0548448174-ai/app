@@ -167,7 +167,6 @@ async function analyzeTrack(track, options = {}) {
     tau: 0
   });
   const chorus = selectChorus(sections, decoded.buffer.duration);
-  if (current && current.id === track.id) currentBuffer = decoded.buffer;
   const result = {
     version: ANALYSIS_VERSION,
     engine: 'LinkSeg 7-class',
@@ -226,11 +225,9 @@ function renderCurrent() {
     $('downloadButton').disabled = true;
     $('analyzeButton').textContent = 'נתח שיר';
   }
-  audio.pause();
-  audio.currentTime = 0;
-  chorusMode = !!chorus;
-  $('playButton').textContent = '▶';
-  $('progressLine').style.width = '0%';
+  $('playButton').textContent = audio.paused ? '▶' : 'Ⅱ';
+  if (chorus) chorusMode = true;
+  $('progressLine').style.width = audio.duration ? (audio.currentTime / audio.duration * 100) + '%' : '0%';
 }
 function getFeedTracks() {
   const source = favoritesOnly ? tracks.filter(t => t.favorite) : tracks;
@@ -274,6 +271,7 @@ async function selectTrack(index, autoplay) {
   const next = list[(index + list.length) % list.length];
   if (current && current.id !== next.id) {
     audio.pause();
+    audio.currentTime = 0;
     currentBytes = null;
     currentBuffer = null;
     if (currentObjectUrl) URL.revokeObjectURL(currentObjectUrl);
@@ -281,6 +279,11 @@ async function selectTrack(index, autoplay) {
   }
   current = next;
   currentIndex = tracks.findIndex(t => t.id === next.id);
+  chorusMode = !!(next.analysis && next.analysis.chorus);
+  if (!next.analysis || !next.analysis.chorus) {
+    audio.pause();
+    audio.currentTime = 0;
+  }
   renderCurrent();
   if (autoplay && next.analysis && next.analysis.chorus) await playChorus();
   else if (autoplay) {
@@ -366,7 +369,14 @@ function renderLibrary() {
       const idx = getFeedTracks().findIndex(t => t.id === track.id);
       if (idx >= 0) selectTrack(idx, true);
       else {
+        audio.pause();
+        audio.currentTime = 0;
+        currentBytes = null;
+        currentBuffer = null;
+        if (currentObjectUrl) URL.revokeObjectURL(currentObjectUrl);
+        currentObjectUrl = null;
         current = track;
+        chorusMode = false;
         renderCurrent();
         toast('לשיר הזה עדיין אין פזמון זוהה');
       }
@@ -381,6 +391,7 @@ function renderLibrary() {
   }
 }
 function showLibrary() {
+  refreshFromNative();
   $('feedView').classList.add('hidden');
   $('libraryView').classList.remove('hidden');
   $('libraryTab').classList.add('selected');
@@ -388,6 +399,7 @@ function showLibrary() {
   renderLibrary();
 }
 function hideLibrary() {
+  refreshFromNative();
   $('libraryView').classList.add('hidden');
   $('feedView').classList.remove('hidden');
   $('libraryTab').classList.remove('selected');
@@ -567,6 +579,27 @@ function bindEvents() {
     if (Math.abs(diff) > 65) nextTrack(diff > 0 ? 1 : -1);
   }, { passive: true });
 }
+function refreshFromNative() {
+  const previousDone = tracks.filter(t => t.analysis && t.analysis.chorus).length;
+  const selectedId = current ? current.id : null;
+  refreshTracks();
+  if (selectedId) {
+    const updated = tracks.find(t => t.id === selectedId);
+    if (updated) {
+      const changed = JSON.stringify(current.analysis) !== JSON.stringify(updated.analysis);
+      current = updated;
+      currentIndex = tracks.findIndex(t => t.id === selectedId);
+      if (changed) {
+        if (audio.paused && updated.analysis && updated.analysis.chorus) chorusMode = true;
+        renderCurrent();
+      }
+    }
+  }
+  const latestDone = tracks.filter(t => t.analysis && t.analysis.chorus).length;
+  if (latestDone > previousDone && !backgroundMode) {
+    $('analysisBadge').textContent = 'עודכנו ' + latestDone + ' פזמונים';
+  }
+}
 function startup() {
   if (!bridge) {
     toast('צריך לפתוח את האפליקציה המותקנת כדי לגשת למוזיקה');
@@ -590,6 +623,9 @@ function startup() {
   }
   const background = safeParse(bridge.getBackgroundState(), { running: false });
   if (background.running) toast('סריקת AI עדיין פועלת ברקע');
+  setInterval(() => {
+    if (!document.hidden && !backgroundMode) refreshFromNative();
+  }, 20000);
   if (!localStorage.getItem('vybe_welcome_done') && tracks.length) {
     $('welcomeModal').classList.remove('hidden');
   }
@@ -601,6 +637,7 @@ window.vybeNativeReady = function() {
   }
 };
 window.startBackgroundScan = backgroundScan;
+window.refreshFromNative = refreshFromNative;
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => window.vybeNativeReady());
 } else {
