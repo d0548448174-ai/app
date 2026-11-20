@@ -23,7 +23,7 @@ let backgroundMode = new URLSearchParams(location.search).get('background') === 
 const ANALYSIS_VERSION = 2;
 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
-ort.env.wasm.wasmPaths = new URL('./', import.meta.url).href;
+ort.env.wasm.wasmPaths = new URL('../', import.meta.url).href;
 ort.env.wasm.numThreads = 1;
 
 function toast(message) {
