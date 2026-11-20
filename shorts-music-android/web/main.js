@@ -226,7 +226,6 @@ function renderCurrent() {
     $('analyzeButton').textContent = 'נתח שיר';
   }
   $('playButton').textContent = audio.paused ? '▶' : 'Ⅱ';
-  if (chorus) chorusMode = true;
   $('progressLine').style.width = audio.duration ? (audio.currentTime / audio.duration * 100) + '%' : '0%';
 }
 function getFeedTracks() {
@@ -597,7 +596,7 @@ function refreshFromNative() {
   }
   const latestDone = tracks.filter(t => t.analysis && t.analysis.chorus).length;
   if (latestDone > previousDone && !backgroundMode) {
-    $('analysisBadge').textContent = 'עודכנו ' + latestDone + ' פזמונים';
+    toast('נוספו ' + (latestDone - previousDone) + ' פזמונים שזוהו לספרייה');
   }
 }
 function startup() {
