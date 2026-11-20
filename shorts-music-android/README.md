@@ -24,10 +24,11 @@ LinkSeg uses a pretrained music-structure model. It requires beat times, so VYBE
 Background analysis starts only after the user chooses **התחל סריקת AI ברקע**. Android shows an ongoing notification. The analysis service uses a time-limited partial wake lock while it works; it is not intended to run indefinitely.
 
 ## Build APK with GitHub Actions
-1. Open the repository's **Actions** tab.
-2. Select **Build VYBE AI Chorus APK**.
-3. Open the latest successful run.
-4. Download the artifact named **VYBE-AI-Chorus-APK** and install the APK on Android.
+1. Open the repository's **Releases** page.
+2. Open the release named **VYBE AI Chorus APK**.
+3. Download the direct file **app-debug.apk** and install it on Android.
+
+The workflow also keeps a temporary artifact named **VYBE-AI-Chorus-APK** in the Actions run.
 
 The workflow installs the JavaScript dependencies, downloads the LinkSeg model for packaging, bundles the local WebView player and ONNX WASM runtime, then runs assembleDebug.
 
