@@ -1,4 +1,4 @@
-name: Build VYBE AI Chorus APK
+name: Build Pizmon Reels APK
 
 on:
   workflow_dispatch:
@@ -21,6 +21,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Prepare launcher icon
+        run: |
+          mkdir -p shorts-music-android/app/src/main/res/drawable
+          cp shorts-music-android/web/public/app_icon.jpg shorts-music-android/app/src/main/res/drawable/app_icon.jpg
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -42,9 +47,7 @@ jobs:
         run: |
           npm install --no-audit --no-fund
           mkdir -p web/public
-          curl --fail --location --retry 3 --retry-delay 2 \
-            https://huggingface.co/elicwhite/linkseg-7c-onnx/resolve/main/linkseg_7c.onnx \
-            --output web/public/linkseg_7c.onnx
+          curl --fail --location --retry 3 --retry-delay 2             https://huggingface.co/elicwhite/linkseg-7c-onnx/resolve/main/linkseg_7c.onnx             --output web/public/linkseg_7c.onnx
           test "$(stat -c%s web/public/linkseg_7c.onnx)" -gt 1000000
 
       - name: Bundle AI engine and web player
@@ -81,7 +84,7 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: VYBE-AI-Chorus-APK
+          name: Pizmon-Reels-AI-APK
           path: shorts-music-android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 14
@@ -90,8 +93,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: vybe-ai-chorus
-          name: VYBE AI Chorus APK
-          body: "VYBE — local AI music structure analysis and chorus-only MP3 export."
+          name: Pizmon Reels APK
+          body: "פזמון רילס — AI chorus feed, tempo and energy categories, and chorus-only MP3 export."
           files: shorts-music-android/app/build/outputs/apk/debug/app-debug.apk
           overwrite_files: true
           prerelease: true

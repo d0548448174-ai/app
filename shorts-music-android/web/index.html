@@ -3,99 +3,95 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-  <meta name="theme-color" content="#090b12">
-  <title>VYBE — פזמונים</title>
+  <meta name="theme-color" content="#0a0616">
+  <title>פזמון רילס</title>
 </head>
 <body>
   <div id="app">
     <header class="topbar">
-      <div class="brand"><span class="brand-mark">V</span><span>VYBE</span><span class="brand-dot"></span></div>
+      <div class="brand">
+        <img class="brand-icon" src="./app_icon.jpg" alt="סמל פזמון רילס">
+        <div class="brand-copy"><strong>פזמון רילס</strong><span>רילסים של מוזיקה</span></div>
+      </div>
       <div class="top-actions">
-        <button id="scanButton" class="icon-button" aria-label="סריקת מוזיקה">✦</button>
-        <button id="libraryButton" class="icon-button" aria-label="ספריית שירים">☷</button>
+        <button id="scanButton" class="icon-button" aria-label="ניתוח מוזיקה" title="ניתוח מוזיקה">✦</button>
+        <button id="libraryButton" class="icon-button" aria-label="ספריית שירים" title="הספרייה">☷</button>
       </div>
     </header>
-
     <main id="feedView" class="feed-view">
       <div class="feed-heading">
-        <div>
-          <p class="eyebrow">YOUR MUSIC · YOUR MOMENT</p>
-          <h1>הפזמון שלך.</h1>
-        </div>
+        <div><p class="eyebrow">בחר את האווירה שלך</p><h1>מה בא לך לשמוע?</h1></div>
         <div id="trackCount" class="count-pill">0 שירים</div>
       </div>
-
+      <nav id="categoryBar" class="category-bar" aria-label="קטגוריות מוזיקה">
+        <button class="category-chip active" data-category="הכל">הכל</button>
+        <button class="category-chip" data-category="קצבי">קצבי</button>
+        <button class="category-chip" data-category="רגוע">רגוע</button>
+        <button class="category-chip" data-category="אימון">אימון</button>
+        <button class="category-chip" data-category="לילה">לילה</button>
+        <button class="category-chip" data-category="אהובים">אהובים</button>
+      </nav>
       <section id="songCard" class="song-card">
         <div class="cover-wrap">
-          <img id="cover" class="cover" alt="עטיפת האלבום">
+          <img id="cover" class="cover" alt="עטיפת הסינגל">
           <div class="cover-shade"></div>
-          <div class="cover-topline"><span class="ai-pill"><i></i> AI CHORUS</span><span id="analysisBadge" class="analysis-badge">ממתין לניתוח</span></div>
+          <div class="cover-topline">
+            <span class="ai-pill"><i></i> פזמון חכם</span>
+            <span id="analysisBadge" class="analysis-badge">ממתין לניתוח</span>
+          </div>
+          <button id="playButton" class="cover-play" aria-label="נגן את הפזמון" disabled>▶</button>
           <div class="cover-caption"><span id="coverArtist"></span><strong id="coverTitle">טוען את המוזיקה שלך…</strong></div>
         </div>
         <div class="song-meta">
           <div class="song-names"><h2 id="songTitle">טוען…</h2><p id="songArtist">הספרייה המקומית שלך</p></div>
-          <button id="favoriteButton" class="favorite-button" aria-label="הוסף למועדפים">♡</button>
+          <button id="favoriteButton" class="favorite-button" aria-label="שמור באהובים">♡</button>
         </div>
-
         <div class="chorus-panel">
           <div class="chorus-panel-top">
-            <div><span class="panel-label">הקטע שזוהה</span><strong id="chorusLabel">ממתין לניתוח AI</strong></div>
+            <div><span class="panel-label">הקטע שה-AI מצא</span><strong id="chorusLabel">ממתין לניתוח השיר</strong></div>
             <span id="chorusTime" class="time-chip">--:--</span>
           </div>
           <div class="waveform" id="waveform" aria-hidden="true"></div>
           <div class="progress-line"><span id="progressLine"></span></div>
-          <div class="player-controls">
-            <button id="previousButton" class="small-control">‹</button>
-            <button id="playButton" class="play-control">▶</button>
-            <button id="nextButton" class="small-control">›</button>
-            <button id="fullButton" class="full-control">נגן שיר מלא <span>↗</span></button>
-          </div>
           <div class="bottom-actions">
-            <button id="downloadButton" class="download-button" disabled><span>↓</span> הורדת הפזמון · MP3</button>
-            <button id="analyzeButton" class="secondary-button">נתח שיר</button>
+            <button id="downloadButton" class="download-button" disabled><span>↓</span> הורד את הפזמון</button>
+            <button id="fullButton" class="full-control">▶ לשמיעת השיר</button>
+            <button id="analyzeButton" class="hidden" tabindex="-1" aria-hidden="true">נתח שיר</button>
           </div>
         </div>
       </section>
-
-      <div class="swipe-hint"><span>↑</span> החלקה לשיר הבא</div>
+      <div class="swipe-hint"><span>⌄</span> גלול למטה לפזמון הבא</div>
     </main>
-
     <section id="libraryView" class="library-view hidden">
       <div class="library-head">
-        <p class="eyebrow">YOUR COLLECTION</p>
-        <h1>ספריית המוזיקה</h1>
+        <p class="eyebrow">האוסף שלך</p><h1>ספריית המוזיקה</h1>
         <p id="librarySubtitle">השירים שנמצאו במכשיר</p>
-        <input id="searchInput" class="search-input" placeholder="חיפוש שיר, אמן או אלבום…" autocomplete="off">
+        <input id="searchInput" class="search-input" placeholder="חיפוש שיר או אמן…" autocomplete="off">
       </div>
       <div id="trackList" class="track-list"></div>
-      <button id="backToFeed" class="back-button">חזרה לנגן</button>
+      <button id="backToFeed" class="back-button">חזרה לרילסים</button>
     </section>
-
     <footer class="bottom-nav">
-      <button id="feedTab" class="nav-item selected"><span>◉</span>פיד</button>
+      <button id="feedTab" class="nav-item selected"><span>▣</span>רילסים</button>
       <button id="libraryTab" class="nav-item"><span>♫</span>הספרייה</button>
-      <button id="favoritesTab" class="nav-item"><span>♡</span>אהבתי</button>
     </footer>
-
     <div id="statusToast" class="toast" role="status"></div>
-
     <div id="welcomeModal" class="modal-backdrop hidden">
       <div class="welcome-card">
-        <div class="welcome-icon">✦</div>
-        <p class="eyebrow">WELCOME TO VYBE</p>
-        <h2>הפזמונים שלך,<br>בלי לחפש אותם.</h2>
-        <p class="welcome-copy">ננתח את השירים שבמכשיר בעזרת מודל AI לזיהוי מבנה מוזיקלי. אפשר להמשיך להשתמש באפליקציה בזמן שהסריקה פועלת.</p>
-        <div class="privacy-row"><span>◈</span><span>המודל כבר כלול באפליקציה. קובצי המוזיקה והניתוח נשארים במכשיר.</span></div>
+        <img class="welcome-app-icon" src="./app_icon.jpg" alt="">
+        <p class="eyebrow">ברוכים הבאים לפזמון רילס</p>
+        <h2>הפזמון הבא<br>מחכה לך.</h2>
+        <p class="welcome-copy">האפליקציה תנתח את מבנה השירים, תזהה פזמונים ותעריך קצב ואנרגיה כדי למיין אותם לקטגוריות. אפשר להמשיך להשתמש באפליקציה בזמן שהסריקה פועלת.</p>
+        <div class="privacy-row"><span>◈</span><span>קובצי המוזיקה והניתוחים נשארים במכשיר.</span></div>
         <p class="license-credit">מנוע ניתוח LinkSeg · M. Buisson, B. McFee, S. Essid · ISMIR 2024 · CC BY 4.0</p>
-        <button id="startScan" class="primary-button">התחל סריקת AI ברקע <span>←</span></button>
+        <button id="startScan" class="primary-button">התחל ניתוח מוזיקה <span>←</span></button>
         <button id="skipScan" class="text-button">אעשה זאת מאוחר יותר</button>
       </div>
     </div>
-
     <div id="progressModal" class="modal-backdrop hidden">
       <div class="progress-card">
         <div class="spinner"></div>
-        <p class="eyebrow">AI MUSIC ANALYSIS</p>
+        <p class="eyebrow">ניתוח מוזיקה חכם</p>
         <h2 id="progressTitle">מכין את מנוע הזיהוי</h2>
         <p id="progressText">מוריד את מודל הניתוח בפעם הראשונה…</p>
         <div class="progress-track"><span id="modelProgress"></span></div>

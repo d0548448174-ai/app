@@ -16,11 +16,12 @@ let currentObjectUrl = null;
 let model = null;
 let chorusMode = true;
 let favoritesOnly = false;
+let currentCategory = 'הכל';
 let touchStartY = 0;
 let toastTimer = null;
 let busy = false;
 let backgroundMode = new URLSearchParams(location.search).get('background') === '1';
-const ANALYSIS_VERSION = 2;
+const ANALYSIS_VERSION = 3;
 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
 ort.env.wasm.wasmPaths = new URL('../', import.meta.url).href;
@@ -144,6 +145,28 @@ function selectChorus(sections, duration) {
   });
   return pool[0];
 }
+function analyzeMusicProfile(samples, sampleRate, bpm) {
+  const windowSize = Math.max(1, Math.floor(sampleRate));
+  let totalRms = 0;
+  let windows = 0;
+  for (let offset = 0; offset < samples.length; offset += windowSize) {
+    const end = Math.min(samples.length, offset + windowSize);
+    let sum = 0;
+    for (let i = offset; i < end; i++) sum += samples[i] * samples[i];
+    const count = end - offset;
+    if (count > 0) { totalRms += Math.sqrt(sum / count); windows++; }
+  }
+  const averageRms = windows ? totalRms / windows : 0;
+  const energy = Math.max(0, Math.min(100, Math.round(averageRms * 500)));
+  const tempoValue = Math.max(0, Number(bpm) || 0);
+  const tags = [];
+  if (tempoValue >= 108 || energy >= 48) tags.push('קצבי');
+  if (tempoValue >= 118 && energy >= 32) tags.push('אימון');
+  if (tempoValue > 0 && tempoValue <= 96 && energy <= 46) tags.push('רגוע');
+  if (tempoValue > 0 && tempoValue <= 108 && energy <= 38) tags.push('לילה');
+  if (!tags.length) tags.push(energy >= 38 || tempoValue >= 105 ? 'קצבי' : 'רגוע');
+  return { bpm: Math.round(tempoValue), energyScore: energy, tags };
+}
 async function analyzeTrack(track, options = {}) {
   if (!track) throw new Error('לא נבחר שיר');
   const showUi = !!options.showUi;
@@ -157,6 +180,7 @@ async function analyzeTrack(track, options = {}) {
   const mono = toMono(decoded.buffer);
   const tempo = estimateBeats(mono, decoded.buffer.sampleRate);
   if (!tempo.beats || tempo.beats.length < 4) throw new Error('לא זוהו מספיק פעימות כדי לנתח את השיר');
+  const profile = analyzeMusicProfile(mono, decoded.buffer.sampleRate, tempo.bpm);
   const engine = await ensureModel(showUi);
   if (showUi) setModalProgress('מנתח את מבנה השיר', 'בודק פעימות, מעברים וחזרות מוזיקליות…', 100);
   const sections = await engine.analyze({
@@ -173,6 +197,7 @@ async function analyzeTrack(track, options = {}) {
     analyzedAt: Date.now(),
     duration: decoded.buffer.duration,
     bpmEstimate: Math.round(tempo.bpm),
+    profile,
     sections: sections.map(s => ({ start: Number(s.start), end: Number(s.end), label: String(s.label) })),
     chorus
   };
@@ -208,18 +233,19 @@ function renderCurrent() {
   $('favoriteButton').textContent = current.favorite ? '♥' : '♡';
   const cover = bridge.getCoverBase64(current.albumId);
   $('cover').src = cover || '';
-  $('cover').style.opacity = cover ? '0.9' : '0';
+  $('cover').style.opacity = cover ? '0.96' : '0';
   if (!cover) $('cover').removeAttribute('src');
   const analysis = current.analysis;
   const chorus = analysis && analysis.chorus;
+  const tags = analysis && analysis.profile && Array.isArray(analysis.profile.tags) ? analysis.profile.tags : [];
+  $('analysisBadge').textContent = tags.length ? tags.join(' · ') : (analysis ? 'נותח בעזרת AI' : 'ממתין לניתוח');
+  $('playButton').disabled = !chorus;
   if (chorus) {
-    $('analysisBadge').textContent = 'פזמון זוהה';
-    $('chorusLabel').textContent = 'פזמון · ' + Math.round(chorus.end - chorus.start) + ' שניות';
+    $('chorusLabel').textContent = 'הפזמון זוהה · ' + Math.round(chorus.end - chorus.start) + ' שניות';
     $('chorusTime').textContent = formatTime(chorus.start) + ' – ' + formatTime(chorus.end);
     $('downloadButton').disabled = false;
     $('analyzeButton').textContent = 'נתח שוב';
   } else {
-    $('analysisBadge').textContent = analysis ? 'לא זוהה פזמון' : 'ממתין לניתוח';
     $('chorusLabel').textContent = analysis ? 'לא נמצא פזמון ברור' : 'השיר עדיין לא נותח';
     $('chorusTime').textContent = '--:--';
     $('downloadButton').disabled = true;
@@ -229,9 +255,43 @@ function renderCurrent() {
   $('progressLine').style.width = audio.duration ? (audio.currentTime / audio.duration * 100) + '%' : '0%';
 }
 function getFeedTracks() {
-  const source = favoritesOnly ? tracks.filter(t => t.favorite) : tracks;
-  const withChoruses = source.filter(t => t.analysis && t.analysis.chorus);
-  return withChoruses.length ? withChoruses : source;
+  const source = currentCategory === 'אהובים' || favoritesOnly ? tracks.filter(t => t.favorite) : tracks;
+  let filtered = source;
+  if (currentCategory !== 'הכל' && currentCategory !== 'אהובים') {
+    filtered = source.filter(t => t.analysis && t.analysis.profile &&
+      Array.isArray(t.analysis.profile.tags) && t.analysis.profile.tags.includes(currentCategory));
+  }
+  const withChoruses = filtered.filter(t => t.analysis && t.analysis.chorus);
+  return withChoruses.length ? withChoruses : filtered;
+}
+function applyCategory(category) {
+  currentCategory = category;
+  favoritesOnly = category === 'אהובים';
+  document.querySelectorAll('.category-chip').forEach(button => {
+    button.classList.toggle('active', button.dataset.category === category);
+  });
+  const list = getFeedTracks();
+  if (!list.length) {
+    audio.pause();
+    current = null;
+    currentBytes = null;
+    currentBuffer = null;
+    if (currentObjectUrl) URL.revokeObjectURL(currentObjectUrl);
+    currentObjectUrl = null;
+    $('songTitle').textContent = category === 'אהובים' ? 'עדיין אין שירים אהובים' : 'עדיין אין שירים בקטגוריה';
+    $('songArtist').textContent = category === 'אהובים' ? 'סמן לב על שיר כדי לשמור אותו כאן' : 'הפעל סריקת AI כדי למיין את השירים';
+    $('cover').removeAttribute('src');
+    $('cover').style.opacity = '0';
+    $('analysisBadge').textContent = 'ממתין לניתוח';
+    $('chorusLabel').textContent = 'הקטגוריה תתמלא אחרי הניתוח';
+    $('chorusTime').textContent = '--:--';
+    $('downloadButton').disabled = true;
+    $('playButton').disabled = true;
+    $('playButton').textContent = '▶';
+    $('progressLine').style.width = '0%';
+    return;
+  }
+  selectTrack(0, false);
 }
 async function loadCurrentAudio() {
   if (!current) return;
@@ -358,13 +418,18 @@ function renderLibrary() {
     info.append(title, artist);
     const status = document.createElement('span');
     status.className = 'track-status';
-    status.textContent = track.analysis && track.analysis.chorus ? 'פזמון זוהה' : track.analysis ? 'לא זוהה' : 'לא נותח';
+    status.textContent = track.analysis && track.analysis.profile && track.analysis.profile.tags
+      ? track.analysis.profile.tags.join(' · ')
+      : track.analysis && track.analysis.chorus ? 'פזמון זוהה' : track.analysis ? 'לא זוהה' : 'לא נותח';
     row.append(image, info, status);
     row.addEventListener('click', () => {
       $('libraryView').classList.add('hidden');
       $('feedView').classList.remove('hidden');
       $('feedTab').classList.add('selected');
       $('libraryTab').classList.remove('selected');
+      currentCategory = 'הכל';
+      favoritesOnly = false;
+      document.querySelectorAll('.category-chip').forEach(button => button.classList.toggle('active', button.dataset.category === 'הכל'));
       const idx = getFeedTracks().findIndex(t => t.id === track.id);
       if (idx >= 0) selectTrack(idx, true);
       else {
@@ -491,7 +556,7 @@ async function downloadChorus() {
     const encoded = btoa(binary);
     const fileName = current.title.replace(/[\\/:*?"<>|]/g, '_') + '_chorus.mp3';
     const result = bridge.saveMp3Base64(fileName, encoded);
-    if (result === 'OK') toast('הפזמון נשמר בתיקיית Music/VYBE');
+    if (result === 'OK') toast('הפזמון נשמר בתיקיית המוזיקה');
     else if (result === 'ERR:PERMISSION') toast('אשר הרשאת אחסון ואז לחץ שוב על ההורדה');
     else toast('שמירת MP3 נכשלה: ' + result);
   } catch (error) {
@@ -518,8 +583,10 @@ async function scanThisSong() {
 }
 function bindEvents() {
   $('playButton').addEventListener('click', togglePlay);
-  $('previousButton').addEventListener('click', () => nextTrack(-1));
-  $('nextButton').addEventListener('click', () => nextTrack(1));
+  $('categoryBar').addEventListener('click', (event) => {
+    const button = event.target.closest('button[data-category]');
+    if (button) applyCategory(button.dataset.category);
+  });
   $('fullButton').addEventListener('click', playFullSong);
   $('downloadButton').addEventListener('click', downloadChorus);
   $('analyzeButton').addEventListener('click', scanThisSong);
@@ -532,35 +599,23 @@ function bindEvents() {
   $('libraryTab').addEventListener('click', showLibrary);
   $('backToFeed').addEventListener('click', hideLibrary);
   $('feedTab').addEventListener('click', hideLibrary);
-  $('favoritesTab').addEventListener('click', () => {
-    favoritesOnly = !favoritesOnly;
-    $('favoritesTab').classList.toggle('selected', favoritesOnly);
-    if (favoritesOnly) toast('מציג את השירים שאהבת');
-    else toast('חזרה לכל השירים');
-    if (current) {
-      const list = getFeedTracks();
-      const next = list.findIndex(t => t.id === current.id);
-      if (next >= 0) renderCurrent();
-      else if (list.length) selectTrack(0, true);
-    }
-    renderLibrary();
-  });
   $('favoriteButton').addEventListener('click', () => {
     if (!current) return;
     current.favorite = !current.favorite;
     bridge.setFavorite(current.id, current.favorite);
-    renderCurrent();
+    if (currentCategory === 'אהובים' && !current.favorite) applyCategory('אהובים');
+    else renderCurrent();
   });
   $('searchInput').addEventListener('input', renderLibrary);
   $('startScan').addEventListener('click', () => {
     $('welcomeModal').classList.add('hidden');
-    localStorage.setItem('vybe_welcome_done', '1');
+    localStorage.setItem('pizmon_reels_welcome_done', '1');
     bridge.startBackgroundAnalysis();
     toast('הסריקה החלה ברקע. אפשר להמשיך להאזין.');
   });
   $('skipScan').addEventListener('click', () => {
     $('welcomeModal').classList.add('hidden');
-    localStorage.setItem('vybe_welcome_done', '1');
+    localStorage.setItem('pizmon_reels_welcome_done', '1');
   });
   $('closeProgress').addEventListener('click', () => $('progressModal').classList.add('hidden'));
   audio.addEventListener('timeupdate', () => {
@@ -576,6 +631,14 @@ function bindEvents() {
   $('songCard').addEventListener('touchend', (event) => {
     const diff = touchStartY - event.changedTouches[0].screenY;
     if (Math.abs(diff) > 65) nextTrack(diff > 0 ? 1 : -1);
+  }, { passive: true });
+  let lastWheelAt = 0;
+  $('feedView').addEventListener('wheel', (event) => {
+    const now = Date.now();
+    if (Math.abs(event.deltaY) > 28 && now - lastWheelAt > 550) {
+      lastWheelAt = now;
+      nextTrack(event.deltaY > 0 ? 1 : -1);
+    }
   }, { passive: true });
 }
 function refreshFromNative() {
@@ -625,7 +688,7 @@ function startup() {
   setInterval(() => {
     if (!document.hidden && !backgroundMode) refreshFromNative();
   }, 20000);
-  if (!localStorage.getItem('vybe_welcome_done') && tracks.length) {
+  if (!localStorage.getItem('pizmon_reels_welcome_done') && tracks.length) {
     $('welcomeModal').classList.remove('hidden');
   }
 }
