@@ -7,8 +7,12 @@ on:
       - 'shorts-music-android/**'
       - '.github/workflows/shorts-music-android.yml'
 
+concurrency:
+  group: vybe-ai-chorus-apk
+  cancel-in-progress: true
+
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -21,8 +25,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: npm
-          cache-dependency-path: shorts-music-android/package.json
 
       - name: Install web dependencies and fetch the licensed AI model
         working-directory: shorts-music-android
@@ -72,3 +74,17 @@ jobs:
           path: shorts-music-android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 14
+
+      - name: Publish direct APK download
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: vybe-ai-chorus
+          name: VYBE AI Chorus APK
+          body: "VYBE — local AI music structure analysis and chorus-only MP3 export."
+          files: shorts-music-android/app/build/outputs/apk/debug/app-debug.apk
+          overwrite_files: true
+          prerelease: true
+          make_latest: false
+          fail_on_unmatched_files: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
