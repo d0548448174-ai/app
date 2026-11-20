@@ -7,7 +7,7 @@
     "build": "vite build"
   },
   "dependencies": {
-    "linkseg-web": "0.1.0",
+    "linkseg-web": "file:vendor/linkseg-web",
     "onnxruntime-web": "1.22.0",
     "lamejs": "1.2.1"
   },
