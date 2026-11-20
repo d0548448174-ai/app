@@ -64,6 +64,7 @@ button,input{font:inherit}button{border:0;cursor:pointer;color:inherit}button:di
 .welcome-copy,.progress-card>p:not(.eyebrow){font-size:13px;line-height:1.65;color:#b9c1d1}
 .privacy-row{display:flex;gap:9px;align-items:center;text-align:right;background:#d7ff4f10;border:1px solid #d7ff4f2f;padding:10px 12px;border-radius:13px;font-size:11px;color:#dce4d0;margin:16px 0}
 .privacy-row span:first-child{color:var(--lime);font-size:19px}
+.license-credit{font-size:9px;color:#8993a8;line-height:1.5;margin:10px 0 14px}
 .primary-button{height:48px;width:100%;border-radius:14px;background:var(--lime);color:#10141b;font-size:14px;font-weight:900}
 .primary-button span{margin-right:5px;font-size:18px}
 .text-button{display:block;background:none;color:#9da7bc;font-size:12px;margin:13px auto 0;padding:5px}
