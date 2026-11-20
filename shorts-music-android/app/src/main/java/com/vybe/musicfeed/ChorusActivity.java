@@ -142,7 +142,10 @@ public final class ChorusActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (webView != null) webView.onResume();
+        if (webView != null) {
+            webView.onResume();
+            webView.evaluateJavascript("window.refreshFromNative && window.refreshFromNative()", null);
+        }
     }
 
     @Override
