@@ -1,5 +1,5 @@
 import { defineConfig } from 'vite';
-import { cpSync, existsSync, mkdirSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, readdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -21,16 +21,13 @@ export default defineConfig({
       const target = resolve(projectDir, 'app/src/main/assets');
       if (!existsSync(source)) throw new Error('onnxruntime-web distribution was not installed');
       mkdirSync(target, { recursive: true });
-      for (const file of [
-        'ort-wasm-simd-threaded.wasm',
-        'ort-wasm-simd.wasm',
-        'ort-wasm.wasm',
-        'ort-wasm-simd-threaded.jsep.wasm',
-        'ort-wasm-simd-threaded.asyncify.wasm'
-      ]) {
-        const from = resolve(source, file);
-        if (existsSync(from)) cpSync(from, resolve(target, file));
+      const runtimeFiles = readdirSync(source).filter(name =>
+        name.startsWith('ort-wasm') && (name.endsWith('.wasm') || name.endsWith('.mjs'))
+      );
+      if (!runtimeFiles.some(name => name.endsWith('.wasm'))) {
+        throw new Error('ONNX Runtime WebAssembly files were not found');
       }
+      for (const file of runtimeFiles) cpSync(resolve(source, file), resolve(target, file));
     }
   }]
 });
