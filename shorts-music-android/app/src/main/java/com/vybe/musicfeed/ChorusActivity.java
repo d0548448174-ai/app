@@ -29,11 +29,11 @@ public final class ChorusActivity extends Activity {
         super.onCreate(state);
         getWindow().setStatusBarColor(Color.rgb(9, 11, 18));
         getWindow().setNavigationBarColor(Color.rgb(9, 11, 18));
-        requestNotificationPermissionIfNeeded();
         if (!hasAudioPermission()) {
             showPermissionScreen();
             requestAudioPermission();
         } else {
+            requestNotificationPermissionIfNeeded();
             showApp();
         }
     }
@@ -121,7 +121,10 @@ public final class ChorusActivity extends Activity {
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == REQUEST_AUDIO) {
-            if (hasAudioPermission()) showApp();
+            if (hasAudioPermission()) {
+                requestNotificationPermissionIfNeeded();
+                showApp();
+            }
             else Toast.makeText(this, "צריך לאשר גישה למוזיקה כדי להשתמש בספרייה", Toast.LENGTH_LONG).show();
         }
         if (requestCode == REQUEST_NOTIFICATIONS && grantResults.length > 0 &&
