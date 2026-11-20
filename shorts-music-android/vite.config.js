@@ -1,12 +1,15 @@
 import { defineConfig } from 'vite';
 import { cpSync, existsSync, mkdirSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const projectDir = dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
-  root: resolve(__dirname, 'web'),
+  root: resolve(projectDir, 'web'),
   base: './',
   build: {
-    outDir: resolve(__dirname, 'app/src/main/assets'),
+    outDir: resolve(projectDir, 'app/src/main/assets'),
     emptyOutDir: true,
     sourcemap: false,
     target: 'es2020'
@@ -14,8 +17,8 @@ export default defineConfig({
   plugins: [{
     name: 'copy-onnx-wasm-runtime',
     closeBundle() {
-      const source = resolve(__dirname, 'node_modules/onnxruntime-web/dist');
-      const target = resolve(__dirname, 'app/src/main/assets');
+      const source = resolve(projectDir, 'node_modules/onnxruntime-web/dist');
+      const target = resolve(projectDir, 'app/src/main/assets');
       if (!existsSync(source)) throw new Error('onnxruntime-web distribution was not installed');
       mkdirSync(target, { recursive: true });
       for (const file of [
