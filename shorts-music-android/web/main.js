@@ -107,6 +107,7 @@ async function ensureModel(showUi) {
   try {
     model = await LinkSeg.load({
       backend: 'wasm',
+      modelUrl: new URL('./linkseg_7c.onnx', location.href).href,
       onProgress: (event) => {
         const pct = event.total ? Math.round(event.loaded * 100 / event.total) : 0;
         if (showUi) {
@@ -166,6 +167,7 @@ async function analyzeTrack(track, options = {}) {
     tau: 0
   });
   const chorus = selectChorus(sections, decoded.buffer.duration);
+  if (current && current.id === track.id) currentBuffer = decoded.buffer;
   const result = {
     version: ANALYSIS_VERSION,
     engine: 'LinkSeg 7-class',
