@@ -51,8 +51,7 @@ public final class NativeMusicBridge {
                     MediaStore.Audio.Media.DURATION,
                     MediaStore.Audio.Media.ALBUM_ID
             };
-            String selection = MediaStore.Audio.Media.IS_MUSIC + " != 0 AND " +
-                    MediaStore.Audio.Media.DURATION + " >= ?";
+            String selection = MediaStore.Audio.Media.DURATION + " >= ?";
             String[] args = new String[] { "8000" };
             String sort = MediaStore.Audio.Media.TITLE + " COLLATE NOCASE ASC";
             cursor = context.getContentResolver().query(collection, projection, selection, args, sort);
