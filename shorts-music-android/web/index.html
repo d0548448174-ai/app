@@ -64,16 +64,48 @@
     </main>
     <section id="libraryView" class="library-view hidden">
       <div class="library-head">
-        <p class="eyebrow">האוסף שלך</p><h1>ספריית המוזיקה</h1>
-        <p id="librarySubtitle">השירים שנמצאו במכשיר</p>
-        <input id="searchInput" class="search-input" placeholder="חיפוש שיר או אמן…" autocomplete="off">
+        <p class="eyebrow">האוסף שלך</p>
+        <div class="library-title-row"><h1>ספריית המוזיקה</h1><span id="libraryResultsCount" class="count-pill">0 שירים</span></div>
+        <p id="librarySubtitle">כל השירים שבמכשיר, במקום אחד</p>
+        <div class="search-shell">
+          <span class="search-symbol">⌕</span>
+          <input id="searchInput" class="search-input" placeholder="חיפוש לפי שם שיר, אמן או אלבום…" autocomplete="off">
+          <button id="clearSearch" class="clear-search" aria-label="נקה חיפוש">×</button>
+        </div>
+      </div>
+      <div id="libraryFilters" class="library-filters">
+        <button class="library-filter active" data-library-filter="all">הכל</button>
+        <button class="library-filter" data-library-filter="chorus">נמצא פזמון</button>
+        <button class="library-filter" data-library-filter="pending">ממתין לניתוח</button>
+        <button class="library-filter" data-library-filter="favorites">אהובים</button>
       </div>
       <div id="trackList" class="track-list"></div>
       <button id="backToFeed" class="back-button">חזרה לרילסים</button>
     </section>
+
+    <section id="downloadsView" class="downloads-view hidden">
+      <div class="library-head">
+        <p class="eyebrow">הקבצים ששמרת</p>
+        <div class="library-title-row"><h1>ההורדות שלי</h1><span id="downloadsCount" class="count-pill">0 פזמונים</span></div>
+        <p>כל הפזמונים שהורדת, מוכנים לניגון</p>
+        <div class="search-shell">
+          <span class="search-symbol">⌕</span>
+          <input id="downloadSearchInput" class="search-input" placeholder="חיפוש בהורדות…" autocomplete="off">
+          <button id="clearDownloadSearch" class="clear-search" aria-label="נקה חיפוש">×</button>
+        </div>
+      </div>
+      <div id="downloadList" class="track-list downloads-list"></div>
+      <div id="downloadsEmpty" class="downloads-empty hidden">
+        <div class="empty-download-icon">↓</div>
+        <strong>עדיין אין לך פזמונים שמורים</strong>
+        <span>כשתלחץ על „הורד את הפזמון”, הקובץ יופיע כאן</span>
+        <button id="goToFeedFromDownloads" class="back-button">חזרה לרילסים</button>
+      </div>
+    </section>
     <footer class="bottom-nav">
       <button id="feedTab" class="nav-item selected"><span>▣</span>רילסים</button>
       <button id="libraryTab" class="nav-item"><span>♫</span>הספרייה</button>
+      <button id="downloadsTab" class="nav-item"><span>↓</span>הורדות</button>
     </footer>
     <div id="statusToast" class="toast" role="status"></div>
     <div id="welcomeModal" class="modal-backdrop hidden">

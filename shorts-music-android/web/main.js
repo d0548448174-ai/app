@@ -17,6 +17,8 @@ let model = null;
 let chorusMode = true;
 let favoritesOnly = false;
 let currentCategory = 'הכל';
+let downloads = [];
+let libraryFilter = 'all';
 let touchStartY = 0;
 let toastTimer = null;
 let busy = false;
@@ -70,6 +72,26 @@ function refreshTracks() {
   tracks = data.map(normalizeTrack);
   updateCounts();
   return tracks;
+}
+function refreshDownloads() {
+  if (!bridge) return [];
+  const data = safeParse(bridge.getDownloadsJson(), []);
+  downloads = data.map(raw => ({
+    id: String(raw.id),
+    title: raw.title || raw.fileName || 'פזמון שמור',
+    artist: raw.artist || 'פזמון שהורד',
+    album: 'ההורדות שלי',
+    duration: Number(raw.duration || 0) / 1000,
+    albumId: '0',
+    favorite: false,
+    analysis: null,
+    isDownload: true,
+    fileName: raw.fileName || '',
+    size: Number(raw.size || 0)
+  }));
+  const count = $('downloadsCount');
+  if (count) count.textContent = downloads.length + ' פזמונים';
+  return downloads;
 }
 function readBytes(track) {
   if (current && current.id === track.id && currentBytes) return currentBytes;
@@ -238,17 +260,26 @@ function renderCurrent() {
   const analysis = current.analysis;
   const chorus = analysis && analysis.chorus;
   const tags = analysis && analysis.profile && Array.isArray(analysis.profile.tags) ? analysis.profile.tags : [];
-  $('analysisBadge').textContent = tags.length ? tags.join(' · ') : (analysis ? 'נותח בעזרת AI' : 'ממתין לניתוח');
-  $('playButton').disabled = !chorus;
-  if (chorus) {
+  $('favoriteButton').style.visibility = current.isDownload ? 'hidden' : 'visible';
+  $('analysisBadge').textContent = current.isDownload ? 'פזמון שמור' : (tags.length ? tags.join(' · ') : (analysis ? 'נותח בעזרת AI' : 'ממתין לניתוח'));
+  $('playButton').disabled = !(chorus || current.isDownload);
+  $('fullButton').textContent = current.isDownload ? '▶ לשמיעת הפזמון' : '▶ לשמיעת השיר';
+  if (current.isDownload) {
+    $('chorusLabel').textContent = 'הפזמון כבר שמור במכשיר';
+    $('chorusTime').textContent = 'קובץ MP3';
+    $('downloadButton').disabled = true;
+    $('downloadButton').innerHTML = '<span>✓</span> הפזמון נשמר';
+  } else if (chorus) {
     $('chorusLabel').textContent = 'הפזמון זוהה · ' + Math.round(chorus.end - chorus.start) + ' שניות';
     $('chorusTime').textContent = formatTime(chorus.start) + ' – ' + formatTime(chorus.end);
     $('downloadButton').disabled = false;
+    $('downloadButton').innerHTML = '<span>↓</span> הורד את הפזמון';
     $('analyzeButton').textContent = 'נתח שוב';
   } else {
     $('chorusLabel').textContent = analysis ? 'לא נמצא פזמון ברור' : 'השיר עדיין לא נותח';
     $('chorusTime').textContent = '--:--';
     $('downloadButton').disabled = true;
+    $('downloadButton').innerHTML = '<span>↓</span> הורד את הפזמון';
     $('analyzeButton').textContent = 'נתח שיר';
   }
   $('playButton').textContent = audio.paused ? '▶' : 'Ⅱ';
@@ -390,20 +421,36 @@ async function playFullSong() {
     audio.currentTime = 0;
     await audio.play();
     $('playButton').textContent = 'Ⅱ';
-    toast('מנגן את השיר המלא');
+    toast(current.isDownload ? 'מנגן את הפזמון השמור' : 'מנגן את השיר המלא');
   } catch (_) {
     toast('לא ניתן לנגן את השיר המלא');
   }
 }
+function normalizeSearchText(value) {
+  return String(value || '').toLocaleLowerCase('he').trim();
+}
+function applyLibraryFilter(filter) {
+  libraryFilter = filter;
+  document.querySelectorAll('.library-filter').forEach(button => {
+    button.classList.toggle('active', button.dataset.libraryFilter === filter);
+  });
+  renderLibrary();
+}
 function renderLibrary() {
   const list = $('trackList');
   list.innerHTML = '';
-  const query = $('searchInput').value.trim().toLowerCase();
-  const source = favoritesOnly ? tracks.filter(t => t.favorite) : tracks;
-  const shown = source.filter(t => (t.title + ' ' + t.artist + ' ' + t.album).toLowerCase().includes(query));
+  const query = normalizeSearchText($('searchInput').value);
+  let source = tracks.slice();
+  if (libraryFilter === 'favorites') source = source.filter(t => t.favorite);
+  if (libraryFilter === 'chorus') source = source.filter(t => t.analysis && t.analysis.chorus);
+  if (libraryFilter === 'pending') source = source.filter(t => !t.analysis);
+  const shown = source.filter(t => normalizeSearchText([t.title,t.artist,t.album].join(' ')).includes(query));
+  $('libraryResultsCount').textContent = shown.length + ' שירים';
+  $('clearSearch').style.visibility = query ? 'visible' : 'hidden';
   for (const track of shown) {
     const row = document.createElement('button');
     row.className = 'track-row';
+    row.type = 'button';
     const image = document.createElement('img');
     image.className = 'track-cover';
     image.alt = '';
@@ -424,9 +471,11 @@ function renderLibrary() {
     row.append(image, info, status);
     row.addEventListener('click', () => {
       $('libraryView').classList.add('hidden');
+      $('downloadsView').classList.add('hidden');
       $('feedView').classList.remove('hidden');
       $('feedTab').classList.add('selected');
       $('libraryTab').classList.remove('selected');
+      $('downloadsTab').classList.remove('selected');
       currentCategory = 'הכל';
       favoritesOnly = false;
       document.querySelectorAll('.category-chip').forEach(button => button.classList.toggle('active', button.dataset.category === 'הכל'));
@@ -449,25 +498,140 @@ function renderLibrary() {
   }
   if (!shown.length) {
     const empty = document.createElement('p');
-    empty.style.cssText = 'text-align:center;color:#a5adbf;padding:24px 8px;font-size:13px';
-    empty.textContent = tracks.length ? 'לא נמצאו שירים בחיפוש' : 'לא נמצאו קובצי מוזיקה במכשיר';
+    empty.className = 'list-empty';
+    empty.textContent = query ? 'לא מצאתי שיר שמתאים לחיפוש הזה' :
+      (libraryFilter === 'favorites' ? 'עדיין לא סימנת שירים כאהובים' :
+       libraryFilter === 'chorus' ? 'עדיין לא זוהו פזמונים' :
+       libraryFilter === 'pending' ? 'כל השירים כבר נותחו' : 'לא נמצאו קובצי מוזיקה במכשיר');
     list.appendChild(empty);
+  }
+}
+function formatFileSize(bytes) {
+  if (!bytes) return 'MP3';
+  return bytes >= 1024 * 1024 ? (bytes / (1024 * 1024)).toFixed(1) + ' MB' : Math.max(1,Math.round(bytes / 1024)) + ' KB';
+}
+function renderDownloads() {
+  const list = $('downloadList');
+  list.innerHTML = '';
+  const query = normalizeSearchText($('downloadSearchInput').value);
+  const shown = downloads.filter(item => normalizeSearchText(item.title + ' ' + item.artist + ' ' + item.fileName).includes(query));
+  $('downloadsCount').textContent = shown.length + ' פזמונים';
+  $('clearDownloadSearch').style.visibility = query ? 'visible' : 'hidden';
+  $('downloadsEmpty').classList.toggle('hidden', downloads.length > 0);
+  list.classList.toggle('hidden', downloads.length === 0);
+  if (downloads.length > 0 && shown.length === 0) {
+    const empty = document.createElement('p');
+    empty.className = 'list-empty';
+    empty.textContent = 'לא נמצאו הורדות שמתאימות לחיפוש';
+    list.appendChild(empty);
+    return;
+  }
+  for (const item of shown) {
+    const row = document.createElement('div');
+    row.className = 'download-row';
+    const cover = document.createElement('div');
+    cover.className = 'download-cover';
+    cover.textContent = '♫';
+    const info = document.createElement('div');
+    info.className = 'download-info';
+    const title = document.createElement('strong');
+    title.textContent = item.title;
+    const subtitle = document.createElement('span');
+    subtitle.textContent = item.artist + ' · ' + formatFileSize(item.size);
+    info.append(title,subtitle);
+    const actions = document.createElement('div');
+    actions.className = 'download-actions';
+    const play = document.createElement('button');
+    play.type = 'button';
+    play.className = 'download-action play';
+    play.textContent = '▶';
+    play.setAttribute('aria-label','נגן '+item.title);
+    play.addEventListener('click', () => playDownloadedTrack(item));
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.className = 'download-action delete';
+    remove.textContent = '×';
+    remove.setAttribute('aria-label','מחק '+item.title);
+    remove.addEventListener('click', () => deleteDownloadedTrack(item));
+    actions.append(play,remove);
+    row.append(cover,info,actions);
+    list.appendChild(row);
+  }
+}
+async function playDownloadedTrack(item) {
+  try {
+    audio.pause();
+    if (currentObjectUrl) URL.revokeObjectURL(currentObjectUrl);
+    currentObjectUrl = null;
+    currentBytes = null;
+    currentBuffer = null;
+    current = item;
+    currentIndex = -1;
+    chorusMode = false;
+    $('downloadsView').classList.add('hidden');
+    $('libraryView').classList.add('hidden');
+    $('feedView').classList.remove('hidden');
+    $('feedTab').classList.add('selected');
+    $('libraryTab').classList.remove('selected');
+    $('downloadsTab').classList.remove('selected');
+    renderCurrent();
+    await loadCurrentAudio();
+    audio.currentTime = 0;
+    await audio.play();
+    $('playButton').textContent = 'Ⅱ';
+    toast('מנגן את הפזמון שהורדת');
+  } catch (error) {
+    toast('לא הצלחתי לנגן את ההורדה: ' + (error.message || ''));
+  }
+}
+function deleteDownloadedTrack(item) {
+  const result = bridge.deleteDownload(item.id);
+  if (result === 'OK') {
+    if (current && current.isDownload && current.id === item.id) {
+      audio.pause();
+      audio.removeAttribute('src');
+      audio.load();
+      current = null;
+      currentBytes = null;
+      currentBuffer = null;
+      if (currentObjectUrl) URL.revokeObjectURL(currentObjectUrl);
+      currentObjectUrl = null;
+    }
+    refreshDownloads();
+    renderDownloads();
+    toast('הפזמון נמחק מההורדות');
+  } else {
+    toast('לא הצלחתי למחוק את הקובץ: ' + result);
   }
 }
 function showLibrary() {
   refreshFromNative();
   $('feedView').classList.add('hidden');
+  $('downloadsView').classList.add('hidden');
   $('libraryView').classList.remove('hidden');
   $('libraryTab').classList.add('selected');
   $('feedTab').classList.remove('selected');
+  $('downloadsTab').classList.remove('selected');
   renderLibrary();
 }
+function showDownloads() {
+  refreshDownloads();
+  $('feedView').classList.add('hidden');
+  $('libraryView').classList.add('hidden');
+  $('downloadsView').classList.remove('hidden');
+  $('downloadsTab').classList.add('selected');
+  $('feedTab').classList.remove('selected');
+  $('libraryTab').classList.remove('selected');
+  renderDownloads();
+}
 function hideLibrary() {
-  refreshFromNative();
+  $('downloadsView').classList.add('hidden');
   $('libraryView').classList.add('hidden');
   $('feedView').classList.remove('hidden');
+  $('downloadsTab').classList.remove('selected');
   $('libraryTab').classList.remove('selected');
   $('feedTab').classList.add('selected');
+  refreshFromNative();
 }
 async function backgroundScan() {
   if (!bridge || busy) return;
@@ -556,7 +720,11 @@ async function downloadChorus() {
     const encoded = btoa(binary);
     const fileName = current.title.replace(/[\\/:*?"<>|]/g, '_') + '_chorus.mp3';
     const result = bridge.saveMp3Base64(fileName, encoded);
-    if (result === 'OK') toast('הפזמון נשמר בתיקיית המוזיקה');
+    if (result === 'OK') {
+      refreshDownloads();
+      renderDownloads();
+      toast('הפזמון נשמר! הוא מחכה לך במסך ההורדות');
+    }
     else if (result === 'ERR:PERMISSION') toast('אשר הרשאת אחסון ואז לחץ שוב על ההורדה');
     else toast('שמירת MP3 נכשלה: ' + result);
   } catch (error) {
@@ -598,7 +766,24 @@ function bindEvents() {
   $('libraryButton').addEventListener('click', showLibrary);
   $('libraryTab').addEventListener('click', showLibrary);
   $('backToFeed').addEventListener('click', hideLibrary);
+  $('goToFeedFromDownloads').addEventListener('click', hideLibrary);
   $('feedTab').addEventListener('click', hideLibrary);
+  $('downloadsTab').addEventListener('click', showDownloads);
+  $('libraryFilters').addEventListener('click', (event) => {
+    const button = event.target.closest('button[data-library-filter]');
+    if (button) applyLibraryFilter(button.dataset.libraryFilter);
+  });
+  $('clearSearch').addEventListener('click', () => {
+    $('searchInput').value = '';
+    renderLibrary();
+    $('searchInput').focus();
+  });
+  $('clearDownloadSearch').addEventListener('click', () => {
+    $('downloadSearchInput').value = '';
+    renderDownloads();
+    $('downloadSearchInput').focus();
+  });
+  $('downloadSearchInput').addEventListener('input', renderDownloads);
   $('favoriteButton').addEventListener('click', () => {
     if (!current) return;
     current.favorite = !current.favorite;
@@ -626,7 +811,10 @@ function bindEvents() {
       $('playButton').textContent = '▶';
     }
   });
-  audio.addEventListener('ended', () => { $('playButton').textContent = '▶'; });
+  audio.addEventListener('ended', () => {
+    $('playButton').textContent = '▶';
+    if ($('downloadsView') && !$('downloadsView').classList.contains('hidden')) renderDownloads();
+  });
   $('songCard').addEventListener('touchstart', (event) => { touchStartY = event.changedTouches[0].screenY; }, { passive: true });
   $('songCard').addEventListener('touchend', (event) => {
     const diff = touchStartY - event.changedTouches[0].screenY;
@@ -657,6 +845,9 @@ function refreshFromNative() {
       }
     }
   }
+  refreshDownloads();
+  if (!$('downloadsView').classList.contains('hidden')) renderDownloads();
+  if (!$('libraryView').classList.contains('hidden')) renderLibrary();
   const latestDone = tracks.filter(t => t.analysis && t.analysis.chorus).length;
   if (latestDone > previousDone && !backgroundMode) {
     toast('נוספו ' + (latestDone - previousDone) + ' פזמונים שזוהו לספרייה');
@@ -668,6 +859,7 @@ function startup() {
     return;
   }
   refreshTracks();
+  refreshDownloads();
   bindEvents();
   renderWaveform();
   if (backgroundMode) {

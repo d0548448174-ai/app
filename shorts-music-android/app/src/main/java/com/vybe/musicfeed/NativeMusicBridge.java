@@ -85,6 +85,104 @@ public final class NativeMusicBridge {
     }
 
     @JavascriptInterface
+    public String getDownloadsJson() {
+        JSONArray rows = new JSONArray();
+        if (!hasAudioPermission()) return rows.toString();
+        Cursor cursor = null;
+        try {
+            Uri collection = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+            String[] projection;
+            String selection;
+            String[] args;
+            if (Build.VERSION.SDK_INT >= 29) {
+                projection = new String[] {
+                        MediaStore.Audio.Media._ID,
+                        MediaStore.Audio.Media.TITLE,
+                        MediaStore.Audio.Media.ARTIST,
+                        MediaStore.Audio.Media.DURATION,
+                        MediaStore.Audio.Media.DISPLAY_NAME,
+                        MediaStore.Audio.Media.SIZE,
+                        MediaStore.Audio.Media.RELATIVE_PATH
+                };
+                selection = MediaStore.Audio.Media.RELATIVE_PATH + "=? AND " +
+                        MediaStore.Audio.Media.MIME_TYPE + "=? AND " +
+                        MediaStore.Audio.Media.IS_PENDING + "=0";
+                args = new String[] { Environment.DIRECTORY_MUSIC + "/VYBE/", "audio/mpeg" };
+            } else {
+                File folder = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC), "VYBE");
+                projection = new String[] {
+                        MediaStore.Audio.Media._ID,
+                        MediaStore.Audio.Media.TITLE,
+                        MediaStore.Audio.Media.ARTIST,
+                        MediaStore.Audio.Media.DURATION,
+                        MediaStore.Audio.Media.DISPLAY_NAME,
+                        MediaStore.Audio.Media.SIZE,
+                        MediaStore.Audio.Media.DATA
+                };
+                selection = MediaStore.Audio.Media.DATA + " LIKE ? AND " + MediaStore.Audio.Media.MIME_TYPE + "=?";
+                args = new String[] { folder.getAbsolutePath() + File.separator + "%", "audio/mpeg" };
+            }
+            cursor = context.getContentResolver().query(collection, projection, selection, args,
+                    MediaStore.Audio.Media.DATE_ADDED + " DESC");
+            if (cursor != null) {
+                int idCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID);
+                int titleCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE);
+                int artistCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST);
+                int durationCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION);
+                int nameCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME);
+                int sizeCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.SIZE);
+                while (cursor.moveToNext()) {
+                    String fileName = clean(cursor.getString(nameCol), "פזמון.mp3");
+                    String fallbackTitle = fileName.replaceFirst("(?i)\\.mp3$", "").replaceFirst("_chorus$", "");
+                    JSONObject item = new JSONObject();
+                    item.put("id", String.valueOf(cursor.getLong(idCol)));
+                    item.put("title", clean(cursor.getString(titleCol), fallbackTitle));
+                    item.put("artist", clean(cursor.getString(artistCol), "פזמון שהורד"));
+                    item.put("duration", Math.max(0L, cursor.getLong(durationCol)));
+                    item.put("fileName", fileName);
+                    item.put("size", Math.max(0L, cursor.getLong(sizeCol)));
+                    rows.put(item);
+                }
+            }
+        } catch (Exception e) {
+            android.util.Log.e("PIZMON_REELS", "Could not list saved choruses", e);
+        } finally {
+            if (cursor != null) cursor.close();
+        }
+        return rows.toString();
+    }
+
+    @JavascriptInterface
+    public String deleteDownload(String idText) {
+        Cursor cursor = null;
+        try {
+            long id = Long.parseLong(idText);
+            Uri itemUri = Uri.withAppendedPath(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, String.valueOf(id));
+            String selection;
+            String[] args;
+            if (Build.VERSION.SDK_INT >= 29) {
+                selection = MediaStore.Audio.Media._ID + "=? AND " + MediaStore.Audio.Media.RELATIVE_PATH + "=?";
+                args = new String[] { String.valueOf(id), Environment.DIRECTORY_MUSIC + "/VYBE/" };
+            } else {
+                File folder = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC), "VYBE");
+                selection = MediaStore.Audio.Media._ID + "=? AND " + MediaStore.Audio.Media.DATA + " LIKE ?";
+                args = new String[] { String.valueOf(id), folder.getAbsolutePath() + File.separator + "%" };
+            }
+            cursor = context.getContentResolver().query(itemUri, new String[] { MediaStore.Audio.Media._ID }, selection, args, null);
+            boolean isSavedChorus = cursor != null && cursor.moveToFirst();
+            if (cursor != null) { cursor.close(); cursor = null; }
+            if (!isSavedChorus) return "ERR:NOT_FOUND";
+            int deleted = context.getContentResolver().delete(itemUri, null, null);
+            return deleted > 0 ? "OK" : "ERR:DELETE";
+        } catch (Exception e) {
+            android.util.Log.e("PIZMON_REELS", "Could not delete saved chorus", e);
+            return "ERR:" + e.getClass().getSimpleName();
+        } finally {
+            if (cursor != null) cursor.close();
+        }
+    }
+
+    @JavascriptInterface
     public String readAudioBase64(String idText) {
         if (!hasAudioPermission()) return "ERR:PERMISSION";
         try {
